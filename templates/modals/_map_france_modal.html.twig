@@ -1,0 +1,32 @@
+
+// Exemple de données à passer à Twig
+$lendings = [
+['date' => '2018-09-29 05:57', 'lending_id' => 100398, 'name' => 'iPhone X 64Gb Grey', 'price' => '$999.00', 'quantity' => 1, 'total' => '$999.00'],
+// ... autres lignes
+];
+
+$topCountries = [
+['name' => 'United States', 'lendings' => '$119,366.96'],
+// ...
+];
+
+return $this->render('dashboard/index.html.twig', [
+'lendings' => $lendings,
+'top_countries' => $topCountries,
+]);
+
+
+$tasks = [
+['title' => 'Meeting about plan for Admin Template 2018', 'time' => '10:00 AM', 'type' => 'danger', 'loadable' => false],
+['title' => 'Create new task for Dashboard', 'time' => '11:00 AM', 'type' => 'warning', 'loadable' => false],
+['title' => 'Meeting about plan for Admin Template 2018', 'time' => '02:00 PM', 'type' => 'primary', 'loadable' => false],
+['title' => 'Create new task for Dashboard', 'time' => '03:30 PM', 'type' => 'success', 'loadable' => false],
+['title' => 'Meeting about plan for Admin Template 2018', 'time' => '10:00 AM', 'type' => 'danger', 'loadable' => true],
+['title' => 'Create new task for Dashboard', 'time' => '11:00 AM', 'type' => 'warning', 'loadable' => true],
+];
+
+return $this->render('dashboard/index.html.twig', [
+'task_date' => '26 April, 2018',
+'user_name' => 'John Doe',
+'tasks' => $tasks,
+]);

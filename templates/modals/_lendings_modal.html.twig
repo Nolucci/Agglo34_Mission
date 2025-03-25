@@ -1,0 +1,32 @@
+<div class="col-lg-9">
+    <h2 class="title-1 m-b-25">Prêts</h2>
+    <div class="table-responsive table--no-card m-b-40">
+        <table class="table table-borderless table-striped table-lending">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Lieu</th>
+                <th>Demande</th>
+                <th>Matériel</th>
+                <th class="text-right">Prix</th>
+                <th class="text-right">Quantité</th>
+                <th class="text-right">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for lending in lendings %}
+                <tr>
+                    <td>{{ lending.date }}</td>
+                    <td>{{ lending.lending_id }}</td>
+                    <td>{{ lending.name }}</td>
+                    <td class="text-right">{{ lending.price }}</td>
+                    <td class="text-right">{{ lending.quantity }}</td>
+                    <td class="text-right">{{ lending.total }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">No lendings data available.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

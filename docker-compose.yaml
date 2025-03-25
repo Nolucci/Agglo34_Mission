@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  sru_web_prod:
+    image: debian:latest
+    container_name: sru_web_prod
+    networks:
+      sru_network:
+        ipv4_address: 172.40.0.5
+    ports:
+      - "4080:80"
+      - "4043:443"
+    volumes:
+      - ./web:/var/www/html
+    depends_on:
+      - database
+    command: >
+      sh -c "apt update && apt install -y apache2 php libapache2-mod-php &&
+             apachectl -D FOREGROUND"
+
+  sru_pgadmin:
+    image: dpage/pgadmin4
+    container_name: sru_pgadmin
+    networks:
+      sru_network:
+        ipv4_address: 172.40.0.3
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "4081:80"
+      - "4044:443"
+    depends_on:
+      - database
+
+  database:
+    image: postgres:16
+    container_name: sru_postgresql16
+    networks:
+      sru_network:
+        ipv4_address: 172.40.0.2
+    environment:
+      POSTGRES_DB: agglo34_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "app", "-U", "app"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    ports:
+      - "5432:4032"
+
+  mailer:
+    image: axllent/mailpit
+    container_name: maile
+    networks:
+      sru_network:
+        ipv4_address: 172.40.0.4
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+networks:
+  sru_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.40.0.0/24
+
+volumes:
+  database_data:
