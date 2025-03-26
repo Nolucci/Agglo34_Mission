@@ -12,6 +12,9 @@ class DashboardController extends AbstractController
     #[Route('/dashboard', name: 'dashboard')]
     public function index(): Response
     {
+        $this->addFlash('success', 'Connexion réussie !');
+        $this->addFlash('danger', 'Erreur lors de la connexion.');
+
         // Simule des données pour l'affichage
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
@@ -21,7 +24,11 @@ class DashboardController extends AbstractController
             'user' => $user = [
                 'name' => 'John Doe',
                 'email' => 'johndoe@example.com',
-                'image_url' => '/images/profile.jpg', // Peut être null si pas d'image
+                'image_url' => '/images/profile.jpg',
+            ],
+            'top_towns' => $top_towns  = [[
+                'name' => null,
+                'lendings' => null,],
             ],
         ]);
     }
@@ -72,7 +79,7 @@ class DashboardController extends AbstractController
     public function map(): Response
     {
         // Simule des données pour l'affichage
-        return $this->render('map.html.twig');
+        return $this->render('map.html.twig.twig');
     }
 
     #[Route('/settings', name: 'settings')]

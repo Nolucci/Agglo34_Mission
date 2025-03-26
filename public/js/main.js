@@ -198,6 +198,7 @@
           },
           elements: {
             line: {
+              tension: 0.00001,
               borderWidth: 1
             },
             point: {

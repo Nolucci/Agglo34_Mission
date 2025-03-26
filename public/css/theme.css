@@ -4253,6 +4253,18 @@ section {
     padding-right: 65px;
 }
 
+.table-lending tbody {
+    display: block;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.table-lending thead, .table-lending tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
 .table-lending tbody td {
     color: #808080;
     padding: 12px 40px;

@@ -1,17 +1,17 @@
 <div class="col-lg-3">
-    <h2 class="title-1 m-b-25">Top countries</h2>
+    <h2 class="title-1 m-b-25">Communes</h2>
     <div class="au-card au-card--bg-blue au-card-top-countries m-b-40">
         <div class="au-card-inner">
             <div class="table-responsive">
                 <table class="table table-top-countries">
                     <tbody>
-                    {% for country in top_countries %}
+                    {% for town in top_towns %}
                         <tr>
-                            <td>{{ country.name }}</td>
-                            <td class="text-right">{{ country.lendings }}</td>
+                            <td>{{ town.name }}</td>
+                            <td class="text-right">{{ town.lendings }}</td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="2">No data available.</td></tr>
+                        <tr><td colspan="2">Aucune donnée disponible.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

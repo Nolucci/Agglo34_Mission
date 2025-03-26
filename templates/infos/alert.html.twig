@@ -1,0 +1,21 @@
+{# alert.twig #}
+{% set alertTypes = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'] %}
+
+{% if type in alertTypes %}
+<div class="sufee-alert alert with-close alert-{{ type }} alert-dismissible fade show">
+	<span class="badge badge-pill badge-{{ type }}">{{ label|default('Success') }}</span>
+	{{ message|default('You successfully read this important alert.') }}
+	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+	</button>
+</div>
+{% else %}
+{# Optional: handle invalid type #}
+<div class="sufee-alert alert with-close alert-warning alert-dismissible fade show">
+	<span class="badge badge-pill badge-warning">Warning</span>
+	Invalid alert type provided.
+	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+	</button>
+</div>
+{% endif %}

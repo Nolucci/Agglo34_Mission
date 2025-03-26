@@ -27,9 +27,9 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="overview-wrap">
-                                    <h2 class="title-1">overview</h2>
-                                    <button class="au-btn au-btn-icon au-btn--blue">
-                                        <i class="zmdi zmdi-plus"></i>add item
+                                    <h2 class="title-1">Vue d'ensemble</h2>
+                                    <button class="au-btn au-btn-icon au-btn--green">
+                                        <i class="zmdi zmdi-plus"></i>Ajouter
                                     </button>
                                 </div>
                             </div>
@@ -38,29 +38,12 @@
                         {# INCLUDE OVERVIEW MODAL #}
                         {% include 'modals/_overview_modal.html.twig' %}
 
-                        {# INCLUDE REPORTS MODAL #}
-                        {% include 'modals/_reports_modal.html.twig' %}
-
                         {# EARNINGS & TOP COUNTRIES #}
+
                         <div class="row">
+                            {% include 'infos/map.html.twig' %}
                             {% include 'modals/_lendings_modal.html.twig' %}
-                            {% include 'modals/_top_countries_modal.html.twig' %}
                         </div>
-
-                        {# TASKS MODAL #}
-                        <div class="row">
-                            {% include 'modals/_tasks_modal.html.twig' %}
-                        </div>
-
-                        {# MAP MODALS (À ACTIVER SI CONTENU DISPONIBLE) #}
-                        {#
-                        <div class="row">
-                            {% include 'dashboard/modals/_map_france_modal.html.twig' %}
-                            {% include 'dashboard/modals/_map_occitanie_modal.html.twig' %}
-                            {% include 'dashboard/modals/_map_herault_modal.html.twig' %}
-                            {% include 'dashboard/modals/_map_beziers_modal.html.twig' %}
-                        </div>
-                        #}
                     </div>
                 </div>
             </div>

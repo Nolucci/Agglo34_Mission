@@ -10,9 +10,9 @@ $topCountries = [
 // ...
 ];
 
-return $this->render('dashboard/index.html.twig', [
+return $this->render('index.html.twig', [
 'lendings' => $lendings,
-'top_countries' => $topCountries,
+'top_towns' => $topCountries,
 ]);
 
 
@@ -25,7 +25,7 @@ $tasks = [
 ['title' => 'Create new task for Dashboard', 'time' => '11:00 AM', 'type' => 'warning', 'loadable' => true],
 ];
 
-return $this->render('dashboard/index.html.twig', [
+return $this->render('index.html.twig', [
 'task_date' => '26 April, 2018',
 'user_name' => 'John Doe',
 'tasks' => $tasks,
