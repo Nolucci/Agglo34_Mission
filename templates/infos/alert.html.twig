@@ -19,3 +19,19 @@
 	</button>
 </div>
 {% endif %}
+
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		const flashContainer = document.getElementById("flash-messages");
+		if (flashContainer) {
+			flashContainer.classList.add("flash-fade");
+
+			setTimeout(() => {
+				flashContainer.classList.add("hide");
+				setTimeout(() => flashContainer.style.display = "none", 1000);
+			}, 5000);
+		}
+	});
+</script>
+

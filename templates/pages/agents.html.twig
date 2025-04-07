@@ -1,24 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends './base.html.twig' %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block body %}
     <div class="page-wrapper">
-        <!-- HEADER MOBILE-->
-        {% include 'partials/_header_mobile.html.twig' %}
-        <!-- END HEADER MOBILE-->
-
-        <!-- MENU SIDEBAR-->
-        {% include 'partials/_sidebar_menu.html.twig' %}
-        <!-- END MENU SIDEBAR-->
-
-
         <!-- PAGE CONTAINER-->
         <div class="page-container">
-            <!-- HEADER DESKTOP-->
-            {% include 'partials/_header_desktop.html.twig' %}
-            <!-- END HEADER DESKTOP-->
-
             <!-- MAIN CONTENT-->
             <div class="main-content">
                 <div class="section__content section__content--p30">
@@ -34,22 +21,9 @@
                                 </div>
                             </div>
                         </div>
-
-                        {# INCLUDE OVERVIEW MODAL #}
-                        {% include 'modals/_overview_modal.html.twig' %}
-
-                        {# INCLUDE REPORTS MODAL #}
-                        {% include 'modals/_reports_modal.html.twig' %}
-
-                        {# EARNINGS & TOP COUNTRIES #}
-                        <div class="row">
-                            {% include 'modals/_lendings_modal.html.twig' %}
-                            {% include 'modals/_top_countries_modal.html.twig' %}
-                        </div>
-
                         {# TASKS MODAL #}
                         <div class="row">
-                            {% include 'modals/_tasks_modal.html.twig' %}
+                            {% include './modals/_tasks_modal.html.twig' %}
                         </div>
 
                         {# MAP MODALS (À ACTIVER SI CONTENU DISPONIBLE) #}

@@ -1,0 +1,29 @@
+{% extends './base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+    <div class="page-wrapper">
+
+        <!-- PAGE CONTAINER-->
+        <div class="page-container">
+            <!-- MAIN CONTENT-->
+            <div class="main-content">
+                <div class="section__content section__content--p30">
+                    <div class="container-fluid">
+
+                        {# MAP MODALS (À ACTIVER SI CONTENU DISPONIBLE) #}
+                        {#
+                        <div class="row">
+                            {% include 'modals/_map_france_modal.html.twig' %}
+                            {% include 'modals/_map_occitanie_modal.html.twig' %}
+                            {% include 'modals/_map_herault_modal.html.twig' %}
+                            {% include 'modals/_map_beziers_modal.html.twig' %}
+                        </div>
+                        #}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------
 [Master Stylesheet]
 
-Project:  CoolAdmin
+Project:  Agglo34
 Version:	1.0
 Last change:	08/10/2018 [Add Define a table of contents Link]
 Assigned to:	Hau Nguyen
@@ -14660,4 +14660,13 @@ section {
 
 .vue-lists ul, .vue-lists ol {
     padding-left: 30px;
+}
+
+.flash-fade {
+    opacity: 1;
+    transition: opacity 1s ease-out;
+}
+
+.flash-fade.hide {
+    opacity: 0;
 }

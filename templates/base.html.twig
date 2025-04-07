@@ -19,6 +19,9 @@
         <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet">
         <link href="{{ asset('vendor/perfect-scrollbar/perfect-scrollbar.css') }}" rel="stylesheet">
         <link href="{{ asset('css/theme.css') }}" rel="stylesheet">
+        <link href="{{ asset('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css') }}" rel="stylesheet"/>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+        <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"/>
     {% endblock %}
 </head>
 <body class="animsition">
@@ -36,8 +39,21 @@
     {% endfor %}
 </div>
 
-{% block body %}{% endblock %}
+<!-- HEADER MOBILE-->
+{% include './partials/_header_mobile.html.twig' %}
+<!-- END HEADER MOBILE-->
 
+<!-- MENU SIDEBAR-->
+{% include './partials/_sidebar_menu.html.twig' %}
+<!-- END MENU SIDEBAR-->
+
+<!-- HEADER DESKTOP-->
+{% include './partials/_header_desktop.html.twig' %}
+<!-- END HEADER DESKTOP-->
+
+{% block body %}
+
+{% endblock %}
 
 {% block javascripts %}
     <script src="{{ asset('vendor/jquery-3.2.1.min.js') }}"></script>
@@ -54,6 +70,17 @@
     <script src="{{ asset('vendor/chartjs/Chart.bundle.min.js') }}"></script>
     <script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js')}}"></script>
+    <script>
+        const geojsonUrl = "{{ asset('data/beziers-agglo-points.geojson') }}";
+    </script>
+    <script src="{{ asset('js/map.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 {% endblock %}
 </body>
 </html>

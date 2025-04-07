@@ -1,0 +1,192 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Béziers",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.25, 43.349998]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Sérignan",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.28182, 43.2818]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Villeneuve-lès-Béziers",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.26667, 43.316669]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Valras-Plage",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.29608, 43.2471]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Servian",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.29624, 43.4269]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Sauvian",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.26242, 43.2943]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Montblanc",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.36752000,43.39486000]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Boujan-sur-Libron",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.25, 43.366669]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Cers",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.3, 43.316669]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Corneilhan",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.19169, 43.3993]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Lignan-sur-Orb",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.18333, 43.383331]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Lieuran-lès-Béziers",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.23333, 43.416672]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Bassan",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.25435, 43.4077]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Espondeilhan",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.26667, 43.433331]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Coulobres",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.28333, 43.450001]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Valros",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.35821, 43.4207]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Alignan-du-Vent",
+        "type": "Commune"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [3.34207, 43.4686]
+      }
+    }
+  ]
+}
