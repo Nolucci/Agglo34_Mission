@@ -4,14 +4,14 @@
 
 {% block body %}
 <div class="page-wrapper">
-    <!-- PAGE CONTAINER-->
+    <!-- PAGE -->
     <div class="page-container">
 
-        <!-- MAIN CONTENT-->
+        <!-- MAIN -->
         <div class="main-content">
             <div class="section__content section__content--p30">
                 <div class="container-fluid">
-                    <!-- Overview Title & Button -->
+                    <!-- Overview -->
                     <div class="row">
                         <div class="col-md-12">
                             <div class="overview-wrap">
@@ -20,10 +20,9 @@
                         </div>
                     </div>
 
-                    {# INCLUDE OVERVIEW MODAL #}
+                    {# INCLUDE MODALS #}
                     {% include './modals/_overview_modal.html.twig' %}
 
-                    {# EARNINGS & TOP COUNTRIES #}
                     <div class="row">
                         <div class="col-lg-3">
                             <h2 class="title-1 m-b-25">Lignes Téléphoniques</h2>
@@ -40,5 +39,6 @@
             </div>
         </div>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}
 

@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\TelephoneLine;
+use App\Entity\PhoneLine;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<TelephoneLine>
+ * @extends ServiceEntityRepository<PhoneLine>
  */
-class TelephoneLineRepository extends ServiceEntityRepository
+class PhoneLineRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, TelephoneLine::class);
+        parent::__construct($registry, PhoneLine::class);
     }
 
     //    /**
-    //     * @return TelephoneLine[] Returns an array of TelephoneLine objects
+    //     * @return PhoneLine[] Returns an array of PhoneLine objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class TelephoneLineRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?TelephoneLine
+    //    public function findOneBySomeField($value): ?PhoneLine
     //    {
     //        return $this->createQueryBuilder('t')
     //            ->andWhere('t.exampleField = :val')

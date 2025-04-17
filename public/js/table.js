@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    const table = $('#telephoneTable').DataTable({
+    const table = $('#phoneTable').DataTable({
         dom: 'Bfrtip',
         buttons: [
             {
@@ -22,13 +22,13 @@ $(document).ready(function () {
     });
 
     // Filtrage par commune
-    $('#townFilter').on('change', function () {
+    $('#municipalityFilter').on('change', function () {
         const value = $(this).val();
         table.column(1).search(value).draw(); // Colonne 1 = nom commune
     });
 
     // Redirection sur clic de ligne
-    $('#telephoneTable tbody').on('click', 'tr.clickable-row', function (e) {
+    $('#phoneTable tbody').on('click', 'tr.clickable-row', function (e) {
         // Ignore si clic sur un bouton dans la cellule
         if (!$(e.target).closest('button').length) {
             const href = $(this).data('href');
@@ -42,7 +42,7 @@ $(document).ready(function () {
     //$('.edit-btn').on('click', function (e) {
     //    e.stopPropagation(); // Empêche le clic ligne
     //    const id = $(this).data('id');
-    //    window.location.href = '/telephone-line/' + id + '/edit';
+    //    window.location.href = '/phone-line/' + id + '/edit';
     //});
 
     // Exemple action bouton Supprimer (à personnaliser)

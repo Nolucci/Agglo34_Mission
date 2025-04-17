@@ -9,7 +9,7 @@
                             <img src="{{ user.image_url|default('path/to/default.jpg') }}" alt="{{ user.name|default('User') }}" />
                         </div>
                         <div class="content">
-                            <a class="js-acc-btn" href="#">{{ user.name|default('John Doe')|lower }}</a>
+                            <a class="js-acc-btn" href="#">{{ user.name|default('Frederic F')|lower }}</a>
                         </div>
                         <div class="account-dropdown js-dropdown">
                             <div class="info clearfix">
@@ -20,9 +20,9 @@
                                 </div>
                                 <div class="content">
                                     <h5 class="name">
-                                        <a href="#">{{ user.name|default('John')|lower }}</a>
+                                        <a href="#">{{ user.name|default('Frederic')|lower }}</a>
                                     </h5>
-                                    <span class="email">{{ user.email|default('john@example.com') }}</span>
+                                    <span class="email">{{ user.email|default('frederic@example.com') }}</span>
                                 </div>
                             </div>
                             <div class="account-dropdown__body">

@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\Town;
+use App\Entity\Municipality;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Town>
+ * @extends ServiceEntityRepository<Municipality>
  */
-class TownRepository extends ServiceEntityRepository
+class MunicipalityRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Town::class);
+        parent::__construct($registry, Municipality::class);
     }
 
     //    /**
-    //     * @return Town[] Returns an array of Town objects
+    //     * @return Municipality[] Returns an array of Municipality objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class TownRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Town
+    //    public function findOneBySomeField($value): ?Municipality
     //    {
     //        return $this->createQueryBuilder('t')
     //            ->andWhere('t.exampleField = :val')

@@ -1,12 +1,13 @@
-<!-- DATA TABLE -->
+<!-- DATA -->
 <div class="wrap">
     <div class="table-data__tool">
         <div class="table-data__tool-left">
             <div class="rs-select2--light rs-select2--md">
-                <label for="townFilter">Options</label><select class="js-select2" id="townFilter">
+                <label for="municipalityFilter">Options</label>
+                <select class="js-select2" id="municipalityFilter">
                     <option value="">Toutes les communes</option>
-                    {% for town in towns %}
-                        <option value="{{ town.name }}">{{ town.name }}</option>
+                    {% for municipality in municipalities %}
+                        <option value="{{ municipality.name }}">{{ municipality.name }}</option>
                     {% endfor %}
                 </select>
                 <div class="dropDownSelect2"></div>
@@ -21,57 +22,64 @@
             </button>
         </div>
     </div>
-        <div class="table-responsive table-responsive-data2">
-            <table id="telephoneTable" class="table table-data2 display nowrap">
-                <thead>
-                <tr>
-                    <th>
-                        <label class="au-checkbox">
-                            <input type="checkbox">
-                            <span class="au-checkmark"></span>
-                        </label>
-                    </th>
-                    <th>Commune</th>
-                    <th>Numéro</th>
-                    <th>Opérateur</th>
-                    <th>Débit (Mbps)</th>
-                    <th>Date d'installation</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for town in towns %}
-                    {% for line in town.telephoneLines %}
-                        <tr class="tr-shadow clickable-row">
-                            <!-- data-href="{path('telephone_line_show', {'id': line.id}) }"-->
-                            <td>
-                                <label class="au-checkbox">
-                                    <input type="checkbox">
-                                    <span class="au-checkmark"></span>
-                                </label>
-                            </td>
-                            <td>{{ town.name }}</td>
-                            <td>{{ line.numero }}</td>
-                            <td>{{ line.operator }}</td>
-                            <td>{{ line.speed ?: 'N/A' }}</td>
-                            <td>{{ line.installationDate ? line.installationDate|date('Y-m-d H:i') : 'N/A' }}</td>
-                            <td>
-                                <div class="table-data-feature">
-                                    <button class="item edit-btn" title="Modifier" data-id="{{ line.id }}">
-                                        <i class="zmdi zmdi-edit"></i>
-                                    </button>
-                                    <button class="item delete-btn" title="Supprimer" data-id="{{ line.id }}">
-                                        <i class="zmdi zmdi-delete"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr class="spacer"></tr>
-                    {% endfor %}
+    <div class="table-responsive table-responsive-data2">
+        <table id="phoneTable" class="table table-data2 display nowrap">
+            <thead>
+            <tr>
+                <th>
+                    <label class="au-checkbox">
+                        <input type="checkbox">
+                        <span class="au-checkmark"></span>
+                    </label>
+                </th>
+                <th>Commune</th>
+                <th>Numéro</th>
+                <th>Opérateur</th>
+                <th>Type</th>
+                <th>Frais Mensuels (€)</th>
+                <th>ID Contrat</th>
+                <th>Statut</th>
+                <th>Débit (Mbps)</th>
+                <th>Date d'installation</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for municipality in municipalities %}
+                {% for line in municipality.phoneLines %}
+                    <tr class="tr-shadow clickable-row">
+                        <!-- data-href="{path('phone_line_show', {'id': line.id}) }"-->
+                        <td>
+                            <label class="au-checkbox">
+                                <input type="checkbox">
+                                <span class="au-checkmark"></span>
+                            </label>
+                        </td>
+                        <td>{{ municipality.name }}</td>
+                        <td>{{ line.numero }}</td>
+                        <td>{{ line.operator }}</td>
+                        <td>{{ line.type }}</td>
+                        <td>{{ line.monthlyFee ?: 'N/A' }}</td>
+                        <td>{{ line.contractId ?: 'N/A' }}</td>
+                        <td>{{ line.isActive ? 'Active' : 'Inactive' }}</td>
+                        <td>{{ line.speed ?: 'N/A' }}</td>
+                        <td>{{ line.installationDate ? line.installationDate|date('Y-m-d H:i') : 'N/A' }}</td>
+                        <td>
+                            <div class="table-data-feature">
+                                <button class="item edit-btn" title="Modifier" data-id="{{ line.id }}">
+                                    <i class="zmdi zmdi-edit"></i>
+                                </button>
+                                <button class="item delete-btn" title="Supprimer" data-id="{{ line.id }}">
+                                    <i class="zmdi zmdi-delete"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="spacer"></tr>
                 {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <!-- END DATA TABLE -->
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+<!-- END DATA -->

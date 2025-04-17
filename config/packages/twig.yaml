@@ -2,7 +2,7 @@ twig:
     file_name_pattern: '*.twig'
     globals:
         images: '/public/images'
-        icons: '/public/images/icons'
+        icon: '/images/icon'
 when@test:
     twig:
         strict_variables: true

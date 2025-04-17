@@ -5,10 +5,10 @@
             <div class="table-responsive">
                 <table class="table table-top-countries">
                     <tbody>
-                    {% for town in top_towns %}
+                    {% for municipality in top_municipalities %}
                         <tr>
-                            <td>{{ town.name }}</td>
-                            <td class="text-right">{{ town.lendings }}</td>
+                            <td>{{ municipality.name }}</td>
+                            <td class="text-right">{{ municipality.lendings }}</td>
                         </tr>
                     {% else %}
                         <tr><td colspan="2">Aucune donnée disponible.</td></tr>

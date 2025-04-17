@@ -3,7 +3,7 @@
 // src/Controller/DashboardController.php
 namespace App\Controller;
 
-use App\Repository\TownRepository;
+use App\Repository\MunicipalityRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,21 +23,28 @@ class DashboardController extends AbstractController
             'top_countries' => null,
             'tasks' => null,
             'user' => $user = [
-                'name' => 'John Doe',
-                'email' => 'johndoe@example.com',
-                'image_url' => '/images/profile.jpg',
+                'name' => 'Frederic F',
+                'email' => 'fredericf@example.com',
+                'image_url' => '/images/img.png',
             ],
-            'towns' => $towns = [
+            'municipalities' => $municipalities = [
                 [
                     'id' => 1,
                     'name' => 'Paris',
-                    'telephoneLines' => [
+                    'address' => '10 Rue de Paris, 75000 Paris',
+                    'contactName' => 'Marie Dupont',
+                    'contactPhone' => '0147253625',
+                    'phoneLines' => [
                         [
                             'id' => 101,
                             'numero' => 33123456789,
                             'operator' => 'Orange',
                             'speed' => 500,
                             'installationDate' => '2024-01-10 08:30:00',
+                            'type' => 'Fibre',
+                            'monthlyFee' => 39.99,
+                            'contractId' => 'CTR-00101',
+                            'isActive' => true,
                         ],
                         [
                             'id' => 102,
@@ -45,30 +52,45 @@ class DashboardController extends AbstractController
                             'operator' => 'SFR',
                             'speed' => 300,
                             'installationDate' => '2023-12-15 14:00:00',
+                            'type' => 'ADSL',
+                            'monthlyFee' => 29.99,
+                            'contractId' => 'CTR-00102',
+                            'isActive' => false,
                         ],
                     ],
                 ],
                 [
                     'id' => 2,
                     'name' => 'Lyon',
-                    'telephoneLines' => [
+                    'address' => '5 Place Bellecour, 69000 Lyon',
+                    'contactName' => 'Jean Martin',
+                    'contactPhone' => '0478787878',
+                    'phoneLines' => [
                         [
                             'id' => 103,
                             'numero' => 33445566778,
                             'operator' => 'Bouygues',
                             'speed' => 400,
                             'installationDate' => '2024-02-01 10:00:00',
+                            'type' => 'Fibre',
+                            'monthlyFee' => 34.99,
+                            'contractId' => 'CTR-00103',
+                            'isActive' => true,
                         ],
                     ],
                 ],
                 [
                     'id' => 3,
                     'name' => 'Marseille',
-                    'telephoneLines' => [],
+                    'address' => '12 Quai du Port, 13000 Marseille',
+                    'contactName' => 'Lucie Morel',
+                    'contactPhone' => '0491919191',
+                    'phoneLines' => [],
                 ],
             ],
         ]);
     }
+
 
     #[Route('/agents', name: 'agents')]
     public function agents(): Response
@@ -141,15 +163,15 @@ class DashboardController extends AbstractController
             'top_countries' => null,
             'tasks' => null,
             'user' => $user = [
-                'name' => 'John Doe',
-                'email' => 'johndoe@example.com',
+                'name' => 'Frederic F',
+                'email' => 'fredericf@example.com',
                 'image_url' => '/images/profile.jpg',
             ],
-            'towns' => $towns = [
+            'municipalities' => $municipalities = [
                 [
                     'id' => 1,
                     'name' => 'Paris',
-                    'telephoneLines' => [
+                    'phoneLines' => [
                         [
                             'id' => 101,
                             'numero' => 33123456789,
@@ -169,7 +191,7 @@ class DashboardController extends AbstractController
                 [
                     'id' => 2,
                     'name' => 'Lyon',
-                    'telephoneLines' => [
+                    'phoneLines' => [
                         [
                             'id' => 103,
                             'numero' => 33445566778,
@@ -182,7 +204,7 @@ class DashboardController extends AbstractController
                 [
                     'id' => 2,
                     'name' => 'Lyon',
-                    'telephoneLines' => [
+                    'phoneLines' => [
                         [
                             'id' => 103,
                             'numero' => 33445566778,
@@ -195,7 +217,7 @@ class DashboardController extends AbstractController
                 [
                     'id' => 2,
                     'name' => 'Lyon',
-                    'telephoneLines' => [
+                    'phoneLines' => [
                         [
                             'id' => 103,
                             'numero' => 33445566778,
@@ -209,10 +231,10 @@ class DashboardController extends AbstractController
         ]);
     }
 
-    #[Route('/lines/town/{name}', name: 'lines_by_town', methods: ['GET'])]
-    public function getLinesByTown(string $name, TownRepository $TownRepository): JsonResponse
+    #[Route('/lines/municipality/{name}', name: 'lines_by_municipality', methods: ['GET'])]
+    public function getLinesByMunicipality(string $name, MunicipalityRepository $MunicipalityRepository): JsonResponse
     {
-        $commune = $TownRepository->findOneBy(['name' => $name]);
+        $commune = $MunicipalityRepository->findOneBy(['name' => $name]);
 
         if (!$commune) {
             return $this->json(['error' => 'Commune not found'], 404);
