@@ -1,13 +1,14 @@
 <?php
-
-// src/Controller/DashboardController.php
 namespace App\Controller;
 
-use App\Repository\MunicipalityRepository;
+use App\Repository\SettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Repository\MunicipalityRepository;
 
 class DashboardController extends AbstractController
 {
@@ -109,7 +110,7 @@ class DashboardController extends AbstractController
     #[Route('/login', name: 'login')]
     public function login(): Response
     {
-        return $this->render('pages/login.html.twig', [
+        return $this->render('pages/login.html.twig.twig', [
             'page_title' => "Tableau de bord"]);
     }
 
@@ -138,7 +139,7 @@ class DashboardController extends AbstractController
     public function documents(): Response
     {
         return $this->render('pages/documents.html.twig', [
-            'page_title' => "Tableau de bord"]);
+            'page_title' => "Importer des Fichiers"]);
     }
 
     #[Route('/map', name: 'map')]
@@ -148,29 +149,45 @@ class DashboardController extends AbstractController
             'page_title' => "Tableau de bord"]);
     }
 
-    #[Route('/settings', name: 'settings')]
-    public function settings(): Response
+    #[Route('/admin/settings', name: 'settings')]
+    public function settings(Request $request, SettingsRepository $repo): Response
     {
-        return $this->render('pages/settings.html.twig', [
-            'page_title' => "Tableau de bord"]);
+        $settings = $repo->findOneBy([]);
+        $form = $this->createForm(SettingsRepository::class, $settings);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $repo->save($settings, true);
+            $this->addFlash('success', 'Paramètres mis à jour');
+            return $this->redirectToRoute('settings');
+        }
+
+        return $this->render('settings.html.twig', [
+            'settings' => $settings,
+            'form' => $form->createView(),
+        ]);
     }
 
     #[Route('/lines', name: 'lines')]
     public function lines(): Response
     {
         return $this->render('pages/lines.html.twig', [
-            'page_title' => "Lignes Téléphoniques",'lendings' => null,
+            'page_title' => "Lignes téléphoniques",
+            'lendings' => null,
             'top_countries' => null,
             'tasks' => null,
             'user' => $user = [
                 'name' => 'Frederic F',
                 'email' => 'fredericf@example.com',
-                'image_url' => '/images/profile.jpg',
+                'image_url' => '/images/img.png',
             ],
             'municipalities' => $municipalities = [
                 [
                     'id' => 1,
                     'name' => 'Paris',
+                    'address' => '10 Rue de Paris, 75000 Paris',
+                    'contactName' => 'Marie Dupont',
+                    'contactPhone' => '0147253625',
                     'phoneLines' => [
                         [
                             'id' => 101,
@@ -178,6 +195,10 @@ class DashboardController extends AbstractController
                             'operator' => 'Orange',
                             'speed' => 500,
                             'installationDate' => '2024-01-10 08:30:00',
+                            'type' => 'Fibre',
+                            'monthlyFee' => 39.99,
+                            'contractId' => 'CTR-00101',
+                            'isActive' => true,
                         ],
                         [
                             'id' => 102,
@@ -185,12 +206,19 @@ class DashboardController extends AbstractController
                             'operator' => 'SFR',
                             'speed' => 300,
                             'installationDate' => '2023-12-15 14:00:00',
+                            'type' => 'ADSL',
+                            'monthlyFee' => 29.99,
+                            'contractId' => 'CTR-00102',
+                            'isActive' => false,
                         ],
                     ],
                 ],
                 [
                     'id' => 2,
                     'name' => 'Lyon',
+                    'address' => '5 Place Bellecour, 69000 Lyon',
+                    'contactName' => 'Jean Martin',
+                    'contactPhone' => '0478787878',
                     'phoneLines' => [
                         [
                             'id' => 103,
@@ -198,34 +226,20 @@ class DashboardController extends AbstractController
                             'operator' => 'Bouygues',
                             'speed' => 400,
                             'installationDate' => '2024-02-01 10:00:00',
+                            'type' => 'Fibre',
+                            'monthlyFee' => 34.99,
+                            'contractId' => 'CTR-00103',
+                            'isActive' => true,
                         ],
                     ],
                 ],
                 [
-                    'id' => 2,
-                    'name' => 'Lyon',
-                    'phoneLines' => [
-                        [
-                            'id' => 103,
-                            'numero' => 33445566778,
-                            'operator' => 'Bouygues',
-                            'speed' => 400,
-                            'installationDate' => '2024-02-01 10:00:00',
-                        ],
-                    ],
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Lyon',
-                    'phoneLines' => [
-                        [
-                            'id' => 103,
-                            'numero' => 33445566778,
-                            'operator' => 'Bouygues',
-                            'speed' => 400,
-                            'installationDate' => '2024-02-01 10:00:00',
-                        ],
-                    ],
+                    'id' => 3,
+                    'name' => 'Marseille',
+                    'address' => '12 Quai du Port, 13000 Marseille',
+                    'contactName' => 'Lucie Morel',
+                    'contactPhone' => '0491919191',
+                    'phoneLines' => [],
                 ],
             ],
         ]);

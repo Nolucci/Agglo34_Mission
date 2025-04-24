@@ -1,0 +1,73 @@
+@startuml
+left to right direction
+
+actor "Technicien SRU" as Tech
+actor "Administrateur Système" as Admin
+actor "Développeur" as Dev
+actor "Chef du SRU" as Chef
+
+package "Fonctionnalités Utilisateur" {
+    usecase "Se connecter (AD / compte local)" as UC1
+    usecase "Visualiser le tableau de bord" as UC2
+    usecase "Rechercher un équipement" as UC3
+    usecase "Consulter fiche équipement" as UC4
+    usecase "Modifier un équipement" as UC5
+    usecase "Enregistrer une intervention" as UC6
+    usecase "Importer des équipements (CSV/Excel)" as UC7
+    usecase "Exporter des données (CSV/PDF/Excel)" as UC8
+}
+
+package "Administration" {
+    usecase "Gérer comptes utilisateurs" as UC9
+    usecase "Gérer rôles et permissions" as UC10
+    usecase "Configurer l'application" as UC11
+    usecase "Gérer types d'équipements" as UC12
+    usecase "Gérer communes et sites" as UC13
+}
+
+package "Développement" {
+    usecase "Consulter documentation API" as UC14
+    usecase "Accéder aux environnements de test" as UC15
+    usecase "Consulter les logs" as UC16
+    usecase "Accéder au code source" as UC17
+    usecase "Accéder au schéma BDD" as UC18
+}
+
+package "Pilotage et Reporting" {
+    usecase "Consulter planning techniciens" as UC19
+    usecase "Extraire des statistiques" as UC20
+    usecase "Générer rapports personnalisés" as UC21
+}
+
+' Liens Technicien
+Tech --> UC1
+Tech --> UC2
+Tech --> UC3
+Tech --> UC4
+Tech --> UC5
+Tech --> UC6
+Tech --> UC7
+Tech --> UC8
+
+' Liens Admin
+Admin --> UC1
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+
+' Liens Développeur
+Dev --> UC14
+Dev --> UC15
+Dev --> UC16
+Dev --> UC17
+Dev --> UC18
+
+' Liens Chef du SRU
+Chef --> Tech
+Chef --> UC19
+Chef --> UC20
+Chef --> UC21
+
+@enduml

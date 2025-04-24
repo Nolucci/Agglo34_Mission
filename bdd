@@ -1,0 +1,52 @@
+@startuml
+title Diagramme de Classes - Application SRU
+
+class Equipment {
+  +id: int
+  +serialNumber: string
+  +model: string
+  +type: string
+  +status: enum
+  +acquisitionDate: date
+  +notes: text
+}
+
+class PhoneLine {
+  +id: int
+  +number: string
+  +type: enum
+  +provider: string
+  +monthlyFee: float
+  +contractId: string
+  +isActive: boolean
+}
+
+class Municipality {
+  +id: int
+  +name: string
+  +address: string
+  +contactName: string
+  +contactPhone: string
+}
+
+class User {
+  +id: int
+  +username: string
+  +password: string
+  +role: enum {ROLE_TECH, ROLE_TECH_CHIEF}
+}
+
+class Intervention {
+  +id: int
+  +title: string
+  +description: text
+  +date: date
+  +status: enum
+}
+
+Municipality "1" -- "0..*" PhoneLine : possède
+Municipality "1" -- "0..*" Equipment : contient
+Intervention "0..*" -- "1" User : effectuée par
+Intervention "0..*" -- "0..*" Equipment : concerne
+Intervention "0..*" -- "0..*" PhoneLine : concerne
+@enduml

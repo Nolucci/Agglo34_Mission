@@ -7,8 +7,8 @@
                 <div class="overview-box clearfix">
                     <div class="icon"><i class="zmdi zmdi-account-o"></i></div>
                     <div class="text">
-                        <h2>{{ members_online|default(10) }}/{{ members_online|default(200) }}</h2>
-                        <span>Agents en inter.</span>
+                        <h2>{{ members_online|default(3) }}/{{ members_online|default(10) }}</h2>
+                        <span>Agents en intervention</span>
                     </div>
                 </div>
                 <div class="overview-chart">
@@ -26,7 +26,7 @@
                     <div class="icon"><i class="zmdi zmdi-check"></i></div>
                     <div class="text">
                         <h2>{{ this_week|default('1,086') }}</h2>
-                        <span>Interventions</span>
+                        <span>Interventions réalisées</span>
                     </div>
                 </div>
                 <div class="overview-chart">
@@ -44,7 +44,7 @@
                     <div class="icon"><i class="zmdi zmdi-shopping-cart"></i></div>
                     <div class="text">
                         <h2>{{ items_sold|default('30') }}/{{ items_sold|default('450') }}</h2>
-                        <span>Matériel en stock</span>
+                        <span>Matériel</span>
                     </div>
                 </div>
                 <div class="overview-chart">
@@ -59,10 +59,10 @@
         <div class="overview-item overview-item--c4">
             <div class="overview__inner">
                 <div class="overview-box clearfix">
-                    <div class="icon"><i class="fa fa-eur"></i></div>
+                    <div class="icon"><i class="fa fa-phone"></i></div>
                     <div class="text">
-                        <h2>{{ total_lendings|default('1,060,386') }}</h2>
-                        <span>Matériel total</span>
+                        <h2>{{ total_lendings|default('36/40') }}</h2>
+                        <span>Lignes en fonctionnement</span>
                     </div>
                 </div>
                 <div class="overview-chart">

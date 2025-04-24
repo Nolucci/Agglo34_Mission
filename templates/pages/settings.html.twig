@@ -1,26 +1,50 @@
 {% extends './base.html.twig' %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Paramètres administrateur{% endblock %}
 
 {% block body %}
     <div class="page-wrapper">
-
-        <!-- PAGE CONTAINER-->
         <div class="page-container">
-            <!-- MAIN CONTENT-->
             <div class="main-content">
                 <div class="section__content section__content--p30">
                     <div class="container-fluid">
 
-                        {# MAP MODALS (À ACTIVER SI CONTENU DISPONIBLE) #}
-                        {#
                         <div class="row">
-                            {% include 'modals/_map_france_modal.html.twig' %}
-                            {% include 'modals/_map_occitanie_modal.html.twig' %}
-                            {% include 'modals/_map_herault_modal.html.twig' %}
-                            {% include 'modals/_map_beziers_modal.html.twig' %}
+                            <div class="col-lg-12">
+                                <h3 class="title-5 m-b-35">Paramètres administrateur</h3>
+                                <div class="card">
+                                    <div class="card-header">Configuration générale</div>
+                                    <div class="card-body">
+                                        <form method="post" action="{{ path('settings_save') }}">
+                                            <div class="form-group">
+                                                <label for="crud_enabled">Activer les fonctionnalités CRUD</label>
+                                                <select class="form-control" id="crud_enabled" name="crud_enabled">
+                                                    <option value="1" {% if settings.crud_enabled %}selected{% endif %}>Oui</option>
+                                                    <option value="0" {% if not settings.crud_enabled %}selected{% endif %}>Non</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="display_mode">Mode d'affichage des infos</label>
+                                                <select class="form-control" id="display_mode" name="display_mode">
+                                                    <option value="liste" {% if settings.display_mode == 'liste' %}selected{% endif %}>Liste</option>
+                                                    <option value="grille" {% if settings.display_mode == 'grille' %}selected{% endif %}>Grille</option>
+                                                    <option value="carte" {% if settings.display_mode == 'carte' %}selected{% endif %}>Carte</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="items_per_page">Nombre d'infos par page</label>
+                                                <input type="number" class="form-control" id="items_per_page" name="items_per_page" min="1" max="100" value="{{ settings.items_per_page }}">
+                                            </div>
+
+                                            <button type="submit" class="btn btn-success">Enregistrer</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        #}
+
                     </div>
                 </div>
             </div>

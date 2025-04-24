@@ -3,6 +3,7 @@ twig:
     globals:
         images: '/public/images'
         icon: '/images/icon'
+
 when@test:
     twig:
         strict_variables: true

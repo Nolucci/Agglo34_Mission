@@ -166,5 +166,6 @@
     <orderEntry type="library" name="dataTables.buttons" level="application" />
     <orderEntry type="library" name="buttons.html5" level="application" />
     <orderEntry type="library" name="jszip" level="application" />
+    <orderEntry type="library" name="bootstrap" level="application" />
   </component>
 </module>

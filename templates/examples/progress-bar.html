@@ -10,7 +10,7 @@
 	<meta name="keywords" content="au theme template">
 
 	<!-- Title Page-->
-	<title>Modal</title>
+	<title>Progress Bar</title>
 
 	<!-- Fontfaces CSS-->
 	<link href="../../public/css/font-face.css" rel="stylesheet" media="all">
@@ -83,7 +83,7 @@
 								<i class="fas fa-calendar-alt"></i>Calendar</a>
 						</li>
 						<li>
-							<a href="infos/map.html.twig">
+							<a href="../infos/map.html.twig">
 								<i class="fas fa-map-marker-alt"></i>Maps</a>
 						</li>
 						<li class="has-sub">
@@ -91,10 +91,10 @@
 								<i class="fas fa-copy"></i>Pages</a>
 							<ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
 								<li>
-									<a href="../users/login.html">Login</a>
+									<a href="../users/login.html.twig">Login</a>
 								</li>
 								<li>
-									<a href="../users/register.html">Register</a>
+									<a href="../users/register.html.twig">Register</a>
 								</li>
 								<li>
 									<a href="forget-pass.html">Forget Password</a>
@@ -109,7 +109,7 @@
 									<a href="button.html">Button</a>
 								</li>
 								<li>
-									<a href="badge.html">Badges</a>
+									<a href="badge.html.twig">Badges</a>
 								</li>
 								<li>
 									<a href="tab.html">Tabs</a>
@@ -157,9 +157,14 @@
 				<nav class="navbar-sidebar">
 					<ul class="list-unstyled navbar__list">
 						<li class="has-sub">
-							<a class="js-arrow" href="../index.html.twig">
-								<i class="fas fa-tachometer-alt" href="index.html"></i>Dashboard
-							</a>
+							<a class="js-arrow" href="#">
+								<i class="fas fa-tachometer-alt"></i>Dashboard</a>
+							<ul class="list-unstyled navbar__sub-list js-sub-list">
+								<li>
+									<a href="../index.html.twig">Dashboard 1</a>
+								</li>
+
+							</ul>
 						</li>
 						<li>
 							<a href="chart.html">
@@ -178,7 +183,7 @@
 								<i class="fas fa-calendar-alt"></i>Calendar</a>
 						</li>
 						<li>
-							<a href="infos/map.html.twig">
+							<a href="../infos/map.html.twig">
 								<i class="fas fa-map-marker-alt"></i>Maps</a>
 						</li>
 						<li class="has-sub">
@@ -186,10 +191,10 @@
 								<i class="fas fa-copy"></i>Pages</a>
 							<ul class="list-unstyled navbar__sub-list js-sub-list">
 								<li>
-									<a href="../users/login.html">Login</a>
+									<a href="../users/login.html.twig">Login</a>
 								</li>
 								<li>
-									<a href="../users/register.html">Register</a>
+									<a href="../users/register.html.twig">Register</a>
 								</li>
 								<li>
 									<a href="forget-pass.html">Forget Password</a>
@@ -204,7 +209,7 @@
 									<a href="button.html">Button</a>
 								</li>
 								<li>
-									<a href="badge.html">Badges</a>
+									<a href="badge.html.twig">Badges</a>
 								</li>
 								<li>
 									<a href="tab.html">Tabs</a>
@@ -422,209 +427,170 @@
 				<div class="section__content section__content--p30">
 					<div class="container-fluid">
 						<div class="row">
-							<div class="col-md-12">
+							<div class="col-lg-6">
 								<div class="card">
 									<div class="card-header">
-										<i class="mr-2 fa fa-align-justify"></i>
-										<strong class="card-title" v-if="headerText">Modals</strong>
+										<h4>Basic Progress Bar</h4>
 									</div>
 									<div class="card-body">
-
-										<!-- Button trigger modal -->
-										<button type="button" class="btn btn-secondary mb-1" data-toggle="modal" data-target="#smallmodal">
-											Small
-										</button>
-
-										<button type="button" class="btn btn-secondary mb-1" data-toggle="modal" data-target="#mediumModal">
-											Medium
-										</button>
-										<button type="button" class="btn btn-secondary mb-1" data-toggle="modal" data-target="#largeModal">
-											Large
-										</button>
-										<button type="button" class="btn btn-secondary mb-1" data-toggle="modal" data-target="#scrollmodal">
-											Scrolling
-										</button>
-										<button type="button" class="btn btn-secondary mb-1" data-toggle="modal" data-target="#staticModal">
-											Static
-										</button>
-
+										<p class="muted">To create a default progress bar, add a
+											<code>.progress</code> class to a
+											<code>&lt;div&gt;</code> element:</p>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-warning" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-danger" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
 									</div>
 								</div>
+								<!-- /# card -->
+
+								<div class="card">
+									<div class="card-header">
+										<h4>Labels</h4>
+									</div>
+									<div class="card-body">
+										<p class="muted">To create a default progress bar, add a
+											<code>.progress</code> class to a
+											<code>&lt;div&gt;</code> element:</p>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-warning" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-danger" role="progressbar" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">90%</div>
+										</div>
+									</div>
+								</div>
+								<!-- /# card -->
+
+								<div class="card">
+									<div class="card-header">
+										<h4>Striped</h4>
+									</div>
+									<div class="card-body">
+										<p class="muted">To create a default progress bar, add a
+											<code>.progress-bar-striped</code> class to a
+											<code>&lt;div&gt;</code> element:</p>
+										<div class="progress mb-2">
+											<div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0"
+											 aria-valuemax="100">25%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar progress-bar-striped bg-info" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0"
+											 aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar progress-bar-striped bg-warning" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0"
+											 aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0"
+											 aria-valuemax="100"></div>
+										</div>
+									</div>
+								</div>
+								<!-- /# card -->
+							</div>
 
 
+							<div class="col-lg-6">
+								<div class="card">
+									<div class="card-header">
+										<h4>Animated Progress Bar</h4>
+									</div>
+									<div class="card-body">
+										<p class="muted">To create a default progress bar, add a
+											<code>.progress-bar-striped and .progress-bar-animated</code> class to a
+											<code>&lt;div&gt;</code> element:</p>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%" aria-valuenow="25"
+											 aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 50%" aria-valuenow="50"
+											 aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 75%" aria-valuenow="75"
+											 aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-3">
+											<div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%" aria-valuenow="100"
+											 aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+									</div>
+								</div>
+								<!-- /# card -->
 
+								<div class="card">
+									<div class="card-header">
+										<h4>Animated Labels</h4>
+									</div>
+									<div class="card-body">
+										<p class="muted">To create a default progress bar, add a
+											<code>.progress-bar-striped and .progress-bar-animated</code> class to a
+											<code>&lt;div&gt;</code> element:</p>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%" aria-valuenow="25"
+											 aria-valuemin="0" aria-valuemax="100">25%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 50%" aria-valuenow="50"
+											 aria-valuemin="0" aria-valuemax="100">50%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 75%" aria-valuenow="75"
+											 aria-valuemin="0" aria-valuemax="100">75%</div>
+										</div>
+										<div class="progress mb-2">
+											<div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" style="width: 90%" aria-valuenow="90"
+											 aria-valuemin="0" aria-valuemax="100">90%</div>
+										</div>
+									</div>
+								</div>
+								<!-- /# card -->
 
-
+								<div class="card">
+									<div class="card-header">
+										<h4>Heights</h4>
+									</div>
+									<div class="card-body">
+										<p class="muted">To create a height progress bar, add a
+											<code>.progress-bar</code> class to a
+											<code>&lt;div&gt;</code> element:</p>
+										<div class="progress mb-2" style="height: 5px;">
+											<div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-2" style="height: 5px;">
+											<div class="progress-bar bg-info" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-2" style="height: 5px;">
+											<div class="progress-bar bg-warning" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="progress mb-2" style="height: 5px;">
+											<div class="progress-bar bg-danger" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+									</div>
+								</div>
 
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<!-- modal small -->
-			<div class="modal fade" id="smallmodal" tabindex="-1" role="dialog" aria-labelledby="smallmodalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-sm" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="smallmodalLabel">Small Modal</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">
-							<p>
-								There are three species of zebras: the plains zebra, the mountain zebra and the Grévy's zebra. The plains zebra and the mountain
-								zebra belong to the subgenus Hippotigris, but Grévy's zebra is the sole species of subgenus Dolichohippus. The latter
-								resembles an ass, to which it is closely related, while the former two are more horse-like. All three belong to the
-								genus Equus, along with other living equids.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-							<button type="button" class="btn btn-primary">Confirm</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- end modal small -->
-
-			<!-- modal medium -->
-			<div class="modal fade" id="mediumModal" tabindex="-1" role="dialog" aria-labelledby="mediumModalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-lg" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="mediumModalLabel">Medium Modal</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">
-							<p>
-								There are three species of zebras: the plains zebra, the mountain zebra and the Grévy's zebra. The plains zebra and the mountain
-								zebra belong to the subgenus Hippotigris, but Grévy's zebra is the sole species of subgenus Dolichohippus. The latter
-								resembles an ass, to which it is closely related, while the former two are more horse-like. All three belong to the
-								genus Equus, along with other living equids.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-							<button type="button" class="btn btn-primary">Confirm</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- end modal medium -->
-
-			<!-- modal large -->
-			<div class="modal fade" id="largeModal" tabindex="-1" role="dialog" aria-labelledby="largeModalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-lg" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="largeModalLabel">Large Modal</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">
-							<p>
-								There are three species of zebras: the plains zebra, the mountain zebra and the Grévy's zebra. The plains zebra and the mountain
-								zebra belong to the subgenus Hippotigris, but Grévy's zebra is the sole species of subgenus Dolichohippus. The latter
-								resembles an ass, to which it is closely related, while the former two are more horse-like. All three belong to the
-								genus Equus, along with other living equids.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-							<button type="button" class="btn btn-primary">Confirm</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- end modal large -->
-
-			<!-- modal scroll -->
-			<div class="modal fade" id="scrollmodal" tabindex="-1" role="dialog" aria-labelledby="scrollmodalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-lg" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="scrollmodalLabel">Scrolling Long Content Modal</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">
-							<p>
-								Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo
-								risus, porta ac consectetur ac, vestibulum at eros.
-								<br> Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum
-								faucibus dolor auctor.
-								<br> Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-								Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.
-								<br> Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi
-								leo risus, porta ac consectetur ac, vestibulum at eros.
-								<br> Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum
-								faucibus dolor auctor.
-								<br> Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-								Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.
-								<br> Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi
-								leo risus, porta ac consectetur ac, vestibulum at eros.
-								<br> Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum
-								faucibus dolor auctor.
-								<br> Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-								Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.
-								<br> Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi
-								leo risus, porta ac consectetur ac, vestibulum at eros.
-								<br> Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum
-								faucibus dolor auctor.
-								<br> Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-								Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.
-								<br> Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi
-								leo risus, porta ac consectetur ac, vestibulum at eros.
-								<br> Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum
-								faucibus dolor auctor.
-								<br> Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-								Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.
-								<br> Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi
-								leo risus, porta ac consectetur ac, vestibulum at eros.
-								<br> Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum
-								faucibus dolor auctor.
-								<br> Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-								Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-							<button type="button" class="btn btn-primary">Confirm</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- end modal scroll -->
-			<!-- modal static -->
-			<div class="modal fade" id="staticModal" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true"
-			 data-backdrop="static">
-				<div class="modal-dialog modal-sm" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title" id="staticModalLabel">Static Modal</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
-						</div>
-						<div class="modal-body">
-							<p>
-								This is a static modal, backdrop click will not close it.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-							<button type="button" class="btn btn-primary">Confirm</button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- end modal static -->
-
 		</div>
 		<!-- END PAGE CONTAINER-->
 

@@ -5,7 +5,7 @@
             <div class="rs-select2--light rs-select2--md">
                 <label for="municipalityFilter">Options</label>
                 <select class="js-select2" id="municipalityFilter">
-                    <option value="">Toutes les communes</option>
+                    <option value="">All Municipalities</option>
                     {% for municipality in municipalities %}
                         <option value="{{ municipality.name }}">{{ municipality.name }}</option>
                     {% endfor %}
@@ -13,12 +13,12 @@
                 <div class="dropDownSelect2"></div>
             </div>
             <button class="au-btn-filter">
-                <i class="zmdi zmdi-filter-list"></i>Filtres
+                <i class="zmdi zmdi-filter-list"></i>Filters
             </button>
         </div>
         <div class="table-data__tool-right">
             <button class="au-btn au-btn-icon au-btn--green au-btn--small">
-                <i class="zmdi zmdi-plus"></i>Ajouter
+                <i class="zmdi zmdi-plus"></i>Add
             </button>
         </div>
     </div>
@@ -32,15 +32,15 @@
                         <span class="au-checkmark"></span>
                     </label>
                 </th>
-                <th>Commune</th>
-                <th>Numéro</th>
-                <th>Opérateur</th>
-                <th>Type</th>
-                <th>Frais Mensuels (€)</th>
-                <th>ID Contrat</th>
-                <th>Statut</th>
-                <th>Débit (Mbps)</th>
-                <th>Date d'installation</th>
+                <th>COMMUNE</th>
+                <th>LIEU</th>
+                <th>EST GLOBAL</th>
+                <th>SERVICE</th>
+                <th>ATTRIBUTION (PRENOM & NOM)</th>
+                <th>MARQUE DE TELEPHONE</th>
+                <th>MODELE</th>
+                <th>OPERATEUR</th>
+                <th>TYPE DE LIGNE</th>
                 <th></th>
             </tr>
             </thead>
@@ -48,7 +48,6 @@
             {% for municipality in municipalities %}
                 {% for line in municipality.phoneLines %}
                     <tr class="tr-shadow clickable-row">
-                        <!-- data-href="{path('phone_line_show', {'id': line.id}) }"-->
                         <td>
                             <label class="au-checkbox">
                                 <input type="checkbox">
@@ -56,20 +55,26 @@
                             </label>
                         </td>
                         <td>{{ municipality.name }}</td>
-                        <td>{{ line.numero }}</td>
-                        <td>{{ line.operator }}</td>
-                        <td>{{ line.type }}</td>
-                        <td>{{ line.monthlyFee ?: 'N/A' }}</td>
-                        <td>{{ line.contractId ?: 'N/A' }}</td>
-                        <td>{{ line.isActive ? 'Active' : 'Inactive' }}</td>
-                        <td>{{ line.speed ?: 'N/A' }}</td>
-                        <td>{{ line.installationDate ? line.installationDate|date('Y-m-d H:i') : 'N/A' }}</td>
+                        <td>{{ line.location ?: 'N/A' }}</td>
+                        <td>
+                            {% if line.isGlobal %}
+                                <span class="badge badge-success"></span>
+                            {% else %}
+                                <span class="badge badge-secondary"></span>
+                            {% endif %}
+                        </td>
+                        <td>{{ line.service ?: 'N/A' }}</td>
+                        <td>{{ line.assignedTo ?: 'N/A' }}</td>
+                        <td>{{ line.phoneBrand ?: 'N/A' }}</td>
+                        <td>{{ line.model ?: 'N/A' }}</td>
+                        <td>{{ line.operator ?: 'N/A' }}</td>
+                        <td>{{ line.lineType ?: 'N/A' }}</td>
                         <td>
                             <div class="table-data-feature">
-                                <button class="item edit-btn" title="Modifier" data-id="{{ line.id }}">
+                                <button class="item edit-btn" title="Edit" data-id="{{ line.id }}">
                                     <i class="zmdi zmdi-edit"></i>
                                 </button>
-                                <button class="item delete-btn" title="Supprimer" data-id="{{ line.id }}">
+                                <button class="item delete-btn" title="Delete" data-id="{{ line.id }}">
                                     <i class="zmdi zmdi-delete"></i>
                                 </button>
                             </div>

@@ -4018,7 +4018,7 @@ var View = /** @class */ (function (_super) {
             _this.unrenderBusinessHours();
         }, 'businessHours', 'destroy');
     };
-    // Misc view rendering utils
+    // Misc view rendering examples
     // -----------------------------------------------------------------------------------------------------------------
     // Binds DOM handlers to elements that reside outside the view container, such as the document
     View.prototype.bindGlobalHandlers = function () {

@@ -14,69 +14,99 @@ class PhoneLine
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $numero = null;
+    // LIEU (e.g. building or office location)
+    #[ORM\Column(length: 255)]
+    private ?string $location = null;
 
+    // SERVICE (e.g. IT, HR, etc.)
+    #[ORM\Column(length: 100)]
+    private ?string $service = null;
+
+    // ATTRIBUTION (Full name)
+    #[ORM\Column(length: 255)]
+    private ?string $assignedTo = null;
+
+    // MARQUE DU TELEPHONE (Phone brand)
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $phoneBrand = null;
+
+    // MODELE
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $model = null;
+
+    // Opérateur
+    #[ORM\Column(length: 50)]
+    private ?string $operator = null;
+
+    // Type de ligne (e.g. mobile, landline)
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $lineType = null;
+
+    // Municipalité (relation vers entité Municipality)
     #[ORM\ManyToOne(inversedBy: 'phoneLines')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $municipality = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $speed = null;
-
-    #[ORM\Column(length: 50)]
-    private ?string $operator = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $installationDate = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $type = null; // enum simulé avec string
-
-    #[ORM\Column(type: Types::FLOAT, nullable: true)]
-    private ?float $monthlyFee = null;
-
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $contractId = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
-    private bool $isActive = true;
+    private ?bool $isGlobal = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getNumero(): ?int
+    public function getLocation(): ?string
     {
-        return $this->numero;
+        return $this->location;
     }
 
-    public function setNumero(int $numero): static
+    public function setLocation(string $location): static
     {
-        $this->numero = $numero;
+        $this->location = $location;
         return $this;
     }
 
-    public function getMunicipality(): ?Municipality
+    public function getService(): ?string
     {
-        return $this->municipality;
+        return $this->service;
     }
 
-    public function setMunicipality(?Municipality $municipality): static
+    public function setService(string $service): static
     {
-        $this->municipality = $municipality;
+        $this->service = $service;
         return $this;
     }
 
-    public function getSpeed(): ?int
+    public function getAssignedTo(): ?string
     {
-        return $this->speed;
+        return $this->assignedTo;
     }
 
-    public function setSpeed(?int $speed): static
+    public function setAssignedTo(string $assignedTo): static
     {
-        $this->speed = $speed;
+        $this->assignedTo = $assignedTo;
+        return $this;
+    }
+
+    public function getPhoneBrand(): ?string
+    {
+        return $this->phoneBrand;
+    }
+
+    public function setPhoneBrand(?string $phoneBrand): static
+    {
+        $this->phoneBrand = $phoneBrand;
+        return $this;
+    }
+
+    public function getModel(): ?string
+    {
+        return $this->model;
+    }
+
+    public function setModel(?string $model): static
+    {
+        $this->model = $model;
         return $this;
     }
 
@@ -91,58 +121,37 @@ class PhoneLine
         return $this;
     }
 
-    public function getInstallationDate(): ?\DateTimeInterface
+    public function getLineType(): ?string
     {
-        return $this->installationDate;
+        return $this->lineType;
     }
 
-    public function setInstallationDate(\DateTimeInterface $installationDate): static
+    public function setLineType(?string $lineType): static
     {
-        $this->installationDate = $installationDate;
+        $this->lineType = $lineType;
         return $this;
     }
 
-    public function getType(): ?string
+    public function getMunicipality(): ?Municipality
     {
-        return $this->type;
+        return $this->municipality;
     }
 
-    public function setType(?string $type): static
+    public function setMunicipality(?Municipality $municipality): static
     {
-        $this->type = $type;
+        $this->municipality = $municipality;
         return $this;
     }
 
-    public function getMonthlyFee(): ?float
+    public function isGlobal(): ?bool
     {
-        return $this->monthlyFee;
+        return $this->isGlobal;
     }
 
-    public function setMonthlyFee(?float $monthlyFee): static
+    public function setIsGlobal(?bool $isGlobal): static
     {
-        $this->monthlyFee = $monthlyFee;
-        return $this;
-    }
+        $this->isGlobal = $isGlobal;
 
-    public function getContractId(): ?string
-    {
-        return $this->contractId;
-    }
-
-    public function setContractId(?string $contractId): static
-    {
-        $this->contractId = $contractId;
-        return $this;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
         return $this;
     }
 }

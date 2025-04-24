@@ -1,0 +1,112 @@
+{% extends './base.html.twig' %}
+
+{% block title %}Téléchargement de Fichiers{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        #drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #drop-area.highlight {
+            border-color: green;
+        }
+
+        #file-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #file-list li {
+            margin-bottom: 5px;
+        }
+
+        #file-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #file-info-table th,
+        #file-info-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #file-info-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="page-wrapper">
+        <!-- PAGE CONTAINER-->
+        <div class="page-container">
+            <!-- MAIN CONTENT-->
+            <div class="main-content">
+                <div class="section__content section__content--p30">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h2 class="title-1">Téléchargement de Fichiers</h2>
+                                <div id="drop-area">
+                                    <p>Glissez-déposez vos fichiers ici ou cliquez pour sélectionner</p>
+                                    <input type="file" id="file-input" multiple style="display: none;">
+                                </div>
+                                <ul id="file-list"></ul>
+                                <!-- Ajoutez ce bouton -->
+                                <button id="upload-button" class="btn btn-primary mb-3" style="display: none;">Télécharger les fichiers</button>
+                                <table id="file-info-table" style="display: none;">
+                                    <thead>
+                                    <tr>
+                                        <th>Nom du fichier</th>
+                                        <th>Taille</th>
+                                        <th>Type</th>
+                                        <th>Dernière modification</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                                <div class="modal fade" id="staticModal" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true"
+                                     data-backdrop="static">
+                                    <div class="modal-dialog modal-sm" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="staticModalLabel"></h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>
+
+                                                </p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                                                <button type="button" class="btn btn-primary">Confirmer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/file-upload.js') }}"></script>
+{% endblock %}
