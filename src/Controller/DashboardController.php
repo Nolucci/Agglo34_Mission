@@ -1,275 +1,256 @@
 <?php
 namespace App\Controller;
 
-use App\Repository\SettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
-use App\Repository\MunicipalityRepository;
 
 class DashboardController extends AbstractController
 {
+    // Suppression du constructeur et de l'import PhoneLineRepository
     #[Route('/dashboard', name: 'dashboard')]
     public function index(): Response
     {
-        $this->addFlash('success', 'Connexion réussie !');
-        $this->addFlash('danger', 'Erreur lors de la connexion.');
+        // Données statiques pour remplacer les appels au repository
+        $lines = [
+            [
+                'id' => 1,
+                'location' => 'Mairie Centrale',
+                'service' => 'Administration',
+                'assignedTo' => 'Jean Dupont',
+                'phoneBrand' => 'Apple',
+                'model' => 'iPhone 12',
+                'operator' => 'Orange',
+                'lineType' => 'Mobile',
+                'municipality' => 'Béziers',
+                'isGlobal' => true
+            ],
+            [
+                'id' => 2,
+                'location' => 'Service Technique',
+                'service' => 'Maintenance',
+                'assignedTo' => 'Marie Martin',
+                'phoneBrand' => 'Samsung',
+                'model' => 'Galaxy S21',
+                'operator' => 'SFR',
+                'lineType' => 'Fixe',
+                'municipality' => 'Béziers',
+                'isGlobal' => false
+            ],
+            [
+                'id' => 3,
+                'location' => 'Police Municipale',
+                'service' => 'Sécurité',
+                'assignedTo' => 'Pierre Dubois',
+                'phoneBrand' => 'Google',
+                'model' => 'Pixel 6',
+                'operator' => 'Bouygues',
+                'lineType' => 'Mobile',
+                'municipality' => 'Agde',
+                'isGlobal' => true
+            ],
+            [
+                'id' => 4,
+                'location' => 'Bibliothèque',
+                'service' => 'Culture',
+                'assignedTo' => 'Sophie Leroy',
+                'phoneBrand' => 'Huawei',
+                'model' => 'P30',
+                'operator' => 'Free',
+                'lineType' => 'Fixe',
+                'municipality' => 'Sète',
+                'isGlobal' => false
+            ]
+        ];
+
+        // Calcul manuel des statistiques
+        $phoneLineStats = [
+            'total_lines' => count($lines),
+            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
+            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
+            'global_lines' => count(array_filter($lines, fn($line) => $line['isGlobal'])),
+            'local_lines' => count(array_filter($lines, fn($line) => !$line['isGlobal'])),
+        ];
+
+        // Récupération des municipalités
+        $municipalities = array_map(function($line) use ($lines) {
+            return [
+                'id' => array_search($line['municipality'], array_column($lines, 'municipality')),
+                'nom' => $line['municipality']
+            ];
+        }, $lines);
+        $municipalities = array_map("unserialize", array_unique(array_map("serialize", $municipalities)));
 
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
-            'lendings' => null,
-            'top_countries' => null,
-            'tasks' => null,
-            'user' => $user = [
+            'user' => [
                 'name' => 'Frederic F',
                 'email' => 'fredericf@example.com',
                 'image_url' => '/images/img.png',
             ],
-            'municipalities' => $municipalities = [
-                [
-                    'id' => 1,
-                    'name' => 'Paris',
-                    'address' => '10 Rue de Paris, 75000 Paris',
-                    'contactName' => 'Marie Dupont',
-                    'contactPhone' => '0147253625',
-                    'phoneLines' => [
-                        [
-                            'id' => 101,
-                            'numero' => 33123456789,
-                            'operator' => 'Orange',
-                            'speed' => 500,
-                            'installationDate' => '2024-01-10 08:30:00',
-                            'type' => 'Fibre',
-                            'monthlyFee' => 39.99,
-                            'contractId' => 'CTR-00101',
-                            'isActive' => true,
-                        ],
-                        [
-                            'id' => 102,
-                            'numero' => 33987654321,
-                            'operator' => 'SFR',
-                            'speed' => 300,
-                            'installationDate' => '2023-12-15 14:00:00',
-                            'type' => 'ADSL',
-                            'monthlyFee' => 29.99,
-                            'contractId' => 'CTR-00102',
-                            'isActive' => false,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Lyon',
-                    'address' => '5 Place Bellecour, 69000 Lyon',
-                    'contactName' => 'Jean Martin',
-                    'contactPhone' => '0478787878',
-                    'phoneLines' => [
-                        [
-                            'id' => 103,
-                            'numero' => 33445566778,
-                            'operator' => 'Bouygues',
-                            'speed' => 400,
-                            'installationDate' => '2024-02-01 10:00:00',
-                            'type' => 'Fibre',
-                            'monthlyFee' => 34.99,
-                            'contractId' => 'CTR-00103',
-                            'isActive' => true,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => 3,
-                    'name' => 'Marseille',
-                    'address' => '12 Quai du Port, 13000 Marseille',
-                    'contactName' => 'Lucie Morel',
-                    'contactPhone' => '0491919191',
-                    'phoneLines' => [],
-                ],
-            ],
-        ]);
-    }
-
-
-    #[Route('/agents', name: 'agents')]
-    public function agents(): Response
-    {
-        return $this->render('pages/agents.html.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/account', name: 'account')]
-    public function account(): Response
-    {
-        return $this->render('pages/account.html.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/login', name: 'login')]
-    public function login(): Response
-    {
-        return $this->render('pages/login.html.twig.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/logout', name: 'logout')]
-    public function logout(): Response
-    {
-        return $this->render('pages/logout.html.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/park', name: 'park')]
-    public function park(): Response
-    {
-        return $this->render('pages/park.html.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/calendar', name: 'calendar')]
-    public function calendar(): Response
-    {
-        return $this->render('pages/calendar.html.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/documents', name: 'documents')]
-    public function documents(): Response
-    {
-        return $this->render('pages/documents.html.twig', [
-            'page_title' => "Importer des Fichiers"]);
-    }
-
-    #[Route('/map', name: 'map')]
-    public function map(): Response
-    {
-        return $this->render('pages/map.html.twig.twig', [
-            'page_title' => "Tableau de bord"]);
-    }
-
-    #[Route('/admin/settings', name: 'settings')]
-    public function settings(Request $request, SettingsRepository $repo): Response
-    {
-        $settings = $repo->findOneBy([]);
-        $form = $this->createForm(SettingsRepository::class, $settings);
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $repo->save($settings, true);
-            $this->addFlash('success', 'Paramètres mis à jour');
-            return $this->redirectToRoute('settings');
-        }
-
-        return $this->render('settings.html.twig', [
-            'settings' => $settings,
-            'form' => $form->createView(),
+            'municipalities' => $municipalities,
+            'lines' => $lines,
+            'phoneLines' => $lines,
+            'phoneLineStats' => $phoneLineStats,
         ]);
     }
 
     #[Route('/lines', name: 'lines')]
     public function lines(): Response
     {
+        // Données statiques pour remplacer les appels au repository
+        $lines = [
+            [
+                'id' => 1,
+                'location' => 'Mairie Centrale',
+                'service' => 'Administration',
+                'assignedTo' => 'Jean Dupont',
+                'phoneBrand' => 'Apple',
+                'model' => 'iPhone 12',
+                'operator' => 'Orange',
+                'lineType' => 'Mobile',
+                'municipality' => 'Béziers',
+                'isGlobal' => true
+            ],
+            [
+                'id' => 2,
+                'location' => 'Service Technique',
+                'service' => 'Maintenance',
+                'assignedTo' => 'Marie Martin',
+                'phoneBrand' => 'Samsung',
+                'model' => 'Galaxy S21',
+                'operator' => 'SFR',
+                'lineType' => 'Fixe',
+                'municipality' => 'Béziers',
+                'isGlobal' => false
+            ],
+            [
+                'id' => 3,
+                'location' => 'Police Municipale',
+                'service' => 'Sécurité',
+                'assignedTo' => 'Pierre Dubois',
+                'phoneBrand' => 'Google',
+                'model' => 'Pixel 6',
+                'operator' => 'Bouygues',
+                'lineType' => 'Mobile',
+                'municipality' => 'Agde',
+                'isGlobal' => true
+            ],
+            [
+                'id' => 4,
+                'location' => 'Bibliothèque',
+                'service' => 'Culture',
+                'assignedTo' => 'Sophie Leroy',
+                'phoneBrand' => 'Huawei',
+                'model' => 'P30',
+                'operator' => 'Free',
+                'lineType' => 'Fixe',
+                'municipality' => 'Sète',
+                'isGlobal' => false
+            ]
+        ];
+
+        // Calcul manuel des statistiques
+        $phoneLineStats = [
+            'total_lines' => count($lines),
+            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
+            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
+            'global_lines' => count(array_filter($lines, fn($line) => $line['isGlobal'])),
+            'local_lines' => count(array_filter($lines, fn($line) => !$line['isGlobal'])),
+        ];
+
+        // Récupération des municipalités
+        $municipalities = array_map(function($line) use ($lines) {
+            return [
+                'id' => array_search($line['municipality'], array_column($lines, 'municipality')),
+                'nom' => $line['municipality']
+            ];
+        }, $lines);
+        $municipalities = array_map("unserialize", array_unique(array_map("serialize", $municipalities)));
+
         return $this->render('pages/lines.html.twig', [
             'page_title' => "Lignes téléphoniques",
-            'lendings' => null,
-            'top_countries' => null,
-            'tasks' => null,
-            'user' => $user = [
+            'user' => [
                 'name' => 'Frederic F',
                 'email' => 'fredericf@example.com',
                 'image_url' => '/images/img.png',
             ],
-            'municipalities' => $municipalities = [
-                [
-                    'id' => 1,
-                    'name' => 'Paris',
-                    'address' => '10 Rue de Paris, 75000 Paris',
-                    'contactName' => 'Marie Dupont',
-                    'contactPhone' => '0147253625',
-                    'phoneLines' => [
-                        [
-                            'id' => 101,
-                            'numero' => 33123456789,
-                            'operator' => 'Orange',
-                            'speed' => 500,
-                            'installationDate' => '2024-01-10 08:30:00',
-                            'type' => 'Fibre',
-                            'monthlyFee' => 39.99,
-                            'contractId' => 'CTR-00101',
-                            'isActive' => true,
-                        ],
-                        [
-                            'id' => 102,
-                            'numero' => 33987654321,
-                            'operator' => 'SFR',
-                            'speed' => 300,
-                            'installationDate' => '2023-12-15 14:00:00',
-                            'type' => 'ADSL',
-                            'monthlyFee' => 29.99,
-                            'contractId' => 'CTR-00102',
-                            'isActive' => false,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Lyon',
-                    'address' => '5 Place Bellecour, 69000 Lyon',
-                    'contactName' => 'Jean Martin',
-                    'contactPhone' => '0478787878',
-                    'phoneLines' => [
-                        [
-                            'id' => 103,
-                            'numero' => 33445566778,
-                            'operator' => 'Bouygues',
-                            'speed' => 400,
-                            'installationDate' => '2024-02-01 10:00:00',
-                            'type' => 'Fibre',
-                            'monthlyFee' => 34.99,
-                            'contractId' => 'CTR-00103',
-                            'isActive' => true,
-                        ],
-                    ],
-                ],
-                [
-                    'id' => 3,
-                    'name' => 'Marseille',
-                    'address' => '12 Quai du Port, 13000 Marseille',
-                    'contactName' => 'Lucie Morel',
-                    'contactPhone' => '0491919191',
-                    'phoneLines' => [],
-                ],
-            ],
+            'municipalities' => $municipalities,
+            'lines' => $lines,
+            'phoneLines' => $lines,
+            'phoneLineStats' => $phoneLineStats,
         ]);
     }
 
-    #[Route('/lines/municipality/{name}', name: 'lines_by_municipality', methods: ['GET'])]
-    public function getLinesByMunicipality(string $name, MunicipalityRepository $MunicipalityRepository): JsonResponse
+    // Autres méthodes du contrôleur restent inchangées
+    #[Route('/agents', name: 'agents')]
+    public function agents(): Response
     {
-        $commune = $MunicipalityRepository->findOneBy(['name' => $name]);
-
-        if (!$commune) {
-            return $this->json(['error' => 'Commune not found'], 404);
-        }
-
-        $lines = $commune->getLignes();
-
-        $data = array_map(function($line) {
-            return [
-                'numero' => $line->getNumero(),
-                'type' => $line->getType(),
-                'debitMax' => $line->getDebitMax(),
-                'operateur' => $line->getOperateur(),
-                'dateInstallation' => $line->getDateInstallation()?->format('Y-m-d'),
-            ];
-        }, $lines->toArray());
-
-        return $this->json([
-            'commune' => $commune->getNom(),
-            'lignes' => $data,
+        return $this->render('pages/agents.html.twig', [
+            'page_title' => "Tableau de bord"
         ]);
     }
 
+    #[Route('/account', name: 'account')]
+    public function account(): Response
+    {
+        return $this->render('pages/account.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
+
+    #[Route('/login', name: 'login')]
+    public function login(): Response
+    {
+        return $this->render('pages/login.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
+
+    #[Route('/logout', name: 'logout')]
+    public function logout(): Response
+    {
+        return $this->render('pages/logout.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
+
+    #[Route('/park', name: 'park')]
+    public function park(): Response
+    {
+        return $this->render('pages/park.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
+
+    #[Route('/calendar', name: 'calendar')]
+    public function calendar(): Response
+    {
+        return $this->render('pages/calendar.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
+
+    #[Route('/documents', name: 'documents')]
+    public function documents(): Response
+    {
+        return $this->render('pages/documents.html.twig', [
+            'page_title' => "Importer des Fichiers"
+        ]);
+    }
+
+    #[Route('/map', name: 'map')]
+    public function map(): Response
+    {
+        return $this->render('pages/map.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
+    #[Route('/map', name: 'settings')]
+    public function settings(): Response
+    {
+        return $this->render('pages/map.html.twig', [
+            'page_title' => "Tableau de bord"
+        ]);
+    }
 }

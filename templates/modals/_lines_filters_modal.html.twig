@@ -1,90 +1,144 @@
-<!-- DATA -->
-<div class="wrap">
-    <div class="table-data__tool">
-        <div class="table-data__tool-left">
-            <div class="rs-select2--light rs-select2--md">
-                <label for="municipalityFilter">Options</label>
-                <select class="js-select2" id="municipalityFilter">
-                    <option value="">All Municipalities</option>
-                    {% for municipality in municipalities %}
-                        <option value="{{ municipality.name }}">{{ municipality.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="dropDownSelect2"></div>
+<!-- Modal Filtres Lignes -->
+<div class="modal fade" id="lignesFiltersModal" tabindex="-1" role="dialog" aria-labelledby="lignesFiltersModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lignesFiltersModalLabel">
+                    <i class="fa fa-filter"></i> Filtres des Lignes Téléphoniques
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <button class="au-btn-filter">
-                <i class="zmdi zmdi-filter-list"></i>Filters
-            </button>
-        </div>
-        <div class="table-data__tool-right">
-            <button class="au-btn au-btn-icon au-btn--green au-btn--small">
-                <i class="zmdi zmdi-plus"></i>Add
-            </button>
-        </div>
-    </div>
-    <div class="table-responsive table-responsive-data2">
-        <table id="phoneTable" class="table table-data2 display nowrap">
-            <thead>
-            <tr>
-                <th>
-                    <label class="au-checkbox">
-                        <input type="checkbox">
-                        <span class="au-checkmark"></span>
-                    </label>
-                </th>
-                <th>COMMUNE</th>
-                <th>LIEU</th>
-                <th>EST GLOBAL</th>
-                <th>SERVICE</th>
-                <th>ATTRIBUTION (PRENOM & NOM)</th>
-                <th>MARQUE DE TELEPHONE</th>
-                <th>MODELE</th>
-                <th>OPERATEUR</th>
-                <th>TYPE DE LIGNE</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for municipality in municipalities %}
-                {% for line in municipality.phoneLines %}
-                    <tr class="tr-shadow clickable-row">
-                        <td>
-                            <label class="au-checkbox">
-                                <input type="checkbox">
-                                <span class="au-checkmark"></span>
-                            </label>
-                        </td>
-                        <td>{{ municipality.name }}</td>
-                        <td>{{ line.location ?: 'N/A' }}</td>
-                        <td>
-                            {% if line.isGlobal %}
-                                <span class="badge badge-success"></span>
-                            {% else %}
-                                <span class="badge badge-secondary"></span>
-                            {% endif %}
-                        </td>
-                        <td>{{ line.service ?: 'N/A' }}</td>
-                        <td>{{ line.assignedTo ?: 'N/A' }}</td>
-                        <td>{{ line.phoneBrand ?: 'N/A' }}</td>
-                        <td>{{ line.model ?: 'N/A' }}</td>
-                        <td>{{ line.operator ?: 'N/A' }}</td>
-                        <td>{{ line.lineType ?: 'N/A' }}</td>
-                        <td>
-                            <div class="table-data-feature">
-                                <button class="item edit-btn" title="Edit" data-id="{{ line.id }}">
-                                    <i class="zmdi zmdi-edit"></i>
-                                </button>
-                                <button class="item delete-btn" title="Delete" data-id="{{ line.id }}">
-                                    <i class="zmdi zmdi-delete"></i>
-                                </button>
+            <div class="modal-body">
+                <form id="lignesFiltersForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="operatorFilter">Opérateur</label>
+                                <select class="form-control" id="operatorFilter" name="operator">
+                                    <option value="">Tous les opérateurs</option>
+                                    {% set operators = [] %}
+                                    {% for line in phoneLines %}
+                                        {% if not (line.operator in operators) %}
+                                            {% set operators = operators|merge([line.operator]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for operator in operators %}
+                                        <option value="{{ operator }}">{{ operator }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </td>
-                    </tr>
-                    <tr class="spacer"></tr>
-                {% endfor %}
-            {% endfor %}
-            </tbody>
-        </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="lineTypeFilter">Type de Ligne</label>
+                                <select class="form-control" id="lineTypeFilter" name="lineType">
+                                    <option value="">Tous les types</option>
+                                    {% set lineTypes = [] %}
+                                    {% for line in phoneLines %}
+                                        {% if not (line.lineType in lineTypes) %}
+                                            {% set lineTypes = lineTypes|merge([line.lineType]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for type in lineTypes %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="serviceFilter">Service</label>
+                                <select class="form-control" id="serviceFilter" name="service">
+                                    <option value="">Tous les services</option>
+                                    {% set services = [] %}
+                                    {% for line in phoneLines %}
+                                        {% if not (line.service in services) %}
+                                            {% set services = services|merge([line.service]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for service in services %}
+                                        <option value="{{ service }}">{{ service }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="municipalityFilter">Municipalité</label>
+                                <select class="form-control" id="municipalityFilter" name="municipality">
+                                    <option value="">Toutes les municipalités</option>
+                                    {% set municipalities = [] %}
+                                    {% for line in phoneLines %}
+                                        {% if not (line.municipality in municipalities) %}
+                                            {% set municipalities = municipalities|merge([line.municipality]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for municipality in municipalities %}
+                                        <option value="{{ municipality }}">{{ municipality }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="statusFilter">Statut</label>
+                                <select class="form-control" id="statusFilter" name="isGlobal">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="1">Global</option>
+                                    <option value="0">Local</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="applyFiltersBtn">
+                    <i class="fa fa-filter"></i> Appliquer les Filtres
+                </button>
+                <button type="button" class="btn btn-warning" id="resetFiltersBtn">
+                    <i class="fa fa-refresh"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
     </div>
 </div>
-<!-- END DATA -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const filtersForm = document.getElementById('lignesFiltersForm');
+
+    applyFiltersBtn.addEventListener('click', function() {
+        const formData = new FormData(filtersForm);
+        const filters = {};
+        
+        for (let [key, value] of formData.entries()) {
+            if (value) {
+                filters[key] = value;
+            }
+        }
+
+        // Ici, vous pouvez ajouter une requête AJAX pour filtrer les lignes
+        // fetch('/lines/filter', {
+        //     method: 'POST',
+        //     body: JSON.stringify(filters)
+        // })
+        // .then(response => response.json())
+        // .then(data => updateLinesTable(data));
+    });
+
+    resetFiltersBtn.addEventListener('click', function() {
+        filtersForm.reset();
+        // Ici, vous pouvez ajouter une requête pour réinitialiser la liste des lignes
+    });
+});
+</script>
