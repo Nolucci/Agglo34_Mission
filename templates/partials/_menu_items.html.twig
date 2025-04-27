@@ -1,28 +1,28 @@
-<li class="active has-sub">
+<li class="{{ app.request.attributes.get('_route') == 'dashboard' ? 'active has-sub' : '' }}">
     <a class="js-arrow" href="{{ path('dashboard') }}">
         <i class="fas fa-television"></i>Tableau de bord
     </a>
 </li>
-<li>
+<li class="{{ app.request.attributes.get('_route') == 'lines' ? 'active' : '' }}">
     <a href="{{ path('lines') }}">
         <i class="fas fa-phone"></i>Lignes Téléphoniques
     </a>
 </li>
-<li>
+<li class="{{ app.request.attributes.get('_route') == 'park' ? 'active' : '' }}">
     <a href="{{ path('park') }}">
         <i class="fas fa-wrench"></i>Parc Informatique</a>
 </li>
-<li>
+<li class="{{ app.request.attributes.get('_route') == 'agents' ? 'active' : '' }}">
     <a href="{{ path('agents') }}">
         <i class="fas fa-users"></i>Agents
     </a>
 </li>
-<li>
+<li class="{{ app.request.attributes.get('_route') == 'documents' ? 'active' : '' }}">
     <a href="{{ path('documents') }}">
         <i class="far fa-folder"></i>Documents et données
     </a>
 </li>
-<li>
+<li class="{{ app.request.attributes.get('_route') == 'settings' ? 'active' : '' }}">
     <a href="{{ path('settings') }}">
         <i class="fas fa-cogs"></i>Paramètres
     </a>

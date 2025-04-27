@@ -1,13 +1,20 @@
 <?php
 namespace App\Controller;
 
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DashboardController extends AbstractController
 {
-    // Suppression du constructeur et de l'import PhoneLineRepository
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     #[Route('/dashboard', name: 'dashboard')]
     public function index(): Response
     {
@@ -81,6 +88,50 @@ class DashboardController extends AbstractController
         }, $lines);
         $municipalities = array_map("unserialize", array_unique(array_map("serialize", $municipalities)));
 
+       // Données statiques pour le parc informatique (copiées depuis la fonction park)
+       $equipments = [
+           [
+               'id' => 1,
+               'type' => 'Ordinateur portable',
+               'brand' => 'Dell',
+               'model' => 'Latitude 7400',
+               'assignedTo' => 'Jean Dupont',
+               'location' => 'Bureau 101',
+               'municipality' => 'Béziers',
+               'isActive' => true
+           ],
+           [
+               'id' => 2,
+               'type' => 'Écran',
+               'brand' => 'HP',
+               'model' => 'EliteDisplay',
+               'assignedTo' => 'Marie Martin',
+               'location' => 'Bureau 102',
+               'municipality' => 'Béziers',
+               'isActive' => true
+           ],
+           [
+               'id' => 3,
+               'type' => 'Imprimante',
+               'brand' => 'Epson',
+               'model' => 'EcoTank 4750',
+               'assignedTo' => 'Service Technique',
+               'location' => 'Salle d\'impression',
+               'municipality' => 'Agde',
+               'isActive' => true
+           ],
+           [
+               'id' => 4,
+               'type' => 'Ordinateur de bureau',
+               'brand' => 'Lenovo',
+               'model' => 'ThinkCentre',
+               'assignedTo' => 'Sophie Leroy',
+               'location' => 'Bureau 201',
+               'municipality' => 'Sète',
+               'isActive' => false
+           ],
+       ];
+
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
             'user' => [
@@ -92,6 +143,7 @@ class DashboardController extends AbstractController
             'lines' => $lines,
             'phoneLines' => $lines,
             'phoneLineStats' => $phoneLineStats,
+            'equipments' => $equipments, // Pass equipments to the index view
         ]);
     }
 
@@ -179,6 +231,8 @@ class DashboardController extends AbstractController
             'lines' => $lines,
             'phoneLines' => $lines,
             'phoneLineStats' => $phoneLineStats,
+            'salesChartData' => $this->generateLineStatsByMunicipality($lines),
+            'operatorChartData' => $this->generateLineStatsByOperator($lines),
         ]);
     }
 
@@ -186,8 +240,12 @@ class DashboardController extends AbstractController
     #[Route('/agents', name: 'agents')]
     public function agents(): Response
     {
+        // Données statiques ou tableau vide pour éviter la connexion à la base de données
+        $agents = [];
+
         return $this->render('pages/agents.html.twig', [
-            'page_title' => "Tableau de bord"
+            'page_title' => "Liste des Agents",
+            'agents' => $agents,
         ]);
     }
 
@@ -218,8 +276,64 @@ class DashboardController extends AbstractController
     #[Route('/park', name: 'park')]
     public function park(): Response
     {
+        // Données statiques pour le parc informatique
+        $equipments = [
+            [
+                'id' => 1,
+                'type' => 'Ordinateur portable',
+                'brand' => 'Dell',
+                'model' => 'Latitude 7400',
+                'assignedTo' => 'Jean Dupont',
+                'location' => 'Bureau 101',
+                'municipality' => 'Béziers',
+                'isActive' => true
+            ],
+            [
+                'id' => 2,
+                'type' => 'Écran',
+                'brand' => 'HP',
+                'model' => 'EliteDisplay',
+                'assignedTo' => 'Marie Martin',
+                'location' => 'Bureau 102',
+                'municipality' => 'Béziers',
+                'isActive' => true
+            ],
+            [
+                'id' => 3,
+                'type' => 'Imprimante',
+                'brand' => 'Epson',
+                'model' => 'EcoTank 4750',
+                'assignedTo' => 'Service Technique',
+                'location' => 'Salle d\'impression',
+                'municipality' => 'Agde',
+                'isActive' => true
+            ],
+            [
+                'id' => 4,
+                'type' => 'Ordinateur de bureau',
+                'brand' => 'Lenovo',
+                'model' => 'ThinkCentre',
+                'assignedTo' => 'Sophie Leroy',
+                'location' => 'Bureau 201',
+                'municipality' => 'Sète',
+                'isActive' => false
+            ],
+        ];
+
+        // Calcul manuel des statistiques du parc
+        $parkStats = [
+            'total_equipments' => count($equipments),
+            'unique_services' => count(array_values(array_unique(array_column($equipments, 'assignedTo')))), // Using assignedTo as a proxy for service
+            'unique_municipalities' => count(array_values(array_unique(array_column($equipments, 'municipality')))),
+            'active_equipments' => count(array_filter($equipments, fn($equipment) => $equipment['isActive'])),
+        ];
+
         return $this->render('pages/park.html.twig', [
-            'page_title' => "Tableau de bord"
+            'page_title' => "Parc Informatique",
+            'equipments' => $equipments,
+            'parkStats' => $parkStats,
+            'teamChartData' => $this->generateParkStatsByType($equipments),
+            'statusChartData' => $this->generateParkStatsByStatus($equipments),
         ]);
     }
 
@@ -246,11 +360,113 @@ class DashboardController extends AbstractController
             'page_title' => "Tableau de bord"
         ]);
     }
-    #[Route('/map', name: 'settings')]
+    #[Route('/settings', name: 'settings')]
     public function settings(): Response
     {
-        return $this->render('pages/map.html.twig', [
-            'page_title' => "Tableau de bord"
+        // Pour l'instant, on passe des paramètres par défaut ou vides
+        $settings = [
+            'crud_enabled' => true,
+            'display_mode' => 'liste',
+            'items_per_page' => 10,
+            'app_name' => '',
+            'welcome_message' => 'Bienvenue sur le tableau de bord !',
+            'alert_threshold' => 5,
+            'feature_enabled' => false,
+        ];
+
+        return $this->render('pages/settings.html.twig', [
+            'page_title' => "Paramètres administrateur",
+            'settings' => $settings
         ]);
+    }
+
+    #[Route('/settings/save', name: 'settings_save', methods: ['POST'])]
+    public function saveSettings(\Symfony\Component\HttpFoundation\Request $request): Response
+    {
+        $crudEnabled = $request->request->get('crud_enabled');
+        $displayMode = $request->request->get('display_mode');
+        $itemsPerPage = $request->request->get('items_per_page');
+        $appName = $request->request->get('app_name');
+        $welcomeMessage = $request->request->get('welcome_message');
+        $alertThreshold = $request->request->get('alert_threshold');
+        $featureEnabled = $request->request->get('feature_enabled') === '1'; // Checkbox value is '1' if checked, null otherwise
+
+        // Ici, vous devriez ajouter la logique pour sauvegarder ces paramètres,
+        // par exemple dans une base de données ou un fichier de configuration.
+        // Pour l'instant, nous allons juste afficher un message de succès.
+
+        $this->addFlash('success', 'Paramètres enregistrés avec succès.');
+
+        return $this->redirectToRoute('settings');
+    }
+    private function generateLineStatsByMunicipality(array $lines): array
+    {
+        $stats = [];
+        foreach ($lines as $line) {
+            $municipality = $line['municipality'];
+            if (!isset($stats[$municipality])) {
+                $stats[$municipality] = 0;
+            }
+            $stats[$municipality]++;
+        }
+
+        return [
+            'labels' => array_keys($stats),
+            'data' => array_values($stats),
+        ];
+    }
+
+    private function generateParkStatsByType(array $equipments): array
+    {
+        $stats = [];
+        foreach ($equipments as $equipment) {
+            $type = $equipment['type'];
+            if (!isset($stats[$type])) {
+                $stats[$type] = 0;
+            }
+            $stats[$type]++;
+        }
+
+        return [
+            'labels' => array_keys($stats),
+            'data' => array_values($stats),
+        ];
+    }
+
+    private function generateLineStatsByOperator(array $lines): array
+    {
+        $stats = [];
+        foreach ($lines as $line) {
+            $operator = $line['operator'];
+            if (!isset($stats[$operator])) {
+                $stats[$operator] = 0;
+            }
+            $stats[$operator]++;
+        }
+
+        return [
+            'labels' => array_keys($stats),
+            'data' => array_values($stats),
+        ];
+    }
+
+    private function generateParkStatsByStatus(array $equipments): array
+    {
+        $stats = [
+            'Actif' => 0,
+            'Inactif' => 0,
+        ];
+        foreach ($equipments as $equipment) {
+            if ($equipment['isActive']) {
+                $stats['Actif']++;
+            } else {
+                $stats['Inactif']++;
+            }
+        }
+
+        return [
+            'labels' => array_keys($stats),
+            'data' => array_values($stats),
+        ];
     }
 }

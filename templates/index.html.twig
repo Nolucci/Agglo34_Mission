@@ -21,24 +21,62 @@
                     </div>
 
                     {# INCLUDE MODALS #}
+                    {# INCLUDE MODALS #}
                     {% include './modals/_overview_modal.html.twig' %}
 
                     <div class="row">
-                        <div class="col-lg-3">
-                            <h2 class="title-1 m-b-25">Lignes Téléphoniques</h2>
-                            <div class="table-responsive table--no-card m-b-40">
-                                <div id="map-agglomeration"
-                                     style="height: 400px; width: 100%; border: 1px solid #ccc;"></div>
+                        <div class="col-lg-6">
+                             <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Carte des Lignes</strong>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-lg-9">
-                            {% include './modals/_lines_filters_modal.html.twig' with { phoneLines: lines } %}
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Statistiques des Lignes</strong>
+                                </div>
+                                <div class="card-body" style="min-height: 300px;">
+                                    <ul class="list-unstyled">
+                                        <li>
+                                            <i class="fa fa-phone"></i> Total des lignes :
+                                            <span class="badge badge-primary">{{ lines|length }}</span>
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-building"></i> Services uniques :
+                                            <span class="badge badge-info">{{ phoneLineStats.unique_services }}</span>
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-signal"></i> Opérateurs :
+                                            <span class="badge badge-success">{{ phoneLineStats.unique_operators }}</span>
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-globe"></i> Lignes globales :
+                                            <span class="badge badge-warning">{{ phoneLineStats.global_lines }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/map.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap(); // Assuming initMap is defined in map.js
+        });
+    </script>
 {% endblock %}
 

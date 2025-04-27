@@ -14,29 +14,53 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Lignes</strong>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body" style="min-height: 300px;">
                                     <ul class="list-unstyled">
                                         <li>
-                                            <i class="fa fa-phone"></i> Total des lignes : 
+                                            <i class="fa fa-phone"></i> Total des lignes :
                                             <span class="badge badge-primary">{{ lines|length }}</span>
                                         </li>
                                         <li>
-                                            <i class="fa fa-building"></i> Services uniques : 
+                                            <i class="fa fa-building"></i> Services uniques :
                                             <span class="badge badge-info">{{ phoneLineStats.unique_services }}</span>
                                         </li>
                                         <li>
-                                            <i class="fa fa-signal"></i> Opérateurs : 
+                                            <i class="fa fa-signal"></i> Opérateurs :
                                             <span class="badge badge-success">{{ phoneLineStats.unique_operators }}</span>
                                         </li>
                                         <li>
-                                            <i class="fa fa-globe"></i> Lignes globales : 
+                                            <i class="fa fa-globe"></i> Lignes globales :
                                             <span class="badge badge-warning">{{ phoneLineStats.global_lines }}</span>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="card mt-3">
+                        <div class="col-lg-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Nombre de Lignes par Municipalité</strong>
+                                </div>
+                                <div class="card-body" style="min-height: 300px;">
+                                    <canvas id="sales-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Lignes par Opérateur</strong>
+                                </div>
+                                <div class="card-body" style="min-height: 300px;">
+                                    <canvas id="operator-bar-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Carte des Lignes</strong>
                                 </div>
@@ -45,8 +69,10 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="col-lg-9">
+                    <div class="row">
+                        <div class="col-lg-12">
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Liste des Lignes Téléphoniques</strong>
@@ -105,9 +131,152 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
+        const allPhoneLines = {{ lines | json_encode | raw }};
+        let displayedPhoneLines = [...allPhoneLines];
+
+        // Sales Chart
+        var ctxSales = document.getElementById("sales-chart");
+        if (ctxSales) {
+            ctxSales.height = 150;
+            var myChartSales = new Chart(ctxSales, {
+                type: 'bar',
+                data: {
+                    labels: {{ salesChartData.labels | json_encode | raw }},
+                    datasets: [{
+                        label: "Nombre de Lignes",
+                        data: {{ salesChartData.data | json_encode | raw }},
+                        backgroundColor: 'rgba(220,53,69,0.75)',
+                        borderColor: 'rgba(220,53,69,0.75)',
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    tooltips: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        titleFontSize: 12,
+                        titleFontColor: '#000',
+                        bodyFontColor: '#000',
+                        backgroundColor: '#fff',
+                        titleFontFamily: 'Poppins',
+                        bodyFontFamily: 'Poppins',
+                        cornerRadius: 3,
+                        intersect: false,
+                    },
+                    legend: {
+                        display: false,
+                        labels: {
+                            fontFamily: 'Poppins',
+                        },
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                fontFamily: "Poppins"
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                fontFamily: "Poppins"
+                            }
+                        }]
+                    },
+                    title: {
+                        display: false,
+                        text: 'Normal Legend'
+                    }
+                }
+            });
+        }
+
+        // Operator Bar Chart
+        var ctxOperator = document.getElementById("operator-bar-chart");
+        if (ctxOperator) {
+            ctxOperator.height = 200; // Ajustez la hauteur si nécessaire
+            var myChartOperator = new Chart(ctxOperator, {
+                type: 'bar',
+                defaultFontFamily: 'Poppins',
+                data: {
+                    labels: {{ operatorChartData.labels | json_encode | raw }},
+                    datasets: [
+                        {
+                            label: "Nombre de Lignes", // Adapter le label
+                            data: {{ operatorChartData.data | json_encode | raw }},
+                            borderColor: "rgba(0, 123, 255, 0.9)",
+                            borderWidth: "0",
+                            backgroundColor: "rgba(0, 123, 255, 0.5)",
+                            fontFamily: "Poppins"
+                        }
+                    ]
+                },
+                options: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            fontFamily: 'Poppins'
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                fontFamily: "Poppins"
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                fontFamily: "Poppins"
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+
+        // Fonction pour rendre la table des lignes
+        function renderLinesTable(linesToDisplay) {
+            const tbody = document.querySelector('#lignesFiltersModal + div .table tbody');
+            tbody.innerHTML = ''; // Clear current table
+
+            linesToDisplay.forEach(line => {
+                const row = `
+                    <tr>
+                        <td>${line.location}</td>
+                        <td>${line.service}</td>
+                        <td>${line.assignedTo}</td>
+                        <td>${line.operator}</td>
+                        <td>${line.lineType}</td>
+                        <td>${line.municipality}</td>
+                        <td>
+                            ${line.isGlobal ? '<span class="badge badge-success">Global</span>' : '<span class="badge badge-secondary">Local</span>'}
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
         // Initialisation de la carte des lignes
         function initMap() {
             // Logique de la carte à implémenter
         }
+
+        // Initial render of the table
+        document.addEventListener('DOMContentLoaded', function() {
+            renderLinesTable(displayedPhoneLines);
+        });
     </script>
 {% endblock %}

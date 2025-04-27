@@ -116,29 +116,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const resetFiltersBtn = document.getElementById('resetFiltersBtn');
     const filtersForm = document.getElementById('lignesFiltersForm');
+    const lignesFiltersModal = document.getElementById('lignesFiltersModal');
 
     applyFiltersBtn.addEventListener('click', function() {
         const formData = new FormData(filtersForm);
         const filters = {};
-        
+
         for (let [key, value] of formData.entries()) {
             if (value) {
                 filters[key] = value;
             }
         }
 
-        // Ici, vous pouvez ajouter une requête AJAX pour filtrer les lignes
-        // fetch('/lines/filter', {
-        //     method: 'POST',
-        //     body: JSON.stringify(filters)
-        // })
-        // .then(response => response.json())
-        // .then(data => updateLinesTable(data));
+        // Filter the lines based on the selected filters
+        displayedPhoneLines = allPhoneLines.filter(line => {
+            let passesFilter = true;
+            for (const key in filters) {
+                if (key === 'isGlobal') {
+                    // Convert the filter value to boolean for comparison
+                    const filterValue = filters[key] === '1';
+                    if (line[key] !== filterValue) {
+                        passesFilter = false;
+                        break;
+                    }
+                } else if (line[key] != filters[key]) {
+                    passesFilter = false;
+                    break;
+                }
+            }
+            return passesFilter;
+        });
+
+        // Render the filtered lines
+        renderLinesTable(displayedPhoneLines);
+
+        // Close the modal
+        $(lignesFiltersModal).modal('hide');
     });
 
     resetFiltersBtn.addEventListener('click', function() {
         filtersForm.reset();
-        // Ici, vous pouvez ajouter une requête pour réinitialiser la liste des lignes
+        // Reset displayed lines to all lines
+        displayedPhoneLines = [...allPhoneLines];
+        renderLinesTable(displayedPhoneLines);
+        // Close the modal
+        $(lignesFiltersModal).modal('hide');
     });
 });
 </script>
