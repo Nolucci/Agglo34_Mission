@@ -1,0 +1,57 @@
+<div class="modal fade" id="linesModal" tabindex="-1" role="dialog" aria-labelledby="linesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="linesModalLabel">Ajouter une Ligne Téléphonique</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="line-location">Localisation:</label>
+                        <input type="text" class="form-control" id="line-location" name="location" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="line-service">Service:</label>
+                        <input type="text" class="form-control" id="line-service" name="service" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="line-assignedTo">Attribué à:</label>
+                        <input type="text" class="form-control" id="line-assignedTo" name="assignedTo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="line-phoneBrand">Marque du Téléphone:</label>
+                        <input type="text" class="form-control" id="line-phoneBrand" name="phoneBrand">
+                    </div>
+                    <div class="form-group">
+                        <label for="line-model">Modèle:</label>
+                        <input type="text" class="form-control" id="line-model" name="model">
+                    </div>
+                    <div class="form-group">
+                        <label for="line-operator">Opérateur:</label>
+                        <input type="text" class="form-control" id="line-operator" name="operator" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="line-lineType">Type de Ligne:</label>
+                        <input type="text" class="form-control" id="line-lineType" name="lineType">
+                    </div>
+                    <div class="form-group">
+                        <label for="line-municipality">Commune:</label>
+                        {# Placeholder for Municipality relationship - replace with actual select/dropdown #}
+                        <input type="text" class="form-control" id="line-municipality" name="municipality" placeholder="Choisir une Commune" required>
+                    </div>
+                     <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="line-isGlobal" name="isGlobal">
+                        <label class="form-check-label" for="line-isGlobal">Ligne Globale</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>

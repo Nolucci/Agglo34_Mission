@@ -14,8 +14,8 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques du Parc</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
-                                    <ul class="list-unstyled">
+                                <div class="card-body text-center" style="min-height: 300px;">
+                                    <ul class="list-unstyled" style="font-size: 20px">
                                         <li>
                                             <i class="fas fa-desktop"></i> Total des équipements :
                                             <span class="badge badge-primary">{{ equipments|length }}</span>
@@ -25,7 +25,7 @@
                                             <span class="badge badge-info">{{ parkStats.unique_services }}</span>
                                         </li>
                                         <li>
-                                            <i class="fas fa-building"></i> Municipalités uniques :
+                                            <i class="fas fa-building"></i> Communes uniques :
                                             <span class="badge badge-success">{{ parkStats.unique_municipalities }}</span>
                                         </li>
                                         <li>
@@ -42,7 +42,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Équipements</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
+                                <div class="card-body text-center" style="min-height: 300px;">
                                     <canvas id="team-chart"></canvas>
                                 </div>
                             </div>
@@ -53,7 +53,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Équipements par Statut</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
+                                <div class="card-body text-center" style="min-height: 300px;">
                                     <canvas id="status-doughnut-chart"></canvas>
                                 </div>
                             </div>
@@ -64,7 +64,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Carte des Équipements</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
+                                <div class="card-body text-center" style="min-height: 300px;">
                                     <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
                                 </div>
                             </div>
@@ -76,6 +76,9 @@
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Liste des Équipements Informatiques</strong>
+                                    <button class="btn btn-sm btn-success float-right mr-2" data-toggle="modal" data-target="#parkModal">
+                                        <i class="fa fa-plus"></i> Ajouter
+                                    </button>
                                     <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#parkFiltersModal">
                                         <i class="fa fa-filter"></i> Filtres
                                     </button>
@@ -90,8 +93,9 @@
                                                     <th>Modèle</th>
                                                     <th>Attribué à</th>
                                                     <th>Localisation</th>
-                                                    <th>Municipalité</th>
+                                                    <th>Commune</th>
                                                     <th>Statut</th>
+                                                    <th>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -123,9 +127,14 @@
             </div>
         </div>
     </div>
+{% include './modals/_park_modal.html.twig' %}
+{% include './modals/_park_filters_modal.html.twig' %}
 </div>
 
 {# {% include './modals/_park_filters_modal.html.twig' with { equipments: equipments } %} #}
+{% import './infos/_macros.html.twig' as macros %}
+{{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cet élément ?') }}
+
 {% endblock %}
 
 {% block javascripts %}
@@ -266,6 +275,11 @@
                         <td>
                             ${equipment.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
                         </td>
+                        <td>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${equipment.id}" data-type="equipment" data-toggle="modal" data-target="#staticModal">
+                                <i class="fa fa-trash"></i> Supprimer
+                            </button>
+                        </td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
@@ -281,5 +295,60 @@
         document.addEventListener('DOMContentLoaded', function() {
             renderEquipmentsTable(displayedEquipments);
         });
+
+        // Filter logic for Park Equipment
+        const parkFilterForm = document.getElementById('park-filter-form');
+        const applyParkFiltersButton = document.getElementById('apply-park-filters');
+
+        if (applyParkFiltersButton) {
+            applyParkFiltersButton.addEventListener('click', function() {
+                const filterType = document.getElementById('filter-type').value.toLowerCase();
+                const filterBrand = document.getElementById('filter-brand').value.toLowerCase();
+                const filterMunicipality = document.getElementById('filter-municipality').value.toLowerCase();
+                const filterStatus = document.getElementById('filter-status').value.toLowerCase();
+
+                displayedEquipments = allEquipments.filter(equipment => {
+                    const matchesType = filterType === '' || (equipment.type && equipment.type.toLowerCase().includes(filterType));
+                    const matchesBrand = filterBrand === '' || (equipment.brand && equipment.brand.toLowerCase().includes(filterBrand));
+                    const matchesMunicipality = filterMunicipality === '' || (equipment.municipality && equipment.municipality.toLowerCase().includes(filterMunicipality));
+                    const matchesStatus = filterStatus === '' || (equipment.isActive ? 'actif' : 'inactif').includes(filterStatus);
+
+                    return matchesType && matchesBrand && matchesMunicipality && matchesStatus;
+                });
+
+                renderEquipmentsTable(displayedEquipments);
+
+                // Close the modal after applying filters
+                $('#parkFiltersModal').modal('hide');
+            });
+        }
+    $(document).ready(function() {
+        $('#staticModal').on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget); // Button that triggered the modal
+            const itemId = button.data('id'); // Extract info from data-* attributes
+            const itemType = button.data('type');
+
+            const modal = $(this);
+            modal.find('.modal-title').text('Confirmer la suppression de ' + itemType.charAt(0).toUpperCase() + itemType.slice(1));
+            modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemType === 'equipment' ? 'équipement' : 'élément') + ' ?');
+
+            // Set data attributes on the confirm button
+            const confirmButton = modal.find('.btn-primary');
+            confirmButton.data('id', itemId);
+            confirmButton.data('type', itemType);
+        });
+
+        $('#staticModal .btn-primary').on('click', function() {
+            const button = $(this);
+            const itemId = button.data('id');
+            const itemType = button.data('type');
+
+            // TODO: Implement backend deletion request here
+            console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
+
+            // Close the modal
+            $('#staticModal').modal('hide');
+        });
+    });
     </script>
 {% endblock %}

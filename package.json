@@ -1,0 +1,23 @@
+{
+  "name": "agglo34_mission",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nolucci/Agglo34_Mission.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nolucci/Agglo34_Mission/issues"
+  },
+  "homepage": "https://github.com/Nolucci/Agglo34_Mission#readme",
+  "description": ""
+}

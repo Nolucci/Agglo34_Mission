@@ -169,5 +169,6 @@
     <orderEntry type="library" name="jszip" level="application" />
     <orderEntry type="library" name="bootstrap" level="application" />
     <orderEntry type="library" name="bootstrap" level="application" />
+    <orderEntry type="library" name="chart.js" level="application" />
   </component>
 </module>

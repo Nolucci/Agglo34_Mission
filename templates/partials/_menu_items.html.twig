@@ -22,6 +22,11 @@
         <i class="far fa-folder"></i>Documents et données
     </a>
 </li>
+<li class="{{ app.request.attributes.get('_route') == 'app_logs' ? 'active' : '' }}">
+    <a href="{{ path('app_logs') }}">
+        <i class="fas fa-file-alt"></i>Logs
+    </a>
+</li>
 <li class="{{ app.request.attributes.get('_route') == 'settings' ? 'active' : '' }}">
     <a href="{{ path('settings') }}">
         <i class="fas fa-cogs"></i>Paramètres

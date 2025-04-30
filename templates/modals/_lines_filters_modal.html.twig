@@ -20,11 +20,11 @@
                                     <option value="">Tous les opérateurs</option>
                                     {% set operators = [] %}
                                     {% for line in phoneLines %}
-                                        {% if not (line.operator in operators) %}
+                                        {% if line.operator is not null and not (line.operator in operators) %}
                                             {% set operators = operators|merge([line.operator]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for operator in operators %}
+                                    {% for operator in operators|sort %}
                                         <option value="{{ operator }}">{{ operator }}</option>
                                     {% endfor %}
                                 </select>
@@ -37,11 +37,11 @@
                                     <option value="">Tous les types</option>
                                     {% set lineTypes = [] %}
                                     {% for line in phoneLines %}
-                                        {% if not (line.lineType in lineTypes) %}
+                                        {% if line.lineType is not null and not (line.lineType in lineTypes) %}
                                             {% set lineTypes = lineTypes|merge([line.lineType]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for type in lineTypes %}
+                                    {% for type in lineTypes|sort %}
                                         <option value="{{ type }}">{{ type }}</option>
                                     {% endfor %}
                                 </select>
@@ -56,11 +56,11 @@
                                     <option value="">Tous les services</option>
                                     {% set services = [] %}
                                     {% for line in phoneLines %}
-                                        {% if not (line.service in services) %}
+                                        {% if line.service is not null and not (line.service in services) %}
                                             {% set services = services|merge([line.service]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for service in services %}
+                                    {% for service in services|sort %}
                                         <option value="{{ service }}">{{ service }}</option>
                                     {% endfor %}
                                 </select>
@@ -68,16 +68,16 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="municipalityFilter">Municipalité</label>
+                                <label for="municipalityFilter">Commune</label>
                                 <select class="form-control" id="municipalityFilter" name="municipality">
-                                    <option value="">Toutes les municipalités</option>
+                                    <option value="">Toutes les communes</option>
                                     {% set municipalities = [] %}
                                     {% for line in phoneLines %}
-                                        {% if not (line.municipality in municipalities) %}
+                                        {% if line.municipality is not null and not (line.municipality in municipalities) %}
                                             {% set municipalities = municipalities|merge([line.municipality]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for municipality in municipalities %}
+                                    {% for municipality in municipalities|sort %}
                                         <option value="{{ municipality }}">{{ municipality }}</option>
                                     {% endfor %}
                                 </select>
@@ -111,56 +111,3 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-    const filtersForm = document.getElementById('lignesFiltersForm');
-    const lignesFiltersModal = document.getElementById('lignesFiltersModal');
-
-    applyFiltersBtn.addEventListener('click', function() {
-        const formData = new FormData(filtersForm);
-        const filters = {};
-
-        for (let [key, value] of formData.entries()) {
-            if (value) {
-                filters[key] = value;
-            }
-        }
-
-        // Filter the lines based on the selected filters
-        displayedPhoneLines = allPhoneLines.filter(line => {
-            let passesFilter = true;
-            for (const key in filters) {
-                if (key === 'isGlobal') {
-                    // Convert the filter value to boolean for comparison
-                    const filterValue = filters[key] === '1';
-                    if (line[key] !== filterValue) {
-                        passesFilter = false;
-                        break;
-                    }
-                } else if (line[key] != filters[key]) {
-                    passesFilter = false;
-                    break;
-                }
-            }
-            return passesFilter;
-        });
-
-        // Render the filtered lines
-        renderLinesTable(displayedPhoneLines);
-
-        // Close the modal
-        $(lignesFiltersModal).modal('hide');
-    });
-
-    resetFiltersBtn.addEventListener('click', function() {
-        filtersForm.reset();
-        // Reset displayed lines to all lines
-        displayedPhoneLines = [...allPhoneLines];
-        renderLinesTable(displayedPhoneLines);
-        // Close the modal
-        $(lignesFiltersModal).modal('hide');
-    });
-});
-</script>

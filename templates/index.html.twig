@@ -25,23 +25,23 @@
                     {% include './modals/_overview_modal.html.twig' %}
 
                     <div class="row">
-                        <div class="col-lg-6">
-                             <div class="card">
+                        <div class="col-lg-4">
+                            <div class="card">
                                 <div class="card-header">
-                                    <strong class="card-title">Carte des Lignes</strong>
+                                    <strong class="card-title">Carte de l'Agglomération</strong>
                                 </div>
                                 <div class="card-body">
                                     <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
+                        <div class="col-lg-4">
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Lignes</strong>
                                 </div>
                                 <div class="card-body" style="min-height: 300px;">
-                                    <ul class="list-unstyled">
+                                    <ul class="list-unstyled" style="font-size: 20px">
                                         <li>
                                             <i class="fa fa-phone"></i> Total des lignes :
                                             <span class="badge badge-primary">{{ lines|length }}</span>
@@ -57,6 +57,33 @@
                                         <li>
                                             <i class="fa fa-globe"></i> Lignes globales :
                                             <span class="badge badge-warning">{{ phoneLineStats.global_lines }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Statistiques du Matériel</strong>
+                                </div>
+                                <div class="card-body" style="min-height: 300px;">
+                                    <ul class="list-unstyled" style="font-size: 20px">
+                                        <li>
+                                            <i class="fa fa-desktop"></i> Total du matériel :
+                                            <span class="badge badge-primary">{{ parkStats.total_equipments }}</span>
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-building"></i> Services uniques :
+                                            <span class="badge badge-info">{{ parkStats.unique_services }}</span>
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-map-marker"></i> Communes :
+                                            <span class="badge badge-success">{{ parkStats.unique_municipalities }}</span>
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-check-circle"></i> Matériel actif :
+                                            <span class="badge badge-warning">{{ parkStats.active_equipments }}</span>
                                         </li>
                                     </ul>
                                 </div>

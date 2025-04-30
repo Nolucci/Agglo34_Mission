@@ -1,4 +1,4 @@
-{% macro static_modal(type, message) %}
+{% macro static_modal(type = 'Confirmation', message = 'Voulez-vous vraiment effectuer cette action ?') %}
     <div class="modal fade" id="staticModal" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">

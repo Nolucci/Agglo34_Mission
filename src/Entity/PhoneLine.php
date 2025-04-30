@@ -42,7 +42,7 @@ class PhoneLine
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $lineType = null;
 
-    // Municipalité (relation vers entité Municipality)
+    // Commune (relation vers entité Municipality)
     #[ORM\ManyToOne(inversedBy: 'phoneLines')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $municipality = null;

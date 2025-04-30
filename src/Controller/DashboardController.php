@@ -79,7 +79,7 @@ class DashboardController extends AbstractController
             'local_lines' => count(array_filter($lines, fn($line) => !$line['isGlobal'])),
         ];
 
-        // Récupération des municipalités
+        // Récupération des communes
         $municipalities = array_map(function($line) use ($lines) {
             return [
                 'id' => array_search($line['municipality'], array_column($lines, 'municipality')),
@@ -89,48 +89,56 @@ class DashboardController extends AbstractController
         $municipalities = array_map("unserialize", array_unique(array_map("serialize", $municipalities)));
 
        // Données statiques pour le parc informatique (copiées depuis la fonction park)
-       $equipments = [
-           [
-               'id' => 1,
-               'type' => 'Ordinateur portable',
-               'brand' => 'Dell',
-               'model' => 'Latitude 7400',
-               'assignedTo' => 'Jean Dupont',
-               'location' => 'Bureau 101',
-               'municipality' => 'Béziers',
-               'isActive' => true
-           ],
-           [
-               'id' => 2,
-               'type' => 'Écran',
-               'brand' => 'HP',
-               'model' => 'EliteDisplay',
-               'assignedTo' => 'Marie Martin',
-               'location' => 'Bureau 102',
-               'municipality' => 'Béziers',
-               'isActive' => true
-           ],
-           [
-               'id' => 3,
-               'type' => 'Imprimante',
-               'brand' => 'Epson',
-               'model' => 'EcoTank 4750',
-               'assignedTo' => 'Service Technique',
-               'location' => 'Salle d\'impression',
-               'municipality' => 'Agde',
-               'isActive' => true
-           ],
-           [
-               'id' => 4,
-               'type' => 'Ordinateur de bureau',
-               'brand' => 'Lenovo',
-               'model' => 'ThinkCentre',
-               'assignedTo' => 'Sophie Leroy',
-               'location' => 'Bureau 201',
-               'municipality' => 'Sète',
-               'isActive' => false
-           ],
-       ];
+        $equipments = [
+            [
+                'id' => 1,
+                'type' => 'Ordinateur portable',
+                'brand' => 'Dell',
+                'model' => 'Latitude 7400',
+                'assignedTo' => 'Jean Dupont',
+                'location' => 'Bureau 101',
+                'municipality' => 'Béziers',
+                'isActive' => true
+            ],
+            [
+                'id' => 2,
+                'type' => 'Écran',
+                'brand' => 'HP',
+                'model' => 'EliteDisplay',
+                'assignedTo' => 'Marie Martin',
+                'location' => 'Bureau 102',
+                'municipality' => 'Béziers',
+                'isActive' => true
+            ],
+            [
+                'id' => 3,
+                'type' => 'Imprimante',
+                'brand' => 'Epson',
+                'model' => 'EcoTank 4750',
+                'assignedTo' => 'Service Technique',
+                'location' => 'Salle d\'impression',
+                'municipality' => 'Agde',
+                'isActive' => true
+            ],
+            [
+                'id' => 4,
+                'type' => 'Ordinateur de bureau',
+                'brand' => 'Lenovo',
+                'model' => 'ThinkCentre',
+                'assignedTo' => 'Sophie Leroy',
+                'location' => 'Bureau 201',
+                'municipality' => 'Sète',
+                'isActive' => false
+            ],
+        ];
+
+        // Calcul manuel des statistiques du parc
+        $parkStats = [
+            'total_equipments' => count($equipments),
+            'unique_services' => count(array_values(array_unique(array_column($equipments, 'assignedTo')))),
+            'unique_municipalities' => count(array_values(array_unique(array_column($equipments, 'municipality')))),
+            'active_equipments' => count(array_filter($equipments, fn($equipment) => $equipment['isActive'])),
+        ];
 
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
@@ -143,7 +151,8 @@ class DashboardController extends AbstractController
             'lines' => $lines,
             'phoneLines' => $lines,
             'phoneLineStats' => $phoneLineStats,
-            'equipments' => $equipments, // Pass equipments to the index view
+            'equipments' => $equipments,
+            'parkStats' => $parkStats, // Ajout des statistiques du matériel
         ]);
     }
 
@@ -211,7 +220,7 @@ class DashboardController extends AbstractController
             'local_lines' => count(array_filter($lines, fn($line) => !$line['isGlobal'])),
         ];
 
-        // Récupération des municipalités
+        // Récupération des communes
         $municipalities = array_map(function($line) use ($lines) {
             return [
                 'id' => array_search($line['municipality'], array_column($lines, 'municipality')),
@@ -240,8 +249,28 @@ class DashboardController extends AbstractController
     #[Route('/agents', name: 'agents')]
     public function agents(): Response
     {
-        // Données statiques ou tableau vide pour éviter la connexion à la base de données
-        $agents = [];
+        $agents = [
+            [
+                'id' => 1,
+                'name' => 'Frédéric Fernandez',
+                'email' => 'frederic.fernandez@example.com'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Marie Martin',
+                'email' => 'marie.martin@example.com'
+            ],
+            [
+                'id' => 3,
+                'name' => 'Pierre Dubois',
+                'email' => 'pierre.dubois@example.com'
+            ],
+            [
+                'id' => 4,
+                'name' => 'Sophie Leroy',
+                'email' => 'sophie.leroy@example.com'
+            ],
+        ];
 
         return $this->render('pages/agents.html.twig', [
             'page_title' => "Liste des Agents",

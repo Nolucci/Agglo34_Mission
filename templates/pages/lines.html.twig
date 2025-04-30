@@ -14,8 +14,8 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Lignes</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
-                                    <ul class="list-unstyled">
+                                <div class="card-body text-center" style="min-height: 300px;">
+                                    <ul class="list-unstyled" style="font-size: 20px">
                                         <li>
                                             <i class="fa fa-phone"></i> Total des lignes :
                                             <span class="badge badge-primary">{{ lines|length }}</span>
@@ -40,9 +40,9 @@
                         <div class="col-lg-3">
                             <div class="card">
                                 <div class="card-header">
-                                    <strong class="card-title">Nombre de Lignes par Municipalité</strong>
+                                    <strong class="card-title">Nombre de Lignes par Commune</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
+                                <div class="card-body text-center" style="min-height: 300px;">
                                     <canvas id="sales-chart"></canvas>
                                 </div>
                             </div>
@@ -53,7 +53,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Lignes par Opérateur</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
+                                <div class="card-body text-center" style="min-height: 300px;">
                                     <canvas id="operator-bar-chart"></canvas>
                                 </div>
                             </div>
@@ -62,9 +62,9 @@
                         <div class="col-lg-3">
                              <div class="card">
                                 <div class="card-header">
-                                    <strong class="card-title">Carte des Lignes</strong>
+                                    <strong class="card-title">Carte de l'Agglomération</strong>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body text-center">
                                     <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
                                 </div>
                             </div>
@@ -76,6 +76,9 @@
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Liste des Lignes Téléphoniques</strong>
+                                    <button class="btn btn-sm btn-success float-right mr-2" data-toggle="modal" data-target="#linesModal">
+                                        <i class="fa fa-plus"></i> Ajouter
+                                    </button>
                                     <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#lignesFiltersModal">
                                         <i class="fa fa-filter"></i> Filtres
                                     </button>
@@ -90,8 +93,9 @@
                                                     <th>Attribué à</th>
                                                     <th>Opérateur</th>
                                                     <th>Type de Ligne</th>
-                                                    <th>Municipalité</th>
+                                                    <th>Commune</th>
                                                     <th>Statut</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -110,6 +114,11 @@
                                                             <span class="badge badge-secondary">Local</span>
                                                         {% endif %}
                                                     </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-danger delete-btn" data-id="{{ line.id }}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
+                                                            <i class="fa fa-trash"></i> Supprimer
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
@@ -123,16 +132,21 @@
             </div>
         </div>
     </div>
+{% include './modals/_line_modal.html.twig' %}
+{% include './modals/_lines_filters_modal.html.twig' with { phoneLines: lines } %}
 </div>
 
-{% include './modals/_lines_filters_modal.html.twig' with { phoneLines: lines } %}
+{% import './infos/_macros.html.twig' as macros %}
+{{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cet ligne ?') }}
+modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemType === 'agent' ? 'agent' : 'élément') + ' ?');
+
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script>
-        const allPhoneLines = {{ lines | json_encode | raw }};
-        let displayedPhoneLines = [...allPhoneLines];
+  {{ parent() }}
+  <script>
+      const allPhoneLines = {{ lines | json_encode | raw }};
+      let displayedPhoneLines = [...allPhoneLines];
 
         // Sales Chart
         var ctxSales = document.getElementById("sales-chart");
@@ -248,7 +262,7 @@
 
         // Fonction pour rendre la table des lignes
         function renderLinesTable(linesToDisplay) {
-            const tbody = document.querySelector('#lignesFiltersModal + div .table tbody');
+            const tbody = document.querySelector('.table tbody');
             tbody.innerHTML = ''; // Clear current table
 
             linesToDisplay.forEach(line => {
@@ -262,6 +276,11 @@
                         <td>${line.municipality}</td>
                         <td>
                             ${line.isGlobal ? '<span class="badge badge-success">Global</span>' : '<span class="badge badge-secondary">Local</span>'}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${line.id}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
+                                <i class="fa fa-trash"></i> Supprimer
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -278,5 +297,88 @@
         document.addEventListener('DOMContentLoaded', function() {
             renderLinesTable(displayedPhoneLines);
         });
+    // Filter logic for Phone Lines
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const filtersForm = document.getElementById('lignesFiltersForm');
+    const lignesFiltersModal = document.getElementById('lignesFiltersModal');
+
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            const formData = new FormData(filtersForm);
+            const filters = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    filters[key] = value;
+                }
+            }
+
+            displayedPhoneLines = allPhoneLines.filter(line => {
+                let passesFilter = true;
+                for (const key in filters) {
+                    const filterValue = filters[key];
+                    const lineValue = line[key];
+
+                    if (key === 'isGlobal') {
+                        const filterBoolean = filterValue === '1';
+                        if (lineValue !== filterBoolean) {
+                            passesFilter = false;
+                            break;
+                        }
+                    } else if (lineValue === null || lineValue === undefined) {
+                         passesFilter = false;
+                         break;
+                    }
+                    else if (lineValue.toString().toLowerCase() !== filterValue.toLowerCase()) {
+                        passesFilter = false;
+                        break;
+                    }
+                }
+                return passesFilter;
+            });
+
+            renderLinesTable(displayedPhoneLines);
+            $('#lignesFiltersModal').modal('hide');
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            filtersForm.reset();
+            displayedPhoneLines = [...allPhoneLines];
+            renderLinesTable(displayedPhoneLines);
+            $('#lignesFiltersModal').modal('hide');
+        });
+    }
+    </script>
+    $(document).ready(function() {
+        $('#staticModal').on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget); // Button that triggered the modal
+            const itemId = button.data('id'); // Extract info from data-* attributes
+            const itemType = button.data('type');
+
+            const modal = $(this);
+            modal.find('.modal-title').text('Confirm Deletion of ' + itemType.charAt(0).toUpperCase() + itemType.slice(1).replace('_', ' '));
+            modal.find('.modal-body p').text('Are you sure you want to delete this ' + itemType.replace('_', ' ') + '?');
+
+            // Set data attributes on the confirm button
+            const confirmButton = modal.find('.btn-primary');
+            confirmButton.data('id', itemId);
+            confirmButton.data('type', itemType);
+        });
+
+        $('#staticModal .btn-primary').on('click', function() {
+            const button = $(this);
+            const itemId = button.data('id');
+            const itemType = button.data('type');
+
+            // TODO: Implement backend deletion request here
+            console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
+
+            // Close the modal
+            $('#staticModal').modal('hide');
+        });
+    });
     </script>
 {% endblock %}

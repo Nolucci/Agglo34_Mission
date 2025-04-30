@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+
     <meta charset="UTF-8">
     <title>{% block title %}Dashboard{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     {% block stylesheets %}
         <link href="{{ asset('css/font-face.css') }}" rel="stylesheet">
         <link href="{{ asset('vendor/font-awesome-4.7/css/font-awesome.min.css') }}" rel="stylesheet">
@@ -26,9 +28,9 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 </head>
+
 <body class="animsition">
 
-{# Flash messages affichés en haut, devant tout #}
 <div id="flash-messages" style="position: fixed; top: 40px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; max-width: 800px;">
     {% for type, messages in app.flashes %}
         {% for message in messages %}
