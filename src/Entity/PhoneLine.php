@@ -47,9 +47,6 @@ class PhoneLine
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $municipality = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?bool $isGlobal = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -143,15 +140,5 @@ class PhoneLine
         return $this;
     }
 
-    public function isGlobal(): ?bool
-    {
-        return $this->isGlobal;
-    }
 
-    public function setIsGlobal(?bool $isGlobal): static
-    {
-        $this->isGlobal = $isGlobal;
-
-        return $this;
-    }
 }

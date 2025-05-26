@@ -22,6 +22,16 @@
         <i class="far fa-folder"></i>Documents et données
     </a>
 </li>
+<li class="{{ app.request.attributes.get('_route') == 'box_list' ? 'active' : '' }}">
+    <a href="{{ path('box_list') }}">
+        <i class="fas fa-boxes"></i>Boxs
+    </a>
+</li>
+<li class="{{ app.request.attributes.get('_route') == 'app_archive' ? 'active' : '' }}">
+    <a href="{{ path('app_archive') }}">
+        <i class="fas fa-archive"></i>Archives
+    </a>
+</li>
 <li class="{{ app.request.attributes.get('_route') == 'app_logs' ? 'active' : '' }}">
     <a href="{{ path('app_logs') }}">
         <i class="fas fa-file-alt"></i>Logs

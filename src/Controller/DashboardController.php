@@ -352,7 +352,7 @@ class DashboardController extends AbstractController
         // Calcul manuel des statistiques du parc
         $parkStats = [
             'total_equipments' => count($equipments),
-            'unique_services' => count(array_values(array_unique(array_column($equipments, 'assignedTo')))), // Using assignedTo as a proxy for service
+            'unique_services' => count(array_values(array_unique(array_column($equipments, 'assignedTo')))),
             'unique_municipalities' => count(array_values(array_unique(array_column($equipments, 'municipality')))),
             'active_equipments' => count(array_filter($equipments, fn($equipment) => $equipment['isActive'])),
         ];
@@ -418,7 +418,7 @@ class DashboardController extends AbstractController
         $appName = $request->request->get('app_name');
         $welcomeMessage = $request->request->get('welcome_message');
         $alertThreshold = $request->request->get('alert_threshold');
-        $featureEnabled = $request->request->get('feature_enabled') === '1'; // Checkbox value is '1' if checked, null otherwise
+        $featureEnabled = $request->request->get('feature_enabled') === '1';
 
         // Ici, vous devriez ajouter la logique pour sauvegarder ces paramètres,
         // par exemple dans une base de données ou un fichier de configuration.

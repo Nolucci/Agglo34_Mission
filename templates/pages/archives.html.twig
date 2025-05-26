@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Archives{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="page-container">
+        <div class="main-content">
+            <div class="section__content section__content--p30">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="overview-wrap">
+                                <h2 class="title-1">Archives</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row m-t-25">
+                        <div class="col-md-12">
+                            <div class="table-responsive table--no-card m-b-40">
+                                <table class="table table-borderless table-striped table-earning">
+                                    <thead>
+                                        <tr>
+                                            <th>Type d'Entité</th>
+                                            <th>ID Entité</th>
+                                            <th>Date d'Archivage</th>
+                                            <th>Données Archivées</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for archive in archives %}
+                                            <tr>
+                                                <td>{{ archive.entityType }}</td>
+                                                <td>{{ archive.entityId }}</td>
+                                                <td>{{ archive.archivedAt|date('Y-m-d H:i:s') }}</td>
+                                                <td>{{ archive.data|json_encode }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

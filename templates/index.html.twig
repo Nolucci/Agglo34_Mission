@@ -40,25 +40,45 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Lignes</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
-                                    <ul class="list-unstyled" style="font-size: 20px">
-                                        <li>
-                                            <i class="fa fa-phone"></i> Total des lignes :
-                                            <span class="badge badge-primary">{{ lines|length }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-building"></i> Services uniques :
-                                            <span class="badge badge-info">{{ phoneLineStats.unique_services }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-signal"></i> Opérateurs :
-                                            <span class="badge badge-success">{{ phoneLineStats.unique_operators }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-globe"></i> Lignes globales :
-                                            <span class="badge badge-warning">{{ phoneLineStats.global_lines }}</span>
-                                        </li>
-                                    </ul>
+                                <div class="card-body" style="height: 300px;">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-phone fa-2x"></i></h5>
+                                                    <p class="card-text">Total des lignes</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ lines|length }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                     <h5 class="card-title"><i class="fa fa-building fa-2x"></i></h5>
+                                                    <p class="card-text">Services uniques</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_services }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-signal fa-2x"></i></h5>
+                                                    <p class="card-text">Opérateurs</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_operators }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                     <h5 class="card-title"><i class="fa fa-globe fa-2x"></i></h5>
+                                                    <p class="card-text">Lignes globales</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.global_lines }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -67,25 +87,45 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques du Matériel</strong>
                                 </div>
-                                <div class="card-body" style="min-height: 300px;">
-                                    <ul class="list-unstyled" style="font-size: 20px">
-                                        <li>
-                                            <i class="fa fa-desktop"></i> Total du matériel :
-                                            <span class="badge badge-primary">{{ parkStats.total_equipments }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-building"></i> Services uniques :
-                                            <span class="badge badge-info">{{ parkStats.unique_services }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-map-marker"></i> Communes :
-                                            <span class="badge badge-success">{{ parkStats.unique_municipalities }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-check-circle"></i> Matériel actif :
-                                            <span class="badge badge-warning">{{ parkStats.active_equipments }}</span>
-                                        </li>
-                                    </ul>
+                                <div class="card-body" style="height: 300px;">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-desktop fa-2x"></i></h5>
+                                                    <p class="card-text">Total du matériel</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ parkStats.total_equipments }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-building fa-2x"></i></h5>
+                                                    <p class="card-text">Services uniques</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ parkStats.unique_services }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-map-marker fa-2x"></i></h5>
+                                                    <p class="card-text">Communes</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ parkStats.unique_municipalities }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-check-circle fa-2x"></i></h5>
+                                                    <p class="card-text">Matériel actif</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ parkStats.active_equipments }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

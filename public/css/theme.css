@@ -464,6 +464,11 @@ section {
     color: #fff;
     background: #3868cd;
 }
+/* Styles pour les boîtes de statistiques */
+.card .card-text,
+.card h3 {
+    font-size: 0.7rem;
+}
 
 .au-btn--blue2 {
     background: #00aced;
@@ -14669,4 +14674,94 @@ section {
 
 .flash-fade.hide {
     opacity: 0;
+}
+
+/* Styles améliorés pour les cards */
+.card {
+    overflow: hidden; /* Empêche absolument le débordement */
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 3px;
+}
+
+.card-body {
+    padding: 1.25rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 0.75rem 1.25rem;
+}
+
+/* Style pour les petites cards dans les grilles */
+.col-sm-6 .card {
+    margin-bottom: 10px;
+    height: 100%;
+}
+
+.col-sm-6 .card-body {
+    padding: 0.75rem;
+}
+
+/* Style pour les textes dans les cards */
+.card h5 {
+    font-size: 14px;
+    margin-bottom: 0.5rem;
+}
+
+.card .card-text {
+    margin-bottom: 0.5rem;
+}
+
+.card .location {
+    font-size: 12px;
+}
+
+/* Ajout d'une marge pour la carte */
+#map-agglomeration {
+    margin-bottom: 15px !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Ajustement des textes pour responsivité */
+@media (max-width: 1200px) {
+    .card h3 {
+        font-size: 1.3rem !important;
+    }
+    
+    .card .card-title i {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Ajustements supplémentaires pour les très petits écrans */
+@media (max-width: 767px) {
+    .card h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    .card .card-title i {
+        font-size: 1.3rem !important;
+    }
+    
+    .col-sm-6 {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+    
+    .col-sm-6 .card-body {
+        padding: 0.5rem;
+    }
+}
+
+/* Assurer que Canvas est bien contenu */
+canvas {
+    max-width: 100% !important;
+    height: auto !important;
 }

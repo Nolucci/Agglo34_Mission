@@ -14,25 +14,45 @@
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Lignes</strong>
                                 </div>
-                                <div class="card-body text-center" style="min-height: 300px;">
-                                    <ul class="list-unstyled" style="font-size: 20px">
-                                        <li>
-                                            <i class="fa fa-phone"></i> Total des lignes :
-                                            <span class="badge badge-primary">{{ lines|length }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-building"></i> Services uniques :
-                                            <span class="badge badge-info">{{ phoneLineStats.unique_services }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-signal"></i> Opérateurs :
-                                            <span class="badge badge-success">{{ phoneLineStats.unique_operators }}</span>
-                                        </li>
-                                        <li>
-                                            <i class="fa fa-globe"></i> Lignes globales :
-                                            <span class="badge badge-warning">{{ phoneLineStats.global_lines }}</span>
-                                        </li>
-                                    </ul>
+                                <div class="card-body text-center" style="height: 300px;">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-phone fa-2x"></i></h5>
+                                                    <p class="card-text">Total des lignes</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ lines|length }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-building fa-2x"></i></h5>
+                                                    <p class="card-text">Services uniques</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_services }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fa fa-signal fa-2x"></i></h5>
+                                                    <p class="card-text">Opérateurs</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_operators }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                     <h5 class="card-title"><i class="fa fa-globe fa-2x"></i></h5>
+                                                    <p class="card-text">Lignes globales</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.global_lines }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -42,7 +62,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Nombre de Lignes par Commune</strong>
                                 </div>
-                                <div class="card-body text-center" style="min-height: 300px;">
+                                <div class="card-body text-center" style="height: 300px;">
                                     <canvas id="sales-chart"></canvas>
                                 </div>
                             </div>
@@ -53,7 +73,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Lignes par Opérateur</strong>
                                 </div>
-                                <div class="card-body text-center" style="min-height: 300px;">
+                                <div class="card-body text-center" style="height: 300px;">
                                     <canvas id="operator-bar-chart"></canvas>
                                 </div>
                             </div>
@@ -64,7 +84,7 @@
                                 <div class="card-header">
                                     <strong class="card-title">Carte de l'Agglomération</strong>
                                 </div>
-                                <div class="card-body text-center">
+                                <div class="card-body text-center" style="height: 300px;">
                                     <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
                                 </div>
                             </div>
@@ -83,17 +103,21 @@
                                         <i class="fa fa-filter"></i> Filtres
                                     </button>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body" style="height: auto;">{# Adjusted height for table #}
+                                     <div class="form-group">
+                                        <label for="searchInput">Rechercher par attribut:</label>
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Entrez un terme de recherche">
+                                    </div>
                                     <div class="table-responsive">
                                         <table class="table table-striped table-hover">
                                             <thead>
                                                 <tr>
+                                                    <th>Commune</th>
                                                     <th>Localisation</th>
                                                     <th>Service</th>
                                                     <th>Attribué à</th>
                                                     <th>Opérateur</th>
                                                     <th>Type de Ligne</th>
-                                                    <th>Commune</th>
                                                     <th>Statut</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -101,12 +125,12 @@
                                             <tbody>
                                                 {% for line in lines %}
                                                 <tr>
+                                                    <td>{{ line.municipality }}</td>
                                                     <td>{{ line.location }}</td>
                                                     <td>{{ line.service }}</td>
                                                     <td>{{ line.assignedTo }}</td>
                                                     <td>{{ line.operator }}</td>
                                                     <td>{{ line.lineType }}</td>
-                                                    <td>{{ line.municipality }}</td>
                                                     <td>
                                                         {% if line.isGlobal %}
                                                             <span class="badge badge-success">Global</span>
@@ -138,7 +162,6 @@
 
 {% import './infos/_macros.html.twig' as macros %}
 {{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cet ligne ?') }}
-modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemType === 'agent' ? 'agent' : 'élément') + ' ?');
 
 {% endblock %}
 
@@ -268,12 +291,12 @@ modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemTy
             linesToDisplay.forEach(line => {
                 const row = `
                     <tr>
+                        <td>${line.municipality}</td>
                         <td>${line.location}</td>
                         <td>${line.service}</td>
                         <td>${line.assignedTo}</td>
                         <td>${line.operator}</td>
                         <td>${line.lineType}</td>
-                        <td>${line.municipality}</td>
                         <td>
                             ${line.isGlobal ? '<span class="badge badge-success">Global</span>' : '<span class="badge badge-secondary">Local</span>'}
                         </td>
@@ -296,6 +319,24 @@ modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemTy
         // Initial render of the table
         document.addEventListener('DOMContentLoaded', function() {
             renderLinesTable(displayedPhoneLines);
+
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(event) {
+                    const searchTerm = event.target.value.toLowerCase();
+                    displayedPhoneLines = allPhoneLines.filter(line => {
+                        // Filter based on any attribute value containing the search term
+                        for (const key in line) {
+                            const value = line[key];
+                            if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    renderLinesTable(displayedPhoneLines);
+                });
+            }
         });
     // Filter logic for Phone Lines
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
@@ -352,33 +393,5 @@ modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemTy
         });
     }
     </script>
-    $(document).ready(function() {
-        $('#staticModal').on('show.bs.modal', function (event) {
-            const button = $(event.relatedTarget); // Button that triggered the modal
-            const itemId = button.data('id'); // Extract info from data-* attributes
-            const itemType = button.data('type');
-
-            const modal = $(this);
-            modal.find('.modal-title').text('Confirm Deletion of ' + itemType.charAt(0).toUpperCase() + itemType.slice(1).replace('_', ' '));
-            modal.find('.modal-body p').text('Are you sure you want to delete this ' + itemType.replace('_', ' ') + '?');
-
-            // Set data attributes on the confirm button
-            const confirmButton = modal.find('.btn-primary');
-            confirmButton.data('id', itemId);
-            confirmButton.data('type', itemType);
-        });
-
-        $('#staticModal .btn-primary').on('click', function() {
-            const button = $(this);
-            const itemId = button.data('id');
-            const itemType = button.data('type');
-
-            // TODO: Implement backend deletion request here
-            console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
-
-            // Close the modal
-            $('#staticModal').modal('hide');
-        });
-    });
-    </script>
+   
 {% endblock %}
