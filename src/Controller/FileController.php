@@ -30,26 +30,23 @@ class FileController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Générer un nom de fichier unique
         $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $slugger->slug($originalFilename);
         $newFilename = $safeFilename.'-'.uniqid().'.'.$file->guessExtension();
 
         try {
-            // Déplacer le fichier dans le répertoire des uploads
             $file->move(
                 $this->getParameter('uploads_directory'),
                 $newFilename
             );
 
-            // Return relevant information for CSV/XLSX files
             return $this->json([
                 'status' => 'success',
                 'name' => $file->getClientOriginalName(),
                 'size' => $file->getSize(),
                 'type' => $file->getMimeType(),
                 'lastModified' => (new \DateTime())->format('Y-m-d H:i:s'),
-                'path' => '/uploads/'.$newFilename // Le chemin pour accéder au fichier
+                'path' => '/uploads/'.$newFilename
             ]);
         } catch (\Exception $e) {
             return $this->json([

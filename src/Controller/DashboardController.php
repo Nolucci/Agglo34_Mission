@@ -18,46 +18,39 @@ class DashboardController extends AbstractController
     #[Route('/dashboard', name: 'dashboard')]
     public function index(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository): Response
     {
-        // Récupérer les lignes téléphoniques réelles
         $lines = $phoneLineRepository->findAll();
 
-        // Calculer les statistiques des lignes téléphoniques à partir des données réelles
         $phoneLineStats = [
             'total_lines' => count($lines),
-            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))), // Assurez-vous que l'entité PhoneLine a une propriété 'operator'
-            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))), // Assurez-vous que l'entité PhoneLine a une propriété 'service'
-            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())), // Assurez-vous que l'entité PhoneLine a une méthode isGlobal()
+            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
+            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
+            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())),
             'local_lines' => count(array_filter($lines, fn($line) => !$line->isGlobal())),
         ];
 
-        // Récupérer les communes réelles
         $municipalities = $municipalityRepository->findAll();
 
-        // TODO: Remplacer les données fictives du parc informatique par des données réelles si une entité correspondante existe.
-        // Pour l'instant, laisser un placeholder.
-        $equipments = []; // Placeholder
+        $equipments = [];
 
-        // TODO: Calculer les statistiques du parc informatique à partir des données réelles si elles sont implémentées.
         $parkStats = [
             'total_equipments' => 0,
             'unique_services' => 0,
             'unique_municipalities' => 0,
             'active_equipments' => 0,
-        ]; // Placeholder
+        ];
 
-        // TODO: Remplacer les données utilisateur statiques par les données de l'utilisateur connecté si nécessaire.
         $user = [
             'name' => 'Frederic F',
             'email' => 'fredericf@example.com',
             'image_url' => '/images/img.png',
-        ]; // Placeholder ou récupérer l'utilisateur connecté
+        ];
 
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
             'user' => $user,
             'municipalities' => $municipalities,
             'lines' => $lines,
-            'phoneLines' => $lines, // phoneLines semble être un alias de lines dans la vue
+            'phoneLines' => $lines,
             'phoneLineStats' => $phoneLineStats,
             'equipments' => $equipments,
             'parkStats' => $parkStats,
@@ -67,27 +60,23 @@ class DashboardController extends AbstractController
     #[Route('/lines', name: 'lines')]
     public function lines(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository): Response
     {
-        // Récupérer les lignes téléphoniques réelles
         $lines = $phoneLineRepository->findAll();
 
-        // Calculer les statistiques des lignes téléphoniques à partir des données réelles
         $phoneLineStats = [
             'total_lines' => count($lines),
-            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))), // Assurez-vous que l'entité PhoneLine a une propriété 'operator'
-            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))), // Assurez-vous que l'entité PhoneLine a une propriété 'service'
-            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())), // Assurez-vous que l'entité PhoneLine a une méthode isGlobal()
+            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
+            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
+            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())),
             'local_lines' => count(array_filter($lines, fn($line) => !$line->isGlobal())),
         ];
 
-        // Récupérer les communes réelles
         $municipalities = $municipalityRepository->findAll();
 
-        // TODO: Remplacer les données utilisateur statiques par les données de l'utilisateur connecté si nécessaire.
         $user = [
             'name' => 'Frederic F',
             'email' => 'fredericf@example.com',
             'image_url' => '/images/img.png',
-        ]; // Placeholder ou récupérer l'utilisateur connecté
+        ];
 
         return $this->render('pages/lines.html.twig', [
             'page_title' => "Lignes téléphoniques",
@@ -101,11 +90,9 @@ class DashboardController extends AbstractController
         ]);
     }
 
-    // Autres méthodes du contrôleur restent inchangées
     #[Route('/agents', name: 'agents')]
     public function agents(): Response
     {
-        // Récupérer les agents réels en utilisant le UserRepository injecté dans le constructeur
         $agents = $this->userRepository->findAll();
 
         return $this->render('pages/agents.html.twig', [
@@ -141,27 +128,21 @@ class DashboardController extends AbstractController
     #[Route('/park', name: 'park')]
     public function park(MunicipalityRepository $municipalityRepository): Response
     {
-        // TODO: Remplacer les données fictives du parc informatique par des données réelles si une entité correspondante existe.
-        // Pour l'instant, laisser un placeholder.
-        $equipments = []; // Placeholder
+        $equipments = [];
 
-        // TODO: Calculer les statistiques du parc informatique à partir des données réelles si elles sont implémentées.
         $parkStats = [
             'total_equipments' => 0,
             'unique_services' => 0,
             'unique_municipalities' => 0,
             'active_equipments' => 0,
-        ]; // Placeholder
-
-        // TODO: Les méthodes generateParkStatsByType et generateParkStatsByStatus devront être adaptées
-        // pour fonctionner avec des objets entité si les données réelles sont implémentées.
+        ];
 
         return $this->render('pages/park.html.twig', [
             'page_title' => "Parc Informatique",
             'equipments' => $equipments,
             'parkStats' => $parkStats,
-            'teamChartData' => $this->generateParkStatsByType($equipments), // Ces méthodes devront peut-être être adaptées
-            'statusChartData' => $this->generateParkStatsByStatus($equipments), // Ces méthodes devront peut-être être adaptées
+            'teamChartData' => $this->generateParkStatsByType($equipments),
+            'statusChartData' => $this->generateParkStatsByStatus($equipments),
         ]);
     }
 
@@ -191,13 +172,10 @@ class DashboardController extends AbstractController
     #[Route('/settings', name: 'settings')]
     public function settings(SettingsRepository $settingsRepository): Response
     {
-        // Récupérer les paramètres réels en utilisant le SettingsRepository
-        // Supposons qu'il n'y a qu'une seule ligne de paramètres dans la table.
-        $settings = $settingsRepository->findOneBy([]); // Récupère la première (et unique) ligne
+        $settings = $settingsRepository->findOneBy([]);
 
-        // Si aucun paramètre n'existe, on peut passer un tableau vide ou des valeurs par défaut.
         if (!$settings) {
-            $settings = []; // Ou des valeurs par défaut si approprié
+            $settings = [];
         }
 
         return $this->render('pages/settings.html.twig', [
@@ -217,9 +195,6 @@ class DashboardController extends AbstractController
         $alertThreshold = $request->request->get('alert_threshold');
         $featureEnabled = $request->request->get('feature_enabled') === '1';
 
-        // Ici, vous devriez ajouter la logique pour sauvegarder ces paramètres,
-        // par exemple dans une base de données ou un fichier de configuration.
-        // Pour l'instant, nous allons juste afficher un message de succès.
 
         $this->addFlash('success', 'Paramètres enregistrés avec succès.');
 
