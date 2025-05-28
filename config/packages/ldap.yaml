@@ -1,0 +1,31 @@
+services:
+    # Configuration du service LDAP
+    Symfony\Component\Ldap\Ldap:
+        arguments: ['@Symfony\Component\Ldap\Adapter\ExtLdap\Adapter']
+    
+    Symfony\Component\Ldap\Adapter\ExtLdap\Adapter:
+        arguments:
+            - host: '%env(LDAP_HOST)%'
+              port: '%env(int:LDAP_PORT)%'
+              encryption: '%env(LDAP_ENCRYPTION)%'
+              options:
+                  protocol_version: 3
+                  referrals: false
+
+    App\Security\LdapUserProvider:
+        arguments:
+            $ldap: '@Symfony\Component\Ldap\Ldap'
+            $baseDn: '%env(LDAP_BASE_DN)%'
+            $searchDn: '%env(LDAP_SEARCH_DN)%'
+            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $defaultRoles: ['ROLE_USER']
+            $uidKey: '%env(LDAP_UID_KEY)%'
+    
+    # Configuration de l'authenticateur LDAP
+    App\Security\LdapAuthenticator:
+        arguments:
+            $ldap: '@Symfony\Component\Ldap\Ldap'
+            $baseDn: '%env(LDAP_BASE_DN)%'
+            $searchDn: '%env(LDAP_SEARCH_DN)%'
+            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $uidKey: '%env(LDAP_UID_KEY)%'

@@ -2,6 +2,9 @@
 namespace App\Controller;
 
 use App\Repository\UserRepository;
+use App\Repository\PhoneLineRepository;
+use App\Repository\MunicipalityRepository;
+use App\Repository\SettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -105,22 +108,6 @@ class DashboardController extends AbstractController
     public function account(): Response
     {
         return $this->render('pages/account.html.twig', [
-            'page_title' => "Tableau de bord"
-        ]);
-    }
-
-    #[Route('/login', name: 'login')]
-    public function login(): Response
-    {
-        return $this->render('pages/login.html.twig', [
-            'page_title' => "Tableau de bord"
-        ]);
-    }
-
-    #[Route('/logout', name: 'logout')]
-    public function logout(): Response
-    {
-        return $this->render('pages/logout.html.twig', [
             'page_title' => "Tableau de bord"
         ]);
     }
