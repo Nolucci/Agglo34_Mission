@@ -37,46 +37,22 @@ class BoxController extends AbstractController
         ]);
     }
     #[Route('/box', name: 'box_list')]
-    public function list(): Response
+    public function list(MunicipalityRepository $municipalityRepository, PhoneLineRepository $phoneLineRepository): Response
     {
-        // Generate fictitious box data
-        $boxes = [
-            [
-                'commune' => 'Béziers',
-                'localisation' => 'Centre Ville',
-                'adresse' => 'Place Jean Jaurès',
-                'ligne_support' => 'Fibre Optique',
-                'type' => 'Armoire de Rue',
-            ],
-            [
-                'commune' => 'Narbonne',
-                'localisation' => 'Les Halles',
-                'adresse' => 'Boulevard Frédéric Mistral',
-                'ligne_support' => 'Cuivre',
-                'type' => 'Point de Mutualisation',
-            ],
-            [
-                'commune' => 'Agde',
-                'localisation' => 'Le Cap d\'Agde',
-                'adresse' => 'Avenue des Sergents',
-                'ligne_support' => 'Fibre Optique',
-                'type' => 'Plaque Façade',
-            ],
-            [
-                'commune' => 'Valras-Plage',
-                'localisation' => 'Front de Mer',
-                'adresse' => 'Avenue des Rosses Marines',
-                'ligne_support' => 'Cuivre',
-                'type' => 'Armoire de Rue',
-            ],
-            [
-                'commune' => 'Sète',
-                'localisation' => 'Le Port',
-                'adresse' => 'Quai d\'Alger',
-                'ligne_support' => 'Fibre Optique',
-                'type' => 'Armoire de Rue',
-            ],
-        ];
+        // Récupérer les données nécessaires des dépôts
+        // La structure exacte des données de "boîtes" n'est pas claire à partir des entités existantes.
+        // Il est probable qu'il faille combiner des informations de Municipality et PhoneLine.
+        // Pour l'instant, je vais récupérer toutes les communes et lignes téléphoniques
+        // et laisser un placeholder pour la logique de construction des données de boîtes.
+
+        $municipalities = $municipalityRepository->findAll();
+        $phoneLines = $phoneLineRepository->findAll();
+
+        // TODO: Implémenter la logique pour construire le tableau $boxes
+        // en utilisant les données de $municipalities et $phoneLines.
+        // Le format attendu est un tableau de tableaux avec les clés :
+        // 'commune', 'localisation', 'adresse', 'ligne_support', 'type'.
+        $boxes = []; // Placeholder
 
         return $this->render('pages/box_list.html.twig', [
             'boxes' => $boxes,

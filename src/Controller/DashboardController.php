@@ -16,232 +16,88 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'dashboard')]
-    public function index(): Response
+    public function index(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository): Response
     {
-        // Données statiques pour remplacer les appels au repository
-        $lines = [
-            [
-                'id' => 1,
-                'location' => 'Mairie Centrale',
-                'service' => 'Administration',
-                'assignedTo' => 'Jean Dupont',
-                'phoneBrand' => 'Apple',
-                'model' => 'iPhone 12',
-                'operator' => 'Orange',
-                'lineType' => 'Mobile',
-                'municipality' => 'Béziers',
-                'isGlobal' => true
-            ],
-            [
-                'id' => 2,
-                'location' => 'Service Technique',
-                'service' => 'Maintenance',
-                'assignedTo' => 'Marie Martin',
-                'phoneBrand' => 'Samsung',
-                'model' => 'Galaxy S21',
-                'operator' => 'SFR',
-                'lineType' => 'Fixe',
-                'municipality' => 'Béziers',
-                'isGlobal' => false
-            ],
-            [
-                'id' => 3,
-                'location' => 'Police Municipale',
-                'service' => 'Sécurité',
-                'assignedTo' => 'Pierre Dubois',
-                'phoneBrand' => 'Google',
-                'model' => 'Pixel 6',
-                'operator' => 'Bouygues',
-                'lineType' => 'Mobile',
-                'municipality' => 'Agde',
-                'isGlobal' => true
-            ],
-            [
-                'id' => 4,
-                'location' => 'Bibliothèque',
-                'service' => 'Culture',
-                'assignedTo' => 'Sophie Leroy',
-                'phoneBrand' => 'Huawei',
-                'model' => 'P30',
-                'operator' => 'Free',
-                'lineType' => 'Fixe',
-                'municipality' => 'Sète',
-                'isGlobal' => false
-            ]
-        ];
+        // Récupérer les lignes téléphoniques réelles
+        $lines = $phoneLineRepository->findAll();
 
-        // Calcul manuel des statistiques
+        // Calculer les statistiques des lignes téléphoniques à partir des données réelles
         $phoneLineStats = [
             'total_lines' => count($lines),
-            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
-            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
-            'global_lines' => count(array_filter($lines, fn($line) => $line['isGlobal'])),
-            'local_lines' => count(array_filter($lines, fn($line) => !$line['isGlobal'])),
+            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))), // Assurez-vous que l'entité PhoneLine a une propriété 'operator'
+            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))), // Assurez-vous que l'entité PhoneLine a une propriété 'service'
+            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())), // Assurez-vous que l'entité PhoneLine a une méthode isGlobal()
+            'local_lines' => count(array_filter($lines, fn($line) => !$line->isGlobal())),
         ];
 
-        // Récupération des communes
-        $municipalities = array_map(function($line) use ($lines) {
-            return [
-                'id' => array_search($line['municipality'], array_column($lines, 'municipality')),
-                'nom' => $line['municipality']
-            ];
-        }, $lines);
-        $municipalities = array_map("unserialize", array_unique(array_map("serialize", $municipalities)));
+        // Récupérer les communes réelles
+        $municipalities = $municipalityRepository->findAll();
 
-       // Données statiques pour le parc informatique (copiées depuis la fonction park)
-        $equipments = [
-            [
-                'id' => 1,
-                'type' => 'Ordinateur portable',
-                'brand' => 'Dell',
-                'model' => 'Latitude 7400',
-                'assignedTo' => 'Jean Dupont',
-                'location' => 'Bureau 101',
-                'municipality' => 'Béziers',
-                'isActive' => true
-            ],
-            [
-                'id' => 2,
-                'type' => 'Écran',
-                'brand' => 'HP',
-                'model' => 'EliteDisplay',
-                'assignedTo' => 'Marie Martin',
-                'location' => 'Bureau 102',
-                'municipality' => 'Béziers',
-                'isActive' => true
-            ],
-            [
-                'id' => 3,
-                'type' => 'Imprimante',
-                'brand' => 'Epson',
-                'model' => 'EcoTank 4750',
-                'assignedTo' => 'Service Technique',
-                'location' => 'Salle d\'impression',
-                'municipality' => 'Agde',
-                'isActive' => true
-            ],
-            [
-                'id' => 4,
-                'type' => 'Ordinateur de bureau',
-                'brand' => 'Lenovo',
-                'model' => 'ThinkCentre',
-                'assignedTo' => 'Sophie Leroy',
-                'location' => 'Bureau 201',
-                'municipality' => 'Sète',
-                'isActive' => false
-            ],
-        ];
+        // TODO: Remplacer les données fictives du parc informatique par des données réelles si une entité correspondante existe.
+        // Pour l'instant, laisser un placeholder.
+        $equipments = []; // Placeholder
 
-        // Calcul manuel des statistiques du parc
+        // TODO: Calculer les statistiques du parc informatique à partir des données réelles si elles sont implémentées.
         $parkStats = [
-            'total_equipments' => count($equipments),
-            'unique_services' => count(array_values(array_unique(array_column($equipments, 'assignedTo')))),
-            'unique_municipalities' => count(array_values(array_unique(array_column($equipments, 'municipality')))),
-            'active_equipments' => count(array_filter($equipments, fn($equipment) => $equipment['isActive'])),
-        ];
+            'total_equipments' => 0,
+            'unique_services' => 0,
+            'unique_municipalities' => 0,
+            'active_equipments' => 0,
+        ]; // Placeholder
+
+        // TODO: Remplacer les données utilisateur statiques par les données de l'utilisateur connecté si nécessaire.
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ]; // Placeholder ou récupérer l'utilisateur connecté
 
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
-            'user' => [
-                'name' => 'Frederic F',
-                'email' => 'fredericf@example.com',
-                'image_url' => '/images/img.png',
-            ],
+            'user' => $user,
             'municipalities' => $municipalities,
             'lines' => $lines,
-            'phoneLines' => $lines,
+            'phoneLines' => $lines, // phoneLines semble être un alias de lines dans la vue
             'phoneLineStats' => $phoneLineStats,
             'equipments' => $equipments,
-            'parkStats' => $parkStats, // Ajout des statistiques du matériel
+            'parkStats' => $parkStats,
         ]);
     }
 
     #[Route('/lines', name: 'lines')]
-    public function lines(): Response
+    public function lines(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository): Response
     {
-        // Données statiques pour remplacer les appels au repository
-        $lines = [
-            [
-                'id' => 1,
-                'location' => 'Mairie Centrale',
-                'service' => 'Administration',
-                'assignedTo' => 'Jean Dupont',
-                'phoneBrand' => 'Apple',
-                'model' => 'iPhone 12',
-                'operator' => 'Orange',
-                'lineType' => 'Mobile',
-                'municipality' => 'Béziers',
-                'isGlobal' => true
-            ],
-            [
-                'id' => 2,
-                'location' => 'Service Technique',
-                'service' => 'Maintenance',
-                'assignedTo' => 'Marie Martin',
-                'phoneBrand' => 'Samsung',
-                'model' => 'Galaxy S21',
-                'operator' => 'SFR',
-                'lineType' => 'Fixe',
-                'municipality' => 'Béziers',
-                'isGlobal' => false
-            ],
-            [
-                'id' => 3,
-                'location' => 'Police Municipale',
-                'service' => 'Sécurité',
-                'assignedTo' => 'Pierre Dubois',
-                'phoneBrand' => 'Google',
-                'model' => 'Pixel 6',
-                'operator' => 'Bouygues',
-                'lineType' => 'Mobile',
-                'municipality' => 'Agde',
-                'isGlobal' => true
-            ],
-            [
-                'id' => 4,
-                'location' => 'Bibliothèque',
-                'service' => 'Culture',
-                'assignedTo' => 'Sophie Leroy',
-                'phoneBrand' => 'Huawei',
-                'model' => 'P30',
-                'operator' => 'Free',
-                'lineType' => 'Fixe',
-                'municipality' => 'Sète',
-                'isGlobal' => false
-            ]
-        ];
+        // Récupérer les lignes téléphoniques réelles
+        $lines = $phoneLineRepository->findAll();
 
-        // Calcul manuel des statistiques
+        // Calculer les statistiques des lignes téléphoniques à partir des données réelles
         $phoneLineStats = [
             'total_lines' => count($lines),
-            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
-            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
-            'global_lines' => count(array_filter($lines, fn($line) => $line['isGlobal'])),
-            'local_lines' => count(array_filter($lines, fn($line) => !$line['isGlobal'])),
+            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))), // Assurez-vous que l'entité PhoneLine a une propriété 'operator'
+            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))), // Assurez-vous que l'entité PhoneLine a une propriété 'service'
+            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())), // Assurez-vous que l'entité PhoneLine a une méthode isGlobal()
+            'local_lines' => count(array_filter($lines, fn($line) => !$line->isGlobal())),
         ];
 
-        // Récupération des communes
-        $municipalities = array_map(function($line) use ($lines) {
-            return [
-                'id' => array_search($line['municipality'], array_column($lines, 'municipality')),
-                'nom' => $line['municipality']
-            ];
-        }, $lines);
-        $municipalities = array_map("unserialize", array_unique(array_map("serialize", $municipalities)));
+        // Récupérer les communes réelles
+        $municipalities = $municipalityRepository->findAll();
+
+        // TODO: Remplacer les données utilisateur statiques par les données de l'utilisateur connecté si nécessaire.
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ]; // Placeholder ou récupérer l'utilisateur connecté
 
         return $this->render('pages/lines.html.twig', [
             'page_title' => "Lignes téléphoniques",
-            'user' => [
-                'name' => 'Frederic F',
-                'email' => 'fredericf@example.com',
-                'image_url' => '/images/img.png',
-            ],
+            'user' => $user,
             'municipalities' => $municipalities,
             'lines' => $lines,
             'phoneLines' => $lines,
             'phoneLineStats' => $phoneLineStats,
-            'salesChartData' => $this->generateLineStatsByMunicipality($lines),
-            'operatorChartData' => $this->generateLineStatsByOperator($lines),
+            'salesChartData' => $this->generateLineStatsByMunicipality($lines), 
+            'operatorChartData' => $this->generateLineStatsByOperator($lines), 
         ]);
     }
 
@@ -249,28 +105,8 @@ class DashboardController extends AbstractController
     #[Route('/agents', name: 'agents')]
     public function agents(): Response
     {
-        $agents = [
-            [
-                'id' => 1,
-                'name' => 'Frédéric Fernandez',
-                'email' => 'frederic.fernandez@example.com'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Marie Martin',
-                'email' => 'marie.martin@example.com'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Pierre Dubois',
-                'email' => 'pierre.dubois@example.com'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Sophie Leroy',
-                'email' => 'sophie.leroy@example.com'
-            ],
-        ];
+        // Récupérer les agents réels en utilisant le UserRepository injecté dans le constructeur
+        $agents = $this->userRepository->findAll();
 
         return $this->render('pages/agents.html.twig', [
             'page_title' => "Liste des Agents",
@@ -303,66 +139,29 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/park', name: 'park')]
-    public function park(): Response
+    public function park(MunicipalityRepository $municipalityRepository): Response
     {
-        // Données statiques pour le parc informatique
-        $equipments = [
-            [
-                'id' => 1,
-                'type' => 'Ordinateur portable',
-                'brand' => 'Dell',
-                'model' => 'Latitude 7400',
-                'assignedTo' => 'Jean Dupont',
-                'location' => 'Bureau 101',
-                'municipality' => 'Béziers',
-                'isActive' => true
-            ],
-            [
-                'id' => 2,
-                'type' => 'Écran',
-                'brand' => 'HP',
-                'model' => 'EliteDisplay',
-                'assignedTo' => 'Marie Martin',
-                'location' => 'Bureau 102',
-                'municipality' => 'Béziers',
-                'isActive' => true
-            ],
-            [
-                'id' => 3,
-                'type' => 'Imprimante',
-                'brand' => 'Epson',
-                'model' => 'EcoTank 4750',
-                'assignedTo' => 'Service Technique',
-                'location' => 'Salle d\'impression',
-                'municipality' => 'Agde',
-                'isActive' => true
-            ],
-            [
-                'id' => 4,
-                'type' => 'Ordinateur de bureau',
-                'brand' => 'Lenovo',
-                'model' => 'ThinkCentre',
-                'assignedTo' => 'Sophie Leroy',
-                'location' => 'Bureau 201',
-                'municipality' => 'Sète',
-                'isActive' => false
-            ],
-        ];
+        // TODO: Remplacer les données fictives du parc informatique par des données réelles si une entité correspondante existe.
+        // Pour l'instant, laisser un placeholder.
+        $equipments = []; // Placeholder
 
-        // Calcul manuel des statistiques du parc
+        // TODO: Calculer les statistiques du parc informatique à partir des données réelles si elles sont implémentées.
         $parkStats = [
-            'total_equipments' => count($equipments),
-            'unique_services' => count(array_values(array_unique(array_column($equipments, 'assignedTo')))),
-            'unique_municipalities' => count(array_values(array_unique(array_column($equipments, 'municipality')))),
-            'active_equipments' => count(array_filter($equipments, fn($equipment) => $equipment['isActive'])),
-        ];
+            'total_equipments' => 0,
+            'unique_services' => 0,
+            'unique_municipalities' => 0,
+            'active_equipments' => 0,
+        ]; // Placeholder
+
+        // TODO: Les méthodes generateParkStatsByType et generateParkStatsByStatus devront être adaptées
+        // pour fonctionner avec des objets entité si les données réelles sont implémentées.
 
         return $this->render('pages/park.html.twig', [
             'page_title' => "Parc Informatique",
             'equipments' => $equipments,
             'parkStats' => $parkStats,
-            'teamChartData' => $this->generateParkStatsByType($equipments),
-            'statusChartData' => $this->generateParkStatsByStatus($equipments),
+            'teamChartData' => $this->generateParkStatsByType($equipments), // Ces méthodes devront peut-être être adaptées
+            'statusChartData' => $this->generateParkStatsByStatus($equipments), // Ces méthodes devront peut-être être adaptées
         ]);
     }
 
@@ -390,18 +189,16 @@ class DashboardController extends AbstractController
         ]);
     }
     #[Route('/settings', name: 'settings')]
-    public function settings(): Response
+    public function settings(SettingsRepository $settingsRepository): Response
     {
-        // Pour l'instant, on passe des paramètres par défaut ou vides
-        $settings = [
-            'crud_enabled' => true,
-            'display_mode' => 'liste',
-            'items_per_page' => 10,
-            'app_name' => '',
-            'welcome_message' => 'Bienvenue sur le tableau de bord !',
-            'alert_threshold' => 5,
-            'feature_enabled' => false,
-        ];
+        // Récupérer les paramètres réels en utilisant le SettingsRepository
+        // Supposons qu'il n'y a qu'une seule ligne de paramètres dans la table.
+        $settings = $settingsRepository->findOneBy([]); // Récupère la première (et unique) ligne
+
+        // Si aucun paramètre n'existe, on peut passer un tableau vide ou des valeurs par défaut.
+        if (!$settings) {
+            $settings = []; // Ou des valeurs par défaut si approprié
+        }
 
         return $this->render('pages/settings.html.twig', [
             'page_title' => "Paramètres administrateur",

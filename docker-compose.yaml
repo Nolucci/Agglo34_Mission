@@ -1,13 +1,11 @@
-version: '3.8'
-
 services:
   app:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./Dockerfile
     container_name: sru_app
     volumes:
-      - ./app:/var/www/html
+      - ./:/var/www/html
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini
     depends_on:
       - database
@@ -22,8 +20,7 @@ services:
     ports:
       - "4080:80"
     volumes:
-      - ./app:/var/www/html
-      - ./docker/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./:/var/www/html
     depends_on:
       - app
     restart: unless-stopped
