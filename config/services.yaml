@@ -24,6 +24,28 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     
+    # Configuration du service LdapUserProvider
+    App\Security\LdapUserProvider:
+        arguments:
+            $ldap: '@Symfony\Component\Ldap\Ldap'
+            $baseDn: '%env(LDAP_BASE_DN)%'
+            $searchDn: '%env(LDAP_SEARCH_DN)%'
+            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $defaultRoles: ['ROLE_USER']
+            $uidKey: '%env(LDAP_UID_KEY)%'
+            $userRepository: '@App\Repository\UserRepository'
+    
+    # Configuration de l'authenticateur LDAP
+    App\Security\LdapAuthenticator:
+        arguments:
+            $urlGenerator: '@router'
+            $ldap: '@Symfony\Component\Ldap\Ldap'
+            $baseDn: '%env(LDAP_BASE_DN)%'
+            $searchDn: '%env(LDAP_SEARCH_DN)%'
+            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $uidKey: '%env(LDAP_UID_KEY)%'
+            $userProvider: '@App\Security\LdapUserProvider'
+    
     # Configuration de la commande de test LDAP
     App\Command\TestLdapCommand:
         arguments:

@@ -107,8 +107,15 @@ class DashboardController extends AbstractController
     #[Route('/account', name: 'account')]
     public function account(): Response
     {
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/account.html.twig', [
-            'page_title' => "Tableau de bord"
+            'page_title' => "Tableau de bord",
+            'user' => $user
         ]);
     }
 
@@ -136,24 +143,45 @@ class DashboardController extends AbstractController
     #[Route('/calendar', name: 'calendar')]
     public function calendar(): Response
     {
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/calendar.html.twig', [
-            'page_title' => "Tableau de bord"
+            'page_title' => "Tableau de bord",
+            'user' => $user
         ]);
     }
 
     #[Route('/documents', name: 'documents')]
     public function documents(): Response
     {
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/documents.html.twig', [
-            'page_title' => "Importer des Fichiers"
+            'page_title' => "Importer des Fichiers",
+            'user' => $user
         ]);
     }
 
     #[Route('/map', name: 'map')]
     public function map(): Response
     {
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/map.html.twig', [
-            'page_title' => "Tableau de bord"
+            'page_title' => "Tableau de bord",
+            'user' => $user
         ]);
     }
     #[Route('/settings', name: 'settings')]
@@ -165,9 +193,16 @@ class DashboardController extends AbstractController
             $settings = [];
         }
 
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/settings.html.twig', [
             'page_title' => "Paramètres administrateur",
-            'settings' => $settings
+            'settings' => $settings,
+            'user' => $user
         ]);
     }
 

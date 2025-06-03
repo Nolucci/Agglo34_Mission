@@ -25,24 +25,38 @@ class BoxController extends AbstractController
 
         $parkItems = [];
 
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/box.html.twig', [
+            'page_title' => 'Détails de la boîte',
             'municipality' => $municipality,
             'phoneLines' => $phoneLines,
             'parkItems' => $parkItems,
+            'user' => $user,
         ]);
     }
     #[Route('/box', name: 'box_list')]
     public function list(MunicipalityRepository $municipalityRepository, PhoneLineRepository $phoneLineRepository): Response
     {
-
         $municipalities = $municipalityRepository->findAll();
         $phoneLines = $phoneLineRepository->findAll();
 
         $boxes = [];
 
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/box_list.html.twig', [
             'boxes' => $boxes,
             'page_title' => 'Liste des boîtes',
+            'user' => $user,
         ]);
     }
 }

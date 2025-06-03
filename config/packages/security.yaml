@@ -5,8 +5,15 @@ security:
     
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        ldap_user_provider:
-            id: App\Security\LdapUserProvider
+        # Désactivation temporaire de LDAP
+        # ldap_user_provider:
+        #     id: App\Security\LdapUserProvider
+        
+        # Utilisation d'un provider en mémoire temporaire
+        in_memory:
+            memory:
+                users:
+                    admin: { password: '$2y$13$TYRJRRmH.QOvDQcBdJxYsOQI.ORhxZ.VQmGDzJnGCc1UpBcKUPBJO', roles: ['ROLE_ADMIN'] } # mot de passe: admin
     
     firewalls:
         dev:
@@ -14,8 +21,11 @@ security:
             security: false
         main:
             lazy: true
-            provider: ldap_user_provider
-            custom_authenticator: App\Security\LdapAuthenticator
+            provider: in_memory
+            # custom_authenticator: App\Security\LdapAuthenticator
+            form_login:
+                login_path: app_login
+                check_path: app_login
             logout:
                 path: app_logout
                 target: app_login
@@ -26,7 +36,8 @@ security:
 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: ROLE_USER }
+        # Commenté temporairement pour les tests
+        # - { path: ^/, roles: ROLE_USER }
 
 when@test:
     security:

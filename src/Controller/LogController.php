@@ -13,9 +13,16 @@ class LogController extends AbstractController
     {
         $logs = $logRepository->findAll();
 
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('log/index.html.twig', [
             'page_title' => 'Logs de l\'Application',
             'logs' => $logs,
+            'user' => $user,
         ]);
     }
 }

@@ -13,9 +13,16 @@ class ArchiveController extends AbstractController
     {
         $archives = $archiveRepository->findAll();
 
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
+        ];
+
         return $this->render('pages/archives.html.twig', [
             'page_title' => 'Archives',
             'archives' => $archives,
+            'user' => $user,
         ]);
     }
 }

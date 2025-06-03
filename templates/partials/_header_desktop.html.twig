@@ -2,7 +2,7 @@
     <div class="section__content section__content--p30">
         <div class="container-fluid">
             <div class="header-wrap">
-                <h2 class="page-title">{{ page_title }}</h2>
+                <h2 class="page-title">{{ page_title|default('Agglo34') }}</h2>
                 <div class="account-wrap">
                     <div class="account-item clearfix js-item-menu">
                         <div class="image">
@@ -36,7 +36,7 @@
                                 </div>
                             </div>
                             <div class="account-dropdown__footer">
-                                <a href="{{ path('logout') }}">
+                                <a href="{{ path('app_logout') }}">
                                     <i class="zmdi zmdi-power"></i>Logout</a>
                                 </a>
                             </div>
