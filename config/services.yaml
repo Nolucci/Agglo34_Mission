@@ -23,3 +23,14 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    # Configuration de la commande de test LDAP
+    App\Command\TestLdapCommand:
+        arguments:
+            $ldapHost: '%env(LDAP_HOST)%'
+            $ldapPort: '%env(int:LDAP_PORT)%'
+            $ldapEncryption: '%env(LDAP_ENCRYPTION)%'
+            $ldapBaseDn: '%env(LDAP_BASE_DN)%'
+            $ldapSearchDn: '%env(LDAP_SEARCH_DN)%'
+            $ldapSearchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $ldapUidKey: '%env(LDAP_UID_KEY)%'

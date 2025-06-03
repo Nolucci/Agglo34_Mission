@@ -3,6 +3,9 @@ services:
     Symfony\Component\Ldap\Ldap:
         arguments: ['@Symfony\Component\Ldap\Adapter\ExtLdap\Adapter']
     
+    # Alias pour l'interface LdapInterface
+    Symfony\Component\Ldap\LdapInterface: '@Symfony\Component\Ldap\Ldap'
+    
     Symfony\Component\Ldap\Adapter\ExtLdap\Adapter:
         arguments:
             - host: '%env(LDAP_HOST)%'
@@ -20,12 +23,15 @@ services:
             $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
             $defaultRoles: ['ROLE_USER']
             $uidKey: '%env(LDAP_UID_KEY)%'
+            $userRepository: '@App\Repository\UserRepository'
     
     # Configuration de l'authenticateur LDAP
     App\Security\LdapAuthenticator:
         arguments:
+            $urlGenerator: '@router'
             $ldap: '@Symfony\Component\Ldap\Ldap'
             $baseDn: '%env(LDAP_BASE_DN)%'
             $searchDn: '%env(LDAP_SEARCH_DN)%'
             $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
             $uidKey: '%env(LDAP_UID_KEY)%'
+            $userProvider: '@App\Security\LdapUserProvider'
