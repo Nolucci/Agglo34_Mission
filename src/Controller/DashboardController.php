@@ -19,27 +19,70 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'dashboard')]
-    public function index(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository): Response
+    public function index(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository, \App\Repository\BoxRepository $boxRepository): Response
     {
         $lines = $phoneLineRepository->findAll();
+        
+        // Calculer les statistiques des lignes téléphoniques
+        $uniqueOperators = [];
+        $uniqueServices = [];
+        $globalLines = 0;
+        $localLines = 0;
+        
+        foreach ($lines as $line) {
+            if (!in_array($line->getOperator(), $uniqueOperators)) {
+                $uniqueOperators[] = $line->getOperator();
+            }
+            
+            if (!in_array($line->getService(), $uniqueServices)) {
+                $uniqueServices[] = $line->getService();
+            }
+            
+            if ($line->isGlobal()) {
+                $globalLines++;
+            } else {
+                $localLines++;
+            }
+        }
 
         $phoneLineStats = [
             'total_lines' => count($lines),
-            'unique_operators' => count(array_values(array_unique(array_column($lines, 'operator')))),
-            'unique_services' => count(array_values(array_unique(array_column($lines, 'service')))),
-            'global_lines' => count(array_filter($lines, fn($line) => $line->isGlobal())),
-            'local_lines' => count(array_filter($lines, fn($line) => !$line->isGlobal())),
+            'unique_operators' => count($uniqueOperators),
+            'unique_services' => count($uniqueServices),
+            'global_lines' => $globalLines,
+            'local_lines' => $localLines,
         ];
 
         $municipalities = $municipalityRepository->findAll();
 
-        $equipments = [];
+        // Récupérer les équipements du parc informatique
+        $equipments = $boxRepository->findAll();
+        
+        // Calculer les statistiques du parc
+        $uniqueParkServices = [];
+        $uniqueMunicipalities = [];
+        $activeEquipments = 0;
+
+        foreach ($equipments as $equipment) {
+            if (!in_array($equipment->getLocation(), $uniqueParkServices)) {
+                $uniqueParkServices[] = $equipment->getLocation();
+            }
+            
+            $municipalityName = $equipment->getMunicipality();
+            if (!in_array($municipalityName, $uniqueMunicipalities)) {
+                $uniqueMunicipalities[] = $municipalityName;
+            }
+            
+            if ($equipment->isActive()) {
+                $activeEquipments++;
+            }
+        }
 
         $parkStats = [
-            'total_equipments' => 0,
-            'unique_services' => 0,
-            'unique_municipalities' => 0,
-            'active_equipments' => 0,
+            'total_equipments' => count($equipments),
+            'unique_services' => count($uniqueParkServices),
+            'unique_municipalities' => count($uniqueMunicipalities),
+            'active_equipments' => $activeEquipments,
         ];
 
         $user = [
@@ -120,15 +163,44 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/park', name: 'park')]
-    public function park(MunicipalityRepository $municipalityRepository): Response
+    public function park(MunicipalityRepository $municipalityRepository, \App\Repository\BoxRepository $boxRepository): Response
     {
-        $equipments = [];
+        $equipments = $boxRepository->findAll();
+
+        // Calculer les statistiques du parc
+        $uniqueServices = [];
+        $uniqueMunicipalities = [];
+        $activeEquipments = 0;
+
+        foreach ($equipments as $equipment) {
+            // Compter les services uniques (utilisons location comme service pour l'exemple)
+            if (!in_array($equipment->getLocation(), $uniqueServices)) {
+                $uniqueServices[] = $equipment->getLocation();
+            }
+            
+            // Compter les municipalités uniques
+            $municipalityName = $equipment->getMunicipality();
+            if (!in_array($municipalityName, $uniqueMunicipalities)) {
+                $uniqueMunicipalities[] = $municipalityName;
+            }
+            
+            // Compter les équipements actifs
+            if ($equipment->isActive()) {
+                $activeEquipments++;
+            }
+        }
 
         $parkStats = [
-            'total_equipments' => 0,
-            'unique_services' => 0,
-            'unique_municipalities' => 0,
-            'active_equipments' => 0,
+            'total_equipments' => count($equipments),
+            'unique_services' => count($uniqueServices),
+            'unique_municipalities' => count($uniqueMunicipalities),
+            'active_equipments' => $activeEquipments,
+        ];
+
+        $user = [
+            'name' => 'Frederic F',
+            'email' => 'fredericf@example.com',
+            'image_url' => '/images/img.png',
         ];
 
         return $this->render('pages/park.html.twig', [
@@ -137,6 +209,7 @@ class DashboardController extends AbstractController
             'parkStats' => $parkStats,
             'teamChartData' => $this->generateParkStatsByType($equipments),
             'statusChartData' => $this->generateParkStatsByStatus($equipments),
+            'user' => $user,
         ]);
     }
 
@@ -226,11 +299,24 @@ class DashboardController extends AbstractController
     {
         $stats = [];
         foreach ($lines as $line) {
-            $municipality = $line['municipality'];
-            if (!isset($stats[$municipality])) {
-                $stats[$municipality] = 0;
+            $municipality = $line->getMunicipality();
+            
+            if ($municipality) {
+                $municipalityName = $municipality->getName();
+                
+                if (!isset($stats[$municipalityName])) {
+                    $stats[$municipalityName] = 0;
+                }
+                $stats[$municipalityName]++;
             }
-            $stats[$municipality]++;
+        }
+        
+        // Si aucune donnée n'est disponible, fournir des données par défaut
+        if (empty($stats)) {
+            return [
+                'labels' => ['Aucune donnée'],
+                'data' => [0],
+            ];
         }
 
         return [
@@ -242,8 +328,16 @@ class DashboardController extends AbstractController
     private function generateParkStatsByType(array $equipments): array
     {
         $stats = [];
+        
+        if (empty($equipments)) {
+            return [
+                'labels' => ['Ordinateurs', 'Imprimantes', 'Téléphones', 'Autres'],
+                'data' => [0, 0, 0, 0],
+            ];
+        }
+        
         foreach ($equipments as $equipment) {
-            $type = $equipment['type'];
+            $type = $equipment->getType();
             if (!isset($stats[$type])) {
                 $stats[$type] = 0;
             }
@@ -260,7 +354,7 @@ class DashboardController extends AbstractController
     {
         $stats = [];
         foreach ($lines as $line) {
-            $operator = $line['operator'];
+            $operator = $line->getOperator();
             if (!isset($stats[$operator])) {
                 $stats[$operator] = 0;
             }
@@ -279,8 +373,16 @@ class DashboardController extends AbstractController
             'Actif' => 0,
             'Inactif' => 0,
         ];
+        
+        if (empty($equipments)) {
+            return [
+                'labels' => array_keys($stats),
+                'data' => array_values($stats),
+            ];
+        }
+        
         foreach ($equipments as $equipment) {
-            if ($equipment['isActive']) {
+            if ($equipment->isActive()) {
                 $stats['Actif']++;
             } else {
                 $stats['Inactif']++;

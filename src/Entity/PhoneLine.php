@@ -46,6 +46,10 @@ class PhoneLine
     #[ORM\ManyToOne(inversedBy: 'phoneLines')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $municipality = null;
+    
+    // Indique si la ligne est globale ou locale
+    #[ORM\Column]
+    private bool $isGlobal = false;
 
     public function getId(): ?int
     {
@@ -139,6 +143,15 @@ class PhoneLine
         $this->municipality = $municipality;
         return $this;
     }
-
-
+    
+    public function isGlobal(): bool
+    {
+        return $this->isGlobal;
+    }
+    
+    public function setIsGlobal(bool $isGlobal): static
+    {
+        $this->isGlobal = $isGlobal;
+        return $this;
+    }
 }
