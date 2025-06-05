@@ -21,7 +21,7 @@
                                                 <div class="card-body">
                                                     <h5 class="card-title"><i class="fa fa-phone fa-2x"></i></h5>
                                                     <p class="card-text">Total des lignes</p>
-                                                    <h3 style="font-size: 1.5rem;">{{ lines|length }}</h3>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLines|length }}</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -123,14 +123,14 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for line in lines %}
+                                                {% for line in phoneLines %}
                                                 <tr>
-                                                    <td>{{ line.municipality }}</td>
-                                                    <td>{{ line.location }}</td>
-                                                    <td>{{ line.service }}</td>
-                                                    <td>{{ line.assignedTo }}</td>
-                                                    <td>{{ line.operator }}</td>
-                                                    <td>{{ line.lineType }}</td>
+                                                    <td>{{ line.municipality ? line.municipality.name : 'Non défini' }}</td>
+                                                    <td>{{ line.location is not empty ? line.location : 'Non défini' }}</td>
+                                                    <td>{{ line.service is not empty ? line.service : 'Non défini' }}</td>
+                                                    <td>{{ line.assignedTo is not empty ? line.assignedTo : 'Non défini' }}</td>
+                                                    <td>{{ line.operator is not empty ? line.operator : 'Non défini' }}</td>
+                                                    <td>{{ line.lineType is not empty ? line.lineType : 'Non défini' }}</td>
                                                     <td>
                                                         {% if line.isGlobal %}
                                                             <span class="badge badge-success">Global</span>
@@ -139,6 +139,9 @@
                                                         {% endif %}
                                                     </td>
                                                     <td>
+                                                        <button class="btn btn-sm btn-primary edit-btn" onclick="editLine({{ line.id }})" data-id="{{ line.id }}">
+                                                            <i class="fa fa-edit"></i> Modifier
+                                                        </button>
                                                         <button class="btn btn-sm btn-danger delete-btn" data-id="{{ line.id }}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
                                                             <i class="fa fa-trash"></i> Supprimer
                                                         </button>
@@ -157,7 +160,7 @@
         </div>
     </div>
 {% include './modals/_line_modal.html.twig' %}
-{% include './modals/_lines_filters_modal.html.twig' with { phoneLines: lines } %}
+{% include './modals/_lines_filters_modal.html.twig' with { phoneLines: phoneLines } %}
 </div>
 
 {% import './infos/_macros.html.twig' as macros %}
@@ -167,8 +170,80 @@
 
 {% block javascripts %}
   {{ parent() }}
+  <script src="{{ asset('js/map.js') }}"></script>
   <script>
-      const allPhoneLines = {{ lines | json_encode | raw }};
+      document.addEventListener('DOMContentLoaded', function() {
+          // Initialiser la carte si l'élément existe
+          if (document.getElementById("map-agglomeration")) {
+              const map = L.map("map-agglomeration").setView([43.3442, 3.2158], 10);
+
+              L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
+                  attribution: "&copy; OpenStreetMap contributors",
+              }).addTo(map);
+
+              // Chargement des données GeoJSON
+              fetch("/data/beziers-agglo-points.geojson")
+                  .then(res => res.json())
+                  .then(data => {
+                      const layer = L.geoJSON(data, {
+                          pointToLayer: function (feature, latlng) {
+                              return L.circleMarker(latlng, {
+                                  radius: 6,
+                                  fillColor: "#1e90ff",
+                                  color: "#fff",
+                                  weight: 1,
+                                  opacity: 1,
+                                  fillOpacity: 0.9
+                              });
+                          },
+                          onEachFeature: function (feature, layer) {
+                              const props = feature.properties;
+
+                              // Tooltip (survol)
+                              if (props && props.nom) {
+                                  layer.bindTooltip(props.nom, {
+                                      direction: 'top',
+                                      offset: [0, -5],
+                                      sticky: true
+                                  });
+                              }
+
+                              // Popup (clic)
+                              layer.on('click', () => {
+                                  let rows = "";
+                                  for (const [key, value] of Object.entries(props)) {
+                                      rows += `<tr><th>${key}</th><td>${value}</td></tr>`;
+                                  }
+
+                                  const popupContent = `
+                                  <div>
+                                      <h5>${props.nom}</h5>
+                                      <table class="table table-bordered table-sm">
+                                          <tbody>${rows}</tbody>
+                                      </table>
+                                  </div>
+                              `;
+
+                                  layer.bindPopup(popupContent, {
+                                      offset: [0, -5],
+                                      autoPan: true,
+                                      closeButton: true
+                                  }).openPopup();
+                              });
+                          }
+                      }).addTo(map);
+
+                      map.fitBounds(layer.getBounds(), {
+                          padding: [20, 20],
+                          maxZoom: 13
+                      });
+                  })
+                  .catch(err => {
+                      console.error("Erreur de chargement GeoJSON :", err);
+                  });
+          }
+      });
+      const allPhoneLines = {{ phoneLines | json_encode | raw }};
       let displayedPhoneLines = [...allPhoneLines];
 
         // Sales Chart
@@ -291,12 +366,12 @@
             linesToDisplay.forEach(line => {
                 const row = `
                     <tr>
-                        <td>${line.municipality}</td>
-                        <td>${line.location}</td>
-                        <td>${line.service}</td>
-                        <td>${line.assignedTo}</td>
-                        <td>${line.operator}</td>
-                        <td>${line.lineType}</td>
+                        <td>${line.municipality && line.municipality.name ? line.municipality.name : 'Non défini'}</td>
+                        <td>${line.location && line.location !== '' ? line.location : 'Non défini'}</td>
+                        <td>${line.service && line.service !== '' ? line.service : 'Non défini'}</td>
+                        <td>${line.assignedTo && line.assignedTo !== '' ? line.assignedTo : 'Non défini'}</td>
+                        <td>${line.operator && line.operator !== '' ? line.operator : 'Non défini'}</td>
+                        <td>${line.lineType && line.lineType !== '' ? line.lineType : 'Non défini'}</td>
                         <td>
                             ${line.isGlobal ? '<span class="badge badge-success">Global</span>' : '<span class="badge badge-secondary">Local</span>'}
                         </td>
@@ -367,7 +442,13 @@
                             passesFilter = false;
                             break;
                         }
-                    } else if (lineValue === null || lineValue === undefined) {
+                    } else if (key === 'municipality') {
+                        if (lineValue === null || lineValue.id.toString() !== filterValue) {
+                            passesFilter = false;
+                            break;
+                        }
+                    }
+                    else if (lineValue === null || lineValue === undefined) {
                          passesFilter = false;
                          break;
                     }
@@ -393,5 +474,7 @@
         });
     }
     </script>
+    
+    <script src="{{ asset('js/phone-lines.js') }}"></script>
    
 {% endblock %}

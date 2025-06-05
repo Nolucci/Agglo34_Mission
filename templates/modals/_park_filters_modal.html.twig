@@ -55,13 +55,14 @@
                                 <select class="form-control" id="filter-municipality" name="municipality">
                                     <option value="">Toutes les communes</option>
                                     {% set municipalities = [] %}
+                                    {% set municipalities = {} %}
                                     {% for equipment in equipments %}
-                                        {% if equipment.municipality is not null and not (equipment.municipality in municipalities) %}
-                                            {% set municipalities = municipalities|merge([equipment.municipality]) %}
+                                        {% if equipment.municipality is not null and equipment.municipality.id is defined and not (equipment.municipality.id in municipalities|keys) %}
+                                            {% set municipalities = municipalities|merge({(equipment.municipality.id): equipment.municipality.name}) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for municipality in municipalities|sort %}
-                                        <option value="{{ municipality }}">{{ municipality }}</option>
+                                    {% for id, name in municipalities|sort %}
+                                        <option value="{{ id }}">{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -123,8 +124,15 @@ document.addEventListener('DOMContentLoaded', function() {
                              passesFilter = false;
                              break;
                          }
-                    } else if (equipment[key] && equipment[key].toLowerCase() !== filters[key]) {
-                         // For dropdowns, we need an exact match
+                    } else if (key === 'municipality') {
+                        const filterValue = filters[key];
+                        if (filterValue !== '' && (!equipment.municipality || equipment.municipality.id.toString() !== filterValue)) {
+                            passesFilter = false;
+                            break;
+                        }
+                    }
+                    else if (equipment[key] && equipment[key].toLowerCase() !== filters[key]) {
+                         // For other dropdowns, we need an exact match
                          passesFilter = false;
                          break;
                     }

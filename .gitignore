@@ -24,5 +24,4 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 /public/vendor/
-migrations/Version20250603114522.php
-migrations/Version20250603131339.php
+/migrations

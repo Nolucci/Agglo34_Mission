@@ -1,0 +1,54 @@
+/* Styles pour la carte Leaflet */
+#map-agglomeration {
+    height: 300px !important;
+    width: 100% !important;
+    border: 1px solid #ccc;
+    position: relative;
+    z-index: 1;
+}
+
+/* Correction pour les conteneurs Leaflet */
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    background: #f8f9fa;
+}
+
+/* Correction pour les popups Leaflet */
+.leaflet-popup-content {
+    margin: 10px;
+}
+
+.leaflet-popup-content h5 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.leaflet-popup-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaflet-popup-content th,
+.leaflet-popup-content td {
+    padding: 5px;
+    border: 1px solid #ddd;
+}
+
+.leaflet-popup-content th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+/* Correction pour les contrôles Leaflet */
+.leaflet-control-container .leaflet-top,
+.leaflet-control-container .leaflet-bottom {
+    z-index: 10;
+}
+
+.leaflet-control-zoom {
+    z-index: 10;
+}

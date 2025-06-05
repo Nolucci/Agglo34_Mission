@@ -8,7 +8,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form>
+                <form id="phone-line-form">
                     <div class="form-group">
                         <label for="line-location">Localisation:</label>
                         <input type="text" class="form-control" id="line-location" name="location" required>
@@ -39,8 +39,12 @@
                     </div>
                     <div class="form-group">
                         <label for="line-municipality">Commune:</label>
-                        {# Placeholder for Municipality relationship - replace with actual select/dropdown #}
-                        <input type="text" class="form-control" id="line-municipality" name="municipality" placeholder="Choisir une Commune" required>
+                        <select class="form-control" id="line-municipality" name="municipality" required>
+                            <option value="">Sélectionnez une commune</option>
+                            {% for municipality in municipalities %}
+                                <option value="{{ municipality.id }}">{{ municipality.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                      <div class="form-group form-check">
                         <input type="checkbox" class="form-check-input" id="line-isGlobal" name="isGlobal">
@@ -50,7 +54,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-primary" id="save-line-btn">Enregistrer</button>
             </div>
         </div>
     </div>

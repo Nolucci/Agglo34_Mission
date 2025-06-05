@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Box;
+use App\Entity\Log;
 use App\Entity\PhoneLine;
 use App\Entity\Settings;
 use Doctrine\ORM\EntityManagerInterface;
@@ -109,6 +110,9 @@ class CreateTestDataCommand extends Command
         $services = ['Mairie', 'Police Municipale', 'Services Techniques', 'Médiathèque', 'CCAS'];
         $lineTypes = ['Fixe', 'Mobile', 'Internet', 'Fax'];
 
+        $phoneBrands = ['Samsung', 'Apple', 'Xiaomi', 'Huawei', 'Nokia'];
+        $models = ['Galaxy S21', 'iPhone 13', 'Redmi Note 10', 'P40 Pro', 'Lumia 950'];
+
         for ($i = 0; $i < 20; $i++) {
             $phoneLine = new PhoneLine();
             $phoneLine->setMunicipality($municipalityEntities[array_rand($municipalityEntities)]);
@@ -118,6 +122,8 @@ class CreateTestDataCommand extends Command
             $phoneLine->setLocation('Bureau ' . rand(1, 10));
             $phoneLine->setAssignedTo('Agent ' . rand(1, 5));
             $phoneLine->setIsGlobal(rand(0, 1) === 1);
+            $phoneLine->setPhoneBrand($phoneBrands[array_rand($phoneBrands)]);
+            $phoneLine->setModel($models[array_rand($models)]);
 
             $this->entityManager->persist($phoneLine);
         }
@@ -153,22 +159,49 @@ class CreateTestDataCommand extends Command
             $type = $types[array_rand($types)];
             $brand = $brands[array_rand($brands)];
             $municipality = $municipalityEntities[array_rand($municipalityEntities)];
+            $location = $locations[array_rand($locations)];
+            $model = 'Modèle ' . rand(1000, 9999);
+            $assignedTo = 'Agent ' . rand(1, 5);
+            $isActive = rand(0, 5) > 0;
             
             $box = new Box();
             $box->setName($type . ' ' . $brand . ' ' . rand(100, 999));
             $box->setDescription('Description de l\'équipement ' . ($i + 1));
             $box->setType($type);
             $box->setBrand($brand);
-            $box->setModel('Modèle ' . rand(1000, 9999));
+            $box->setModel($model);
             $box->setMunicipality($municipality->getName());
-            $box->setLocation($locations[array_rand($locations)]);
-            $box->setAssignedTo('Agent ' . rand(1, 5));
-            $box->setIsActive(rand(0, 5) > 0); 
-
+            $box->setLocation($location);
+            $box->setAssignedTo($assignedTo);
+            $box->setIsActive($isActive);
+            
+            // Création d'un log pour cette action
+            $log = new Log();
+            $log->setAction('CREATE');
+            $log->setEntityType('Box');
+            $log->setEntityId(0); // Sera mis à jour après flush
+            $log->setDetails('Création d\'un équipement: ' . $box->getName());
+            $log->setUsername('Commande CLI');
+            $log->setCreatedAt(new \DateTimeImmutable());
+            
+            $this->entityManager->persist($log);
             $this->entityManager->persist($box);
         }
 
         $this->entityManager->flush();
-        $io->text('30 équipements créés.');
+        
+        // Mise à jour des IDs des entités dans les logs
+        $logs = $this->entityManager->getRepository(Log::class)->findBy(['entityId' => 0]);
+        $equipments = $boxRepository->findAll();
+        
+        // Associer chaque log à un équipement
+        foreach ($logs as $index => $log) {
+            if (isset($equipments[$index])) {
+                $log->setEntityId($equipments[$index]->getId());
+            }
+        }
+        
+        $this->entityManager->flush();
+        $io->text('30 équipements créés avec logs.');
     }
 }

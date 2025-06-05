@@ -73,12 +73,12 @@
                                     <option value="">Toutes les communes</option>
                                     {% set municipalities = [] %}
                                     {% for line in phoneLines %}
-                                        {% if line.municipality is not null and not (line.municipality in municipalities) %}
-                                            {% set municipalities = municipalities|merge([line.municipality]) %}
+                                        {% if line.municipality is not null and not (line.municipality.id in municipalities|keys) %}
+                                            {% set municipalities = municipalities|merge({(line.municipality.id): line.municipality.name}) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for municipality in municipalities|sort %}
-                                        <option value="{{ municipality }}">{{ municipality }}</option>
+                                    {% for id, name in municipalities|sort %}
+                                        <option value="{{ id }}">{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>

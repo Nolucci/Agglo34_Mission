@@ -19,42 +19,42 @@
                                             <div class="form-group">
                                                 <label for="crud_enabled">Activer les fonctionnalités CRUD</label>
                                                 <select class="form-control" id="crud_enabled" name="crud_enabled">
-                                                    <option value="1" {% if settings.crud_enabled %}selected{% endif %}>Oui</option>
-                                                    <option value="0" {% if not settings.crud_enabled %}selected{% endif %}>Non</option>
+                                                    <option value="1" {% if settings.isCrudEnabled %}selected{% endif %}>Oui</option>
+                                                    <option value="0" {% if not settings.isCrudEnabled %}selected{% endif %}>Non</option>
                                                 </select>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="display_mode">Mode d'affichage des infos</label>
                                                 <select class="form-control" id="display_mode" name="display_mode">
-                                                    <option value="liste" {% if settings.display_mode == 'liste' %}selected{% endif %}>Liste</option>
-                                                    <option value="grille" {% if settings.display_mode == 'grille' %}selected{% endif %}>Grille</option>
-                                                    <option value="carte" {% if settings.display_mode == 'carte' %}selected{% endif %}>Carte</option>
+                                                    <option value="liste" {% if settings.getDisplayMode == 'liste' %}selected{% endif %}>Liste</option>
+                                                    <option value="grille" {% if settings.getDisplayMode == 'grille' %}selected{% endif %}>Grille</option>
+                                                    <option value="carte" {% if settings.getDisplayMode == 'carte' %}selected{% endif %}>Carte</option>
                                                 </select>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="app_name">Nom de l'application</label>
-                                                <input type="text" class="form-control" id="app_name" name="app_name" value="{{ settings.app_name | default('') }}">
+                                                <input type="text" class="form-control" id="app_name" name="app_name" value="{{ settings.getAppName | default('') }}">
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="items_per_page">Nombre d'infos par page</label>
-                                                <input type="number" class="form-control" id="items_per_page" name="items_per_page" min="1" max="100" value="{{ settings.items_per_page }}">
+                                                <input type="number" class="form-control" id="items_per_page" name="items_per_page" min="1" max="100" value="{{ settings.getItemsPerPage }}">
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="welcome_message">Message de bienvenue</label>
-                                                <input type="text" class="form-control" id="welcome_message" name="welcome_message" value="{{ settings.welcome_message | default('') }}">
+                                                <input type="text" class="form-control" id="welcome_message" name="welcome_message" value="{{ settings.getWelcomeMessage | default('') }}">
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="alert_threshold">Seuil d'alertes</label>
-                                                <input type="number" class="form-control" id="alert_threshold" name="alert_threshold" min="0" value="{{ settings.alert_threshold | default(0) }}">
+                                                <input type="number" class="form-control" id="alert_threshold" name="alert_threshold" min="0" value="{{ settings.getAlertThreshold | default(0) }}">
                                             </div>
 
                                             <div class="form-group form-check">
-                                                <input type="checkbox" class="form-check-input" id="feature_enabled" name="feature_enabled" value="1" {% if settings.feature_enabled | default(false) %}checked{% endif %}>
+                                                <input type="checkbox" class="form-check-input" id="feature_enabled" name="feature_enabled" value="1" {% if settings.isFeatureEnabled | default(false) %}checked{% endif %}>
                                                 <label class="form-check-label" for="feature_enabled">Activer la sauvegarde automatique</label>
                                             </div>
 

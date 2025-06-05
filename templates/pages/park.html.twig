@@ -125,18 +125,28 @@
                                             <tbody>
                                                 {% for equipment in equipments %}
                                                 <tr>
-                                                    <td>{{ equipment.municipality }}</td>
-                                                    <td>{{ equipment.type }}</td>
-                                                    <td>{{ equipment.brand }}</td>
-                                                    <td>{{ equipment.model }}</td>
-                                                    <td>{{ equipment.assignedTo }}</td>
-                                                    <td>{{ equipment.location }}</td>
+                                                    <td>{{ equipment.municipality is not empty and equipment.municipality.name is defined ? equipment.municipality.name : 'Non défini' }}</td>
+                                                    <td>{{ equipment.type is not empty ? equipment.type : 'Non défini' }}</td>
+                                                    <td>{{ equipment.brand is not empty ? equipment.brand : 'Non défini' }}</td>
+                                                    <td>{{ equipment.model is not empty ? equipment.model : 'Non défini' }}</td>
+                                                    <td>{{ equipment.assignedTo is not empty ? equipment.assignedTo : 'Non assigné' }}</td>
+                                                    <td>{{ equipment.location is not empty ? equipment.location : 'Non défini' }}</td>
                                                     <td>
                                                         {% if equipment.isActive %}
                                                             <span class="badge badge-success">Actif</span>
                                                         {% else %}
                                                             <span class="badge badge-secondary">Inactif</span>
                                                         {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group">
+                                                            <button class="btn btn-sm btn-info edit-btn" onclick="editEquipment({{ equipment.id }})">
+                                                                <i class="fa fa-edit"></i> Modifier
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger delete-btn" data-id="{{ equipment.id }}" data-type="equipment" data-toggle="modal" data-target="#staticModal">
+                                                                <i class="fa fa-trash"></i> Supprimer
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
@@ -164,6 +174,80 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/park-map.js') }}"></script>
+    <script src="{{ asset('js/equipment.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser la carte si l'élément existe
+            if (document.getElementById("map-agglomeration")) {
+                const map = L.map("map-agglomeration").setView([43.3442, 3.2158], 10);
+
+                L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
+                    attribution: "&copy; OpenStreetMap contributors",
+                }).addTo(map);
+
+                // Chargement des données GeoJSON
+                fetch("/data/beziers-agglo-points.geojson")
+                    .then(res => res.json())
+                    .then(data => {
+                        const layer = L.geoJSON(data, {
+                            pointToLayer: function (feature, latlng) {
+                                return L.circleMarker(latlng, {
+                                    radius: 6,
+                                    fillColor: "#1e90ff",
+                                    color: "#fff",
+                                    weight: 1,
+                                    opacity: 1,
+                                    fillOpacity: 0.9
+                                });
+                            },
+                            onEachFeature: function (feature, layer) {
+                                const props = feature.properties;
+
+                                // Tooltip (survol)
+                                if (props && props.nom) {
+                                    layer.bindTooltip(props.nom, {
+                                        direction: 'top',
+                                        offset: [0, -5],
+                                        sticky: true
+                                    });
+                                }
+
+                                // Popup (clic)
+                                layer.on('click', () => {
+                                    let rows = "";
+                                    for (const [key, value] of Object.entries(props)) {
+                                        rows += `<tr><th>${key}</th><td>${value}</td></tr>`;
+                                    }
+
+                                    const popupContent = `
+                                    <div>
+                                        <h5>${props.nom}</h5>
+                                        <table class="table table-bordered table-sm">
+                                            <tbody>${rows}</tbody>
+                                        </table>
+                                    </div>
+                                `;
+
+                                    layer.bindPopup(popupContent, {
+                                        offset: [0, -5],
+                                        autoPan: true,
+                                        closeButton: true
+                                    }).openPopup();
+                                });
+                            }
+                        }).addTo(map);
+
+                        map.fitBounds(layer.getBounds(), {
+                            padding: [20, 20],
+                            maxZoom: 13
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Erreur de chargement GeoJSON :", err);
+                    });
+            }
+        });
+    </script>
     <script>
         const allEquipments = {{ equipments | json_encode | raw }};
         let displayedEquipments = [...allEquipments];
@@ -290,19 +374,24 @@
             equipmentsToDisplay.forEach(equipment => {
                 const row = `
                     <tr>
-                        <td>${equipment.municipality}</td> {# Commune en première position #}
-                        <td>${equipment.type}</td>
-                        <td>${equipment.brand}</td>
-                        <td>${equipment.model}</td>
-                        <td>${equipment.assignedTo}</td>
-                        <td>${equipment.location}</td>
+                        <td>${equipment.municipality && equipment.municipality.name ? equipment.municipality.name : 'Non défini'}</td>
+                        <td>${equipment.type || 'Non défini'}</td>
+                        <td>${equipment.brand || 'Non défini'}</td>
+                        <td>${equipment.model || 'Non défini'}</td>
+                        <td>${equipment.assignedTo || 'Non assigné'}</td>
+                        <td>${equipment.location || 'Non défini'}</td>
                         <td>
                             ${equipment.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-danger delete-btn" data-id="${equipment.id}" data-type="equipment" data-toggle="modal" data-target="#staticModal">
-                                <i class="fa fa-trash"></i> Supprimer
-                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-info edit-btn" onclick="editEquipment(${equipment.id})">
+                                    <i class="fa fa-edit"></i> Modifier
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="${equipment.id}" data-type="equipment" data-toggle="modal" data-target="#staticModal">
+                                    <i class="fa fa-trash"></i> Supprimer
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -326,7 +415,11 @@
                     displayedEquipments = allEquipments.filter(equipment => {
                         for (const key in equipment) {
                             const value = equipment[key];
-                            if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
+                            if (key === 'municipality') {
+                                if (value && value.name && value.name.toLowerCase().includes(searchTerm)) {
+                                    return true;
+                                }
+                            } else if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
                                 return true;
                             }
                         }
@@ -384,11 +477,13 @@
             const itemId = button.data('id');
             const itemType = button.data('type');
 
-            // TODO: Implement backend deletion request here
-            console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
-
-            // Close the modal
-            $('#staticModal').modal('hide');
+            if (itemType === 'equipment') {
+                deleteEquipment(itemId);
+            } else {
+                console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
+                // Close the modal
+                $('#staticModal').modal('hide');
+            }
         });
     });
     </script>

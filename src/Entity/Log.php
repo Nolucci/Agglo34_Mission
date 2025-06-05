@@ -2,40 +2,39 @@
 
 namespace App\Entity;
 
+use App\Repository\LogRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: LogRepository::class)]
 class Log
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private $user;
+    #[ORM\Column(length: 255)]
+    private ?string $action = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private $action;
+    #[ORM\Column(length: 255)]
+    private ?string $entityType = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private $timestamp;
+    #[ORM\Column]
+    private ?int $entityId = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $details = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $username = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getUser(): ?string
-    {
-        return $this->user;
-    }
-
-    public function setUser(string $user): self
-    {
-        $this->user = $user;
-
-        return $this;
     }
 
     public function getAction(): ?string
@@ -43,21 +42,69 @@ class Log
         return $this->action;
     }
 
-    public function setAction(string $action): self
+    public function setAction(string $action): static
     {
         $this->action = $action;
 
         return $this;
     }
 
-    public function getTimestamp(): ?\DateTimeImmutable
+    public function getEntityType(): ?string
     {
-        return $this->timestamp;
+        return $this->entityType;
     }
 
-    public function setTimestamp(\DateTimeImmutable $timestamp): self
+    public function setEntityType(string $entityType): static
     {
-        $this->timestamp = $timestamp;
+        $this->entityType = $entityType;
+
+        return $this;
+    }
+
+    public function getEntityId(): ?int
+    {
+        return $this->entityId;
+    }
+
+    public function setEntityId(int $entityId): static
+    {
+        $this->entityId = $entityId;
+
+        return $this;
+    }
+
+    public function getDetails(): ?string
+    {
+        return $this->details;
+    }
+
+    public function setDetails(?string $details): static
+    {
+        $this->details = $details;
+
+        return $this;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }

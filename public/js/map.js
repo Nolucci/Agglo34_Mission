@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }).addTo(map);
 
     // Chargement des données GeoJSON
-    fetch("data/beziers-agglo-points.geojson")
+    fetch("/data/beziers-agglo-points.geojson")
         .then(res => res.json())
         .then(data => {
             const layer = L.geoJSON(data, {
