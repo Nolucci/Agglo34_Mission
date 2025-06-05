@@ -71,14 +71,8 @@
                                 <label for="municipalityFilter">Commune</label>
                                 <select class="form-control" id="municipalityFilter" name="municipality">
                                     <option value="">Toutes les communes</option>
-                                    {% set municipalities = [] %}
-                                    {% for line in phoneLines %}
-                                        {% if line.municipality is not null and not (line.municipality.id in municipalities|keys) %}
-                                            {% set municipalities = municipalities|merge({(line.municipality.id): line.municipality.name}) %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% for id, name in municipalities|sort %}
-                                        <option value="{{ id }}">{{ name }}</option>
+                                    {% for municipality in municipalities|sort((a, b) => a.name <=> b.name) %}
+                                        <option value="{{ municipality.id }}">{{ municipality.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>

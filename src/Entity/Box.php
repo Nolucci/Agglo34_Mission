@@ -36,7 +36,13 @@ class Box
     
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $assignedTo = null;
-    
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $phoneLine = null;
+
     #[ORM\Column]
     private bool $isActive = true;
 
@@ -141,6 +147,30 @@ class Box
         return $this;
     }
     
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): static
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getPhoneLine(): ?string
+    {
+        return $this->phoneLine;
+    }
+
+    public function setPhoneLine(?string $phoneLine): static
+    {
+        $this->phoneLine = $phoneLine;
+
+        return $this;
+    }
+
     public function isActive(): bool
     {
         return $this->isActive;

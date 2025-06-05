@@ -1,6 +1,6 @@
-{% extends 'base.html.twig' %}
+{% extends './base.html.twig' %}
 
-{% block title %}Liste des Boxs{% endblock %}
+{% block title %}Informations des Box{% endblock %}
 
 {% block body %}
 <div class="page-wrapper">
@@ -9,41 +9,151 @@
             <div class="section__content section__content--p30">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-md-12">
-                            <div class="overview-wrap">
-                                <h2 class="title-1">Liste des Boxs</h2>
+                        <div class="col-lg-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Statistiques des Box</strong>
+                                </div>
+                                <div class="card-body text-center" style="height: 300px;">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fas fa-desktop fa-2x"></i></h5>
+                                                    <p class="card-text">Total des box</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ boxes|length }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fas fa-building fa-2x"></i></h5>
+                                                    <p class="card-text">Services uniques</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ boxStats.unique_services }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fas fa-building fa-2x"></i></h5>
+                                                    <p class="card-text">Communes uniques</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ boxStats.unique_municipalities }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="card text-center">
+                                                <div class="card-body">
+                                                    <h5 class="card-title"><i class="fas fa-check-circle fa-2x"></i></h5>
+                                                    <p class="card-text">Box actives</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ boxStats.active_boxes }}</h3>{# Reduced font size #}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Statistiques des Box</strong>
+                                </div>
+                                <div class="card-body text-center" style="height: 300px;">
+                                    <canvas id="team-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Box par Statut</strong>
+                                </div>
+                                <div class="card-body text-center" style="height: 300px;">
+                                    <canvas id="status-doughnut-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                         <div class="col-lg-3">
+                             <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Carte des Box</strong>
+                                </div>
+                                <div class="card-body text-center" style="height: 300px;">
+                                    <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="row">
-                        <div class="col-md-12">
-                             <div class="form-group">
-                                <label for="searchInput">Rechercher par attribut:</label>
-                                <input type="text" class="form-control" id="searchInput" placeholder="Entrez un terme de recherche">
-                            </div>
-                            <div class="table-responsive table--no-card m-b-30">
-                                <table class="table table-borderless table-striped table-earning">
-                                    <thead>
-                                        <tr>
-                                            <th>Commune</th>
-                                            <th>Localisation</th>
-                                            <th>Adresse</th>
-                                            <th>Ligne de Support</th>
-                                            <th>Type</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for box in boxes %}
-                                        <tr>
-                                            <td>{{ box.commune }}</td>
-                                            <td>{{ box.localisation }}</td>
-                                            <td>{{ box.adresse }}</td>
-                                            <td>{{ box.ligne_support }}</td>
-                                            <td>{{ box.type }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Liste des Box</strong>
+                                    <button class="btn btn-sm btn-success float-right mr-2" data-toggle="modal" data-target="#boxModal">
+                                        <i class="fa fa-plus"></i> Ajouter
+                                    </button>
+                                    <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#boxFiltersModal">
+                                        <i class="fa fa-filter"></i> Filtres
+                                    </button>
+                                </div>
+                                <div class="card-body" style="height: auto;">{# Adjusted height for table #}
+                                     <div class="form-group">
+                                        <label for="searchBoxInput">Rechercher par attribut:</label>
+                                        <input type="text" class="form-control" id="searchBoxInput" placeholder="Entrez un terme de recherche">
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Commune</th>
+                                                    <th>Localisation</th>
+                                                    <th>Adresse</th>
+                                                    <th>Ligne Support</th>
+                                                    <th>Type</th>
+                                                    <th>Attribué à</th>
+                                                    <th>Statut</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for box in boxes %}
+                                                <tr>
+                                                    <td>{{ box.municipality is not empty and box.municipality.name is defined ? box.municipality.name : 'Non défini' }}</td>
+                                                    <td>{{ box.location is not empty ? box.location : 'Non défini' }}</td>
+                                                    <td>{{ box.address is not empty ? box.address : 'Non défini' }}</td>
+                                                    <td>{{ box.phoneLine is not empty and box.phoneLine.number is defined ? box.phoneLine.number : 'Non défini' }}</td>
+                                                    <td>{{ box.type is not empty ? box.type : 'Non défini' }}</td>
+                                                    <td>{{ box.assignedTo is not empty ? box.assignedTo : 'Non assigné' }}</td>
+                                                    <td>
+                                                        {% if box.isActive %}
+                                                            <span class="badge badge-success">Actif</span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">Inactif</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group">
+                                                            <button class="btn btn-sm btn-info edit-btn" onclick="editBox({{ box.id }})">
+                                                                <i class="fa fa-edit"></i> Modifier
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger delete-btn" data-id="{{ box.id }}" data-type="box" data-toggle="modal" data-target="#staticModal">
+                                                                <i class="fa fa-trash"></i> Supprimer
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -51,44 +161,265 @@
             </div>
         </div>
     </div>
+{% include './modals/_box_modal.html.twig' %}
+{% include './modals/_box_filters_modal.html.twig' %}
 </div>
+
+{# {% include './modals/_park_filters_modal.html.twig' with { equipments: equipments } %} #}
+{% import './infos/_macros.html.twig' as macros %}
+{{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cet élément ?') }}
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/park-map.js') }}"></script>
+    <script src="{{ asset('js/box.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser la carte si l'élément existe
+            if (document.getElementById("map-agglomeration")) {
+                const map = L.map("map-agglomeration").setView([43.3442, 3.2158], 10);
+
+                L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
+                    attribution: "&copy; OpenStreetMap contributors",
+                }).addTo(map);
+
+                // Chargement des données GeoJSON
+                fetch("/data/beziers-agglo-points.geojson")
+                    .then(res => res.json())
+                    .then(data => {
+                        const layer = L.geoJSON(data, {
+                            pointToLayer: function (feature, latlng) {
+                                return L.circleMarker(latlng, {
+                                    radius: 6,
+                                    fillColor: "#1e90ff",
+                                    color: "#fff",
+                                    weight: 1,
+                                    opacity: 1,
+                                    fillOpacity: 0.9
+                                });
+                            },
+                            onEachFeature: function (feature, layer) {
+                                const props = feature.properties;
+
+                                // Tooltip (survol)
+                                if (props && props.nom) {
+                                    layer.bindTooltip(props.nom, {
+                                        direction: 'top',
+                                        offset: [0, -5],
+                                        sticky: true
+                                    });
+                                }
+
+                                // Popup (clic)
+                                layer.on('click', () => {
+                                    let rows = "";
+                                    for (const [key, value] of Object.entries(props)) {
+                                        rows += `<tr><th>${key}</th><td>${value}</td></tr>`;
+                                    }
+
+                                    const popupContent = `
+                                    <div>
+                                        <h5>${props.nom}</h5>
+                                        <table class="table table-bordered table-sm">
+                                            <tbody>${rows}</tbody>
+                                        </table>
+                                    </div>
+                                `;
+
+                                    layer.bindPopup(popupContent, {
+                                        offset: [0, -5],
+                                        autoPan: true,
+                                        closeButton: true
+                                    }).openPopup();
+                                });
+                            }
+                        }).addTo(map);
+
+                        map.fitBounds(layer.getBounds(), {
+                            padding: [20, 20],
+                            maxZoom: 13
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Erreur de chargement GeoJSON :", err);
+                    });
+            }
+        });
+    </script>
     <script>
         const allBoxes = {{ boxes | json_encode | raw }};
         let displayedBoxes = [...allBoxes];
 
+        // Team Commits Chart
+        var ctxTeam = document.getElementById("team-chart");
+        if (ctxTeam) {
+            ctxTeam.height = 150;
+            var myChartTeam = new Chart(ctxTeam, {
+                type: 'bar',
+                data: {
+                    labels: {{ boxTypeChartData.labels | json_encode | raw }},
+                    type: 'bar',
+                    defaultFontFamily: 'Poppins',
+                    datasets: [{
+                        data: {{ boxTypeChartData.data | json_encode | raw }},
+                        label: "Box par Type",
+                        backgroundColor: 'rgba(0,103,255,.15)',
+                        borderColor: 'rgba(0,103,255,0.5)',
+                        borderWidth: 3.5,
+                        pointStyle: 'circle',
+                        pointRadius: 5,
+                        pointBorderColor: 'transparent',
+                        pointBackgroundColor: 'rgba(0,103,255,0.5)',
+                    },]
+                },
+                options: {
+                    responsive: true,
+                    tooltips: {
+                        mode: 'index',
+                        titleFontSize: 12,
+                        titleFontColor: '#000',
+                        bodyFontColor: '#000',
+                        backgroundColor: '#fff',
+                        titleFontFamily: 'Poppins',
+                        bodyFontFamily: 'Poppins',
+                        cornerRadius: 3,
+                        intersect: false,
+                    },
+                    legend: {
+                        display: false,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            fontFamily: 'Poppins',
+                        },
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            scaleLabel: {
+                                display: false,
+                                labelString: 'Month'
+                            },
+                            ticks: {
+                                fontFamily: "Poppins"
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            gridLines: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Value',
+                                fontFamily: "Poppins"
+                            },
+                            ticks: {
+                                fontFamily: "Poppins"
+                            }
+                        }]
+                    },
+                    title: {
+                        display: false,
+                    }
+                }
+            });
+        }
+
+        // Status Doughnut Chart
+        var ctxStatus = document.getElementById("status-doughnut-chart");
+        if (ctxStatus) {
+            ctxStatus.height = 150; // Ajustez la hauteur si nécessaire
+            var myChartStatus = new Chart(ctxStatus, {
+                type: 'bar',
+                data: {
+                    datasets: [{
+                        data: {{ boxStatusChartData.data | json_encode | raw }},
+                        backgroundColor: [
+                            "rgba(40, 167, 69, 0.9)", // Vert pour Actif
+                            "rgba(108, 117, 125, 0.7)" // Gris pour Inactif
+                        ],
+                        hoverBackgroundColor: [
+                            "rgba(40, 167, 69, 1)",
+                            "rgba(108, 117, 125, 0.9)"
+                        ],
+                    }],
+                    labels: {{ boxStatusChartData.labels | json_encode | raw }}
+                },
+                options: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            fontFamily: 'Poppins'
+                        }
+                    },
+                    responsive: true
+                }
+            });
+        }
+
+
+        // Fonction pour rendre la table des box
         function renderBoxesTable(boxesToDisplay) {
-            const tbody = document.querySelector('.table tbody');
-            tbody.innerHTML = '';
+            const tbody = document.querySelector('.table tbody'); // Assuming only one table for now
+            tbody.innerHTML = ''; // Clear current table
 
             boxesToDisplay.forEach(box => {
                 const row = `
                     <tr>
-                        <td>${box.commune}</td>
-                        <td>${box.localisation}</td>
-                        <td>${box.adresse}</td>
-                        <td>${box.ligne_support}</td>
-                        <td>${box.type}</td>
+                        <td>${box.municipality || 'Non défini'}</td>
+                        <td>${box.model || 'Non défini'}</td>
+                        <td>${box.type || 'Non défini'}</td>
+                        <td>${box.brand || 'Non défini'}</td>
+                        <td>${box.location || 'Non défini'}</td>
+                        <td>${box.assignedTo || 'Non assigné'}</td>
+                        <td>
+                            ${box.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-info edit-btn" onclick="editBox(${box.id})">
+                                    <i class="fa fa-edit"></i> Modifier
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="${box.id}" data-type="box" data-toggle="modal" data-target="#staticModal">
+                                    <i class="fa fa-trash"></i> Supprimer
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
             });
         }
 
+        // Initialisation de la carte des box
+        function initMap() {
+            // Logique de la carte à implémenter
+        }
+
+        // Initial render of the table
         document.addEventListener('DOMContentLoaded', function() {
             renderBoxesTable(displayedBoxes);
 
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function(event) {
+            const searchBoxInput = document.getElementById('searchBoxInput');
+            if (searchBoxInput) {
+                searchBoxInput.addEventListener('input', function(event) {
                     const searchTerm = event.target.value.toLowerCase();
                     displayedBoxes = allBoxes.filter(box => {
                         for (const key in box) {
                             const value = box[key];
-                            if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
+                            if (key === 'municipality') {
+                                if (value && value.name && value.name.toLowerCase().includes(searchTerm)) {
+                                    return true;
+                                }
+                            } else if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
                                 return true;
                             }
                         }
@@ -98,5 +429,68 @@
                 });
             }
         });
+
+        // Filter logic for Box
+        const boxFilterForm = document.getElementById('box-filter-form');
+        const applyBoxFiltersButton = document.getElementById('apply-box-filters');
+
+        if (applyBoxFiltersButton) {
+            applyBoxFiltersButton.addEventListener('click', function() {
+                const filterModel = document.getElementById('filter-model').value.toLowerCase();
+                const filterType = document.getElementById('filter-type').value.toLowerCase();
+                const filterBrand = document.getElementById('filter-brand').value.toLowerCase();
+                const filterMunicipality = document.getElementById('filter-municipality').value.toLowerCase();
+                const filterStatus = document.getElementById('filter-status').value.toLowerCase();
+                const filterLocation = document.getElementById('filter-location').value.toLowerCase();
+
+
+                displayedBoxes = allBoxes.filter(box => {
+                    const matchesModel = filterModel === '' || (box.model && box.model.toLowerCase().includes(filterModel));
+                    const matchesType = filterType === '' || (box.type && box.type.toLowerCase().includes(filterType));
+                    const matchesBrand = filterBrand === '' || (box.brand && box.brand.toLowerCase().includes(filterBrand));
+                    const matchesMunicipality = filterMunicipality === '' || (box.municipality && box.municipality.toLowerCase().includes(filterMunicipality));
+                    const matchesStatus = filterStatus === '' || (box.isActive ? 'actif' : 'inactif').includes(filterStatus);
+                    const matchesLocation = filterLocation === '' || (box.location && box.location.toLowerCase().includes(filterLocation));
+
+
+                    return matchesModel && matchesType && matchesBrand && matchesMunicipality && matchesStatus && matchesLocation;
+                });
+
+                renderBoxesTable(displayedBoxes);
+
+                // Close the modal after applying filters
+                $('#boxFiltersModal').modal('hide');
+            });
+        }
+    $(document).ready(function() {
+        $('#staticModal').on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget); // Button that triggered the modal
+            const itemId = button.data('id'); // Extract info from data-* attributes
+            const itemType = button.data('type');
+
+            const modal = $(this);
+            modal.find('.modal-title').text('Confirmer la suppression de ' + itemType.charAt(0).toUpperCase() + itemType.slice(1));
+            modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cette ' + (itemType === 'box' ? 'box' : 'élément') + ' ?');
+
+            // Set data attributes on the confirm button
+            const confirmButton = modal.find('.btn-primary');
+            confirmButton.data('id', itemId);
+            confirmButton.data('type', itemType);
+        });
+
+        $('#staticModal .btn-primary').on('click', function() {
+            const button = $(this);
+            const itemId = button.data('id');
+            const itemType = button.data('type');
+
+            if (itemType === 'box') {
+                deleteBox(itemId);
+            } else {
+                console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
+                // Close the modal
+                $('#staticModal').modal('hide');
+            }
+        });
+    });
     </script>
 {% endblock %}

@@ -170,7 +170,7 @@ class CreateTestDataCommand extends Command
             $box->setType($type);
             $box->setBrand($brand);
             $box->setModel($model);
-            $box->setMunicipality($municipality->getName());
+            $box->setMunicipality($municipality);
             $box->setLocation($location);
             $box->setAssignedTo($assignedTo);
             $box->setIsActive($isActive);

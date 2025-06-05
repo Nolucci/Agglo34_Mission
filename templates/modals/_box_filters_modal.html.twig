@@ -1,0 +1,205 @@
+<!-- Modal Filtres Box -->
+<div class="modal fade" id="boxFiltersModal" tabindex="-1" role="dialog" aria-labelledby="boxFiltersModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="boxFiltersModalLabel">
+                    <i class="fa fa-filter"></i> Filtres des Box
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="box-filter-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter-municipality">Commune</label>
+                                <select class="form-control" id="filter-municipality" name="municipality">
+                                    <option value="">Toutes les communes</option>
+                                    {% set municipalities = [] %}
+                                    {% for box in boxes %}
+                                        {% if box.municipality is not null and not (box.municipality in municipalities) %}
+                                            {% set municipalities = municipalities|merge([box.municipality]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for municipality in municipalities|sort %}
+                                        <option value="{{ municipality }}">{{ municipality }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter-location">Localisation</label>
+                                <input type="text" class="form-control" id="filter-location" name="location" placeholder="Entrez la localisation">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter-type">Type</label>
+                                <select class="form-control" id="filter-type" name="type">
+                                    <option value="">Tous les types</option>
+                                    {% set types = [] %}
+                                    {% for box in boxes %}
+                                        {% if box.type is not null and not (box.type in types) %}
+                                            {% set types = types|merge([box.type]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for type in types|sort %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter-model">Modèle</label>
+                                <select class="form-control" id="filter-model" name="model">
+                                    <option value="">Tous les modèles</option>
+                                    {% set models = [] %}
+                                    {% for box in boxes %}
+                                        {% if box.model is not null and not (box.model in models) %}
+                                            {% set models = models|merge([box.model]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for model in models|sort %}
+                                        <option value="{{ model }}">{{ model }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter-brand">Marque</label>
+                                <select class="form-control" id="filter-brand" name="brand">
+                                    <option value="">Toutes les marques</option>
+                                    {% set brands = [] %}
+                                    {% for box in boxes %}
+                                        {% if box.brand is not null and not (box.brand in brands) %}
+                                            {% set brands = brands|merge([box.brand]) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for brand in brands|sort %}
+                                        <option value="{{ brand }}">{{ brand }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="filter-status">Statut</label>
+                                <select class="form-control" id="filter-status" name="status">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="actif">Actif</option>
+                                    <option value="inactif">Inactif</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="apply-box-filters">
+                    <i class="fa fa-filter"></i> Appliquer les Filtres
+                </button>
+                 <button type="button" class="btn btn-warning" id="reset-box-filters">
+                    <i class="fa fa-refresh"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('apply-box-filters');
+    const resetFiltersBtn = document.getElementById('reset-box-filters');
+    const filtersForm = document.getElementById('box-filter-form');
+    const boxFiltersModal = document.getElementById('boxFiltersModal');
+
+    // Assuming allBoxes and renderBoxesTable are accessible globally or in the same scope
+    // If not, these would need to be passed or accessed differently.
+
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            const formData = new FormData(filtersForm);
+            const filters = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    filters[key] = value.toLowerCase();
+                }
+            }
+
+            displayedBoxes = allBoxes.filter(box => {
+                let passesFilter = true;
+                for (const key in filters) {
+                    if (key === 'status') {
+                         const filterValue = filters[key];
+                         const boxStatus = box.isActive ? 'actif' : 'inactif';
+                         if (filterValue !== '' && boxStatus !== filterValue) {
+                             passesFilter = false;
+                             break;
+                         }
+                    } else if (key === 'municipality') {
+                        const filterValue = filters[key];
+                        if (filterValue !== '' && (!box.municipality || box.municipality.toLowerCase() !== filterValue)) {
+                            passesFilter = false;
+                            break;
+                        }
+                    } else if (key === 'location') {
+                         const filterValue = filters[key];
+                         if (filterValue !== '' && (!box.location || !box.location.toLowerCase().includes(filterValue))) {
+                             passesFilter = false;
+                             break;
+                         }
+                    } else if (key === 'type') {
+                         const filterValue = filters[key];
+                         if (filterValue !== '' && (!box.type || box.type.toLowerCase() !== filterValue)) {
+                             passesFilter = false;
+                             break;
+                         }
+                    } else if (key === 'model') {
+                         const filterValue = filters[key];
+                         if (filterValue !== '' && (!box.model || box.model.toLowerCase() !== filterValue)) {
+                             passesFilter = false;
+                             break;
+                         }
+                    } else if (key === 'brand') {
+                         const filterValue = filters[key];
+                         if (filterValue !== '' && (!box.brand || box.brand.toLowerCase() !== filterValue)) {
+                             passesFilter = false;
+                             break;
+                         }
+                    }
+                    else if (box[key] && box[key].toLowerCase() !== filters[key]) {
+                         // For other dropdowns, we need an exact match
+                         passesFilter = false;
+                         break;
+                    }
+                }
+                return passesFilter;
+            });
+
+            renderBoxesTable(displayedBoxes);
+            $(boxFiltersModal).modal('hide');
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            filtersForm.reset();
+            displayedBoxes = [...allBoxes];
+            renderBoxesTable(displayedBoxes);
+            $(boxFiltersModal).modal('hide');
+        });
+    }
+});
+</script>

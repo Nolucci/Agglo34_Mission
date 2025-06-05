@@ -160,7 +160,7 @@
         </div>
     </div>
 {% include './modals/_line_modal.html.twig' %}
-{% include './modals/_lines_filters_modal.html.twig' with { phoneLines: phoneLines } %}
+{% include './modals/_lines_filters_modal.html.twig' with { municipalities: municipalities } %}
 </div>
 
 {% import './infos/_macros.html.twig' as macros %}
@@ -400,14 +400,22 @@
                 searchInput.addEventListener('input', function(event) {
                     const searchTerm = event.target.value.toLowerCase();
                     displayedPhoneLines = allPhoneLines.filter(line => {
-                        // Filter based on any attribute value containing the search term
-                        for (const key in line) {
-                            const value = line[key];
-                            if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
-                                return true;
-                            }
-                        }
-                        return false;
+                        // Filter based on specific attributes containing the search term
+                        const municipalityName = line.municipality && line.municipality.name ? line.municipality.name.toLowerCase() : '';
+                        const location = line.location ? line.location.toLowerCase() : '';
+                        const service = line.service ? line.service.toLowerCase() : '';
+                        const assignedTo = line.assignedTo ? line.assignedTo.toLowerCase() : '';
+                        const operator = line.operator ? line.operator.toLowerCase() : '';
+                        const lineType = line.lineType ? line.lineType.toLowerCase() : '';
+                        const isGlobal = line.isGlobal ? 'global' : 'local'; // Convert boolean to string for searching
+
+                        return municipalityName.includes(searchTerm) ||
+                               location.includes(searchTerm) ||
+                               service.includes(searchTerm) ||
+                               assignedTo.includes(searchTerm) ||
+                               operator.includes(searchTerm) ||
+                               lineType.includes(searchTerm) ||
+                               isGlobal.includes(searchTerm);
                     });
                     renderLinesTable(displayedPhoneLines);
                 });
