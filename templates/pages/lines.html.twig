@@ -46,9 +46,9 @@
                                         <div class="col-sm-6">
                                             <div class="card text-center">
                                                 <div class="card-body">
-                                                     <h5 class="card-title"><i class="fa fa-globe fa-2x"></i></h5>
-                                                    <p class="card-text">Lignes globales</p>
-                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.global_lines }}</h3>
+                                                     <h5 class="card-title"><i class="fa fa-check-circle fa-2x"></i></h5>
+                                                    <p class="card-text">Lignes fonctionnelles</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.working_lines }}</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -112,6 +112,8 @@
                                         <table class="table table-striped table-hover">
                                             <thead>
                                                 <tr>
+                                                    <th>Ligne Directe (SDA)</th>
+                                                    <th>Numéro Court</th>
                                                     <th>Commune</th>
                                                     <th>Localisation</th>
                                                     <th>Service</th>
@@ -125,25 +127,27 @@
                                             <tbody>
                                                 {% for line in phoneLines %}
                                                 <tr>
-                                                    <td>{{ line.municipality ? line.municipality.name : 'Non défini' }}</td>
+                                                    <td>{{ line.directLine is not empty ? line.directLine : 'Non défini' }}</td>
+                                                    <td>{{ line.shortNumber is not empty ? line.shortNumber : 'Non défini' }}</td>
+                                                    <td>{{ line.municipality is not empty and line.municipality.name is defined ? line.municipality.name : 'Non défini' }}</td>
                                                     <td>{{ line.location is not empty ? line.location : 'Non défini' }}</td>
                                                     <td>{{ line.service is not empty ? line.service : 'Non défini' }}</td>
                                                     <td>{{ line.assignedTo is not empty ? line.assignedTo : 'Non défini' }}</td>
                                                     <td>{{ line.operator is not empty ? line.operator : 'Non défini' }}</td>
                                                     <td>{{ line.lineType is not empty ? line.lineType : 'Non défini' }}</td>
                                                     <td>
-                                                        {% if line.isGlobal %}
-                                                            <span class="badge badge-success">Global</span>
+                                                        {% if line.isWorking %}
+                                                            <span class="badge badge-success">Fonctionne</span>
                                                         {% else %}
-                                                            <span class="badge badge-secondary">Local</span>
+                                                            <span class="badge badge-danger">Ne fonctionne pas</span>
                                                         {% endif %}
                                                     </td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-primary edit-btn" onclick="editLine({{ line.id }})" data-id="{{ line.id }}">
-                                                            <i class="fa fa-edit"></i> Modifier
+                                                        <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine({{ line.id }})" data-id="{{ line.id }}">
+                                                            <i class="fa fa-edit"></i>
                                                         </button>
                                                         <button class="btn btn-sm btn-danger delete-btn" data-id="{{ line.id }}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
-                                                            <i class="fa fa-trash"></i> Supprimer
+                                                            <i class="fa fa-trash"></i>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -366,6 +370,8 @@
             linesToDisplay.forEach(line => {
                 const row = `
                     <tr>
+                        <td>${line.directLine && line.directLine !== '' ? line.directLine : 'Non défini'}</td>
+                        <td>${line.shortNumber && line.shortNumber !== '' ? line.shortNumber : 'Non défini'}</td>
                         <td>${line.municipality && line.municipality.name ? line.municipality.name : 'Non défini'}</td>
                         <td>${line.location && line.location !== '' ? line.location : 'Non défini'}</td>
                         <td>${line.service && line.service !== '' ? line.service : 'Non défini'}</td>
@@ -373,9 +379,12 @@
                         <td>${line.operator && line.operator !== '' ? line.operator : 'Non défini'}</td>
                         <td>${line.lineType && line.lineType !== '' ? line.lineType : 'Non défini'}</td>
                         <td>
-                            ${line.isGlobal ? '<span class="badge badge-success">Global</span>' : '<span class="badge badge-secondary">Local</span>'}
+                            ${line.isWorking ? '<span class="badge badge-success">Fonctionne</span>' : '<span class="badge badge-danger">Ne fonctionne pas</span>'}
                         </td>
                         <td>
+                            <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine(${line.id})" data-id="${line.id}">
+                                <i class="fa fa-edit"></i>
+                            </button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${line.id}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
                                 <i class="fa fa-trash"></i>
                             </button>
@@ -407,7 +416,7 @@
                         const assignedTo = line.assignedTo ? line.assignedTo.toLowerCase() : '';
                         const operator = line.operator ? line.operator.toLowerCase() : '';
                         const lineType = line.lineType ? line.lineType.toLowerCase() : '';
-                        const isGlobal = line.isGlobal ? 'global' : 'local'; // Convert boolean to string for searching
+                        const isWorking = line.isWorking ? 'fonctionne' : 'ne fonctionne pas'; // Convert boolean to string for searching
 
                         return municipalityName.includes(searchTerm) ||
                                location.includes(searchTerm) ||
@@ -415,7 +424,7 @@
                                assignedTo.includes(searchTerm) ||
                                operator.includes(searchTerm) ||
                                lineType.includes(searchTerm) ||
-                               isGlobal.includes(searchTerm);
+                               isWorking.includes(searchTerm);
                     });
                     renderLinesTable(displayedPhoneLines);
                 });
@@ -444,7 +453,7 @@
                     const filterValue = filters[key];
                     const lineValue = line[key];
 
-                    if (key === 'isGlobal') {
+                    if (key === 'isWorking') {
                         const filterBoolean = filterValue === '1';
                         if (lineValue !== filterBoolean) {
                             passesFilter = false;

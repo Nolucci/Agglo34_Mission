@@ -1,6 +1,8 @@
 /**
  * Gestion des lignes téléphoniques - CRUD
  */
+let currentLineData = null; // Variable pour stocker les données de la ligne en cours d'édition
+
 document.addEventListener('DOMContentLoaded', function() {
     // Éléments du DOM
     const lineForm = document.querySelector('#phone-line-form');
@@ -47,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * Charge la liste des municipalités pour le select
      */
     function loadMunicipalities() {
-        fetch('/api/municipalities')
+        return fetch('/api/municipalities')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Erreur lors du chargement des municipalités');
@@ -57,13 +59,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(municipalities => {
                 // Vider le select
                 municipalitySelect.innerHTML = '';
-                
+
                 // Ajouter une option par défaut
                 const defaultOption = document.createElement('option');
                 defaultOption.value = '';
                 defaultOption.textContent = 'Sélectionnez une commune';
                 municipalitySelect.appendChild(defaultOption);
-                
+
                 // Ajouter les municipalités
                 municipalities.forEach(municipality => {
                     const option = document.createElement('option');
@@ -71,10 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     option.textContent = municipality.name;
                     municipalitySelect.appendChild(option);
                 });
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Impossible de charger les municipalités. Veuillez réessayer plus tard.');
             });
     }
 
@@ -85,26 +83,35 @@ document.addEventListener('DOMContentLoaded', function() {
         // Récupérer les données du formulaire
         const formData = new FormData(lineForm);
         const lineData = {};
-        
+
         // Convertir FormData en objet
         for (let [key, value] of formData.entries()) {
-            if (key === 'isGlobal') {
+            // Traitement spécial pour les checkboxes
+            if (key === 'isWorking') {
                 lineData[key] = true; // La case est cochée
-            } else {
-                // S'assurer que les valeurs ne sont pas vides
-                lineData[key] = value.trim() === '' ? null : value.trim();
+            } else if (key !== 'phoneNumber' && value.trim() === '') { // Exclure phoneNumber ici
+                // Pour les champs vides, envoyer null
+                lineData[key] = null;
+            } else if (key !== 'phoneNumber') { // Exclure phoneNumber ici
+                // Pour les autres champs, envoyer la valeur nettoyée
+                lineData[key] = value.trim();
             }
         }
-        
-        // Si la case isGlobal n'est pas cochée, définir explicitement à false
-        if (!formData.has('isGlobal')) {
-            lineData['isGlobal'] = false;
+
+        // Si la case isWorking n'est pas cochée, définir explicitement à false
+        if (!formData.has('isWorking')) {
+            lineData['isWorking'] = false;
         }
-        
+
+        // S'assurer que municipality est un nombre
+        if (lineData['municipality']) {
+            lineData['municipality'] = parseInt(lineData['municipality'], 10);
+        }
+
         // Vérifier les champs requis
         const requiredFields = ['location', 'service', 'assignedTo', 'operator', 'municipality'];
         let isValid = true;
-        
+
         requiredFields.forEach(field => {
             if (!lineData[field] || lineData[field] === null) {
                 isValid = false;
@@ -112,14 +119,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (input) {
                     input.classList.add('is-invalid');
                 }
+            } else {
+                // Réinitialiser la classe d'erreur si le champ est valide
+                const input = document.getElementById('line-' + field);
+                if (input) {
+                    input.classList.remove('is-invalid');
+                }
             }
         });
-        
+
         if (!isValid) {
             alert('Veuillez remplir tous les champs obligatoires.');
             return;
         }
-        
+
         // Déterminer s'il s'agit d'une création ou d'une modification
         const lineId = lineForm.getAttribute('data-id');
         const url = lineId
@@ -144,10 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 // Fermer la modal
-                $('#linesModal').modal('hide');
-                
-                // Recharger la page pour afficher les modifications
-                window.location.reload();
+                $('#linesModal').modal('hide');                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } else {
                 alert(data.error || 'Une erreur est survenue lors de l\'enregistrement.');
             }
@@ -175,9 +188,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 // Fermer la modal de confirmation
                 $('#staticModal').modal('hide');
-                
-                // Recharger la page pour mettre à jour la liste
-                window.location.reload();
+                        
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } else {
                 alert(data.error || 'Une erreur est survenue lors de la suppression.');
             }
@@ -201,7 +215,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(line => {
-                // Remplir le formulaire avec les données
+                console.log('Données reçues de l\'API pour édition:', line);
+                // Stocker les données de la ligne
+                currentLineData = line;
+
+                // Charger les municipalités et attendre que ce soit terminé
+                return loadMunicipalities().then(() => line); // Retourne la ligne après chargement des municipalités
+            })
+            .then(line => {
+                // Changer le titre de la modal
+                document.getElementById('linesModalLabel').textContent = 'Modifier une Ligne Téléphonique';
+
+                // Définir l'ID de la ligne dans le formulaire
+                lineForm.setAttribute('data-id', line.id);
+
+                // Remplir le formulaire avec les données stockées
                 document.getElementById('line-location').value = line.location;
                 document.getElementById('line-service').value = line.service;
                 document.getElementById('line-assignedTo').value = line.assignedTo;
@@ -210,33 +238,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('line-operator').value = line.operator;
                 document.getElementById('line-lineType').value = line.lineType || '';
                 document.getElementById('line-municipality').value = line.municipality.id;
-                document.getElementById('line-isGlobal').checked = line.isGlobal;
-                
-                // Définir l'ID de la ligne dans le formulaire
-                lineForm.setAttribute('data-id', line.id);
-                
-                // Changer le titre de la modal
-                document.getElementById('linesModalLabel').textContent = 'Modifier une Ligne Téléphonique';
-                
+                document.getElementById('line-directLine').value = line.directLine || '';
+                document.getElementById('line-shortNumber').value = line.shortNumber || '';
+                document.getElementById('line-isWorking').checked = line.isWorking;
+
                 // Ouvrir la modal
                 $('#linesModal').modal('show');
             })
             .catch(error => {
-                console.error('Erreur:', error);
-                alert('Impossible de charger les données de la ligne. Veuillez réessayer plus tard.');
-            });
+                console.error('Erreur lors de la récupération des données de la ligne ou du chargement des municipalités:', error);
+                            });
     }
 
-    // Exposer la fonction editLine globalement pour pouvoir l'appeler depuis les boutons d'édition
+    /**
+     * Expose la fonction editLine globalement pour pouvoir l'appeler depuis les boutons d'édition
+     */
     window.editLine = editLine;
 
     // Réinitialiser le formulaire lors de l'ouverture de la modal pour une nouvelle ligne
     $('#linesModal').on('show.bs.modal', function (event) {
-        // Si la modal est ouverte par un bouton d'ajout (pas d'édition)
-        if (!event.relatedTarget || !event.relatedTarget.hasAttribute('data-id')) {
+        // Si currentLineData est null, c'est un ajout. Sinon, c'est une modification.
+        if (currentLineData === null) {
+            // Réinitialiser le formulaire pour un ajout
             lineForm.reset();
             lineForm.removeAttribute('data-id');
             document.getElementById('linesModalLabel').textContent = 'Ajouter une Ligne Téléphonique';
+        } else {
+            // Le formulaire est déjà rempli dans editLine pour une modification
+            document.getElementById('linesModalLabel').textContent = 'Modifier une Ligne Téléphonique';
         }
     });
+
+    // Réinitialiser currentLineData lors de la fermeture de la modal
+    $('#linesModal').on('hidden.bs.modal', function (event) {
+        currentLineData = null;
+        // Réinitialiser également les classes de validation
+        const invalidInputs = lineForm.querySelectorAll('.is-invalid');
+        invalidInputs.forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+    });
+
+    // Gestionnaire d'événement pour les clics sur les lignes du tableau
+    const tableBody = document.querySelector('.table tbody');
+    if (tableBody) {
+        tableBody.addEventListener('click', function(event) {
+            const clickedRow = event.target.closest('tr');
+            if (clickedRow) {
+                // Find the edit button within the clicked row to get the data-id
+                const editButton = clickedRow.querySelector('.edit-btn');
+                if (editButton) {
+                    const lineId = editButton.getAttribute('data-id');
+                    if (lineId) {
+                        event.stopPropagation(); // Stop event propagation
+                        editLine(lineId);
+                    }
+                }
+            }
+        });
+    }
 });

@@ -47,9 +47,19 @@ class PhoneLine
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $municipality = null;
     
-    // Indique si la ligne est globale ou locale
+    // Numéro de téléphone
+
+    // Ligne directe avec SDA (Sélection Directe à l'Arrivée)
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $directLine = null;
+
+    // Numéro court
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $shortNumber = null;
+
+    // Statut de fonctionnement de la ligne (true = fonctionne, false = ne fonctionne pas)
     #[ORM\Column]
-    private bool $isGlobal = false;
+    private bool $isWorking = true;
 
     public function getId(): ?int
     {
@@ -144,14 +154,37 @@ class PhoneLine
         return $this;
     }
     
-    public function isGlobal(): bool
+
+    public function getDirectLine(): ?string
     {
-        return $this->isGlobal;
+        return $this->directLine;
+    }
+
+    public function setDirectLine(?string $directLine): static
+    {
+        $this->directLine = $directLine;
+        return $this;
+    }
+
+    public function getShortNumber(): ?string
+    {
+        return $this->shortNumber;
+    }
+
+    public function setShortNumber(?string $shortNumber): static
+    {
+        $this->shortNumber = $shortNumber;
+        return $this;
+    }
+
+    public function isWorking(): bool
+    {
+        return $this->isWorking;
     }
     
-    public function setIsGlobal(bool $isGlobal): static
+    public function setIsWorking(bool $isWorking): static
     {
-        $this->isGlobal = $isGlobal;
+        $this->isWorking = $isWorking;
         return $this;
     }
 }

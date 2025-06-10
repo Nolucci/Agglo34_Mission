@@ -61,6 +61,7 @@ class BoxController extends AbstractController
     public function list(MunicipalityRepository $municipalityRepository): Response
     {
         $boxes = $this->boxRepository->findAll();
+        $municipalities = $municipalityRepository->findAll(); // Récupérer toutes les municipalités
 
         // Calcul des statistiques des box
         $totalBoxes = count($boxes);
@@ -140,6 +141,7 @@ class BoxController extends AbstractController
             'boxStats' => $boxStats,
             'boxTypeChartData' => $boxTypeChartData,
             'boxStatusChartData' => $boxStatusChartData,
+            'municipalities' => $municipalities, // Passer les municipalités au template
         ]);
     }
 
@@ -190,11 +192,16 @@ class BoxController extends AbstractController
 
         $data = [
             'id' => $box->getId(),
-            'commune' => $box->getCommune(),
-            'localisation' => $box->getLocalisation(),
-            'adresse' => $box->getAdresse(),
-            'ligne_support' => $box->getLigneSupport(),
+            'commune' => $box->getMunicipality() ? $box->getMunicipality()->getId() : null, // Renvoyer l'ID de la municipalité
+            'localisation' => $box->getLocation(),
+            'adresse' => $box->getAddress(),
+            'ligne_support' => $box->getPhoneLine(),
             'type' => $box->getType(),
+            // Ajouter d'autres champs si nécessaire pour le formulaire de modification
+            'brand' => $box->getBrand(),
+            'model' => $box->getModel(),
+            'assignedTo' => $box->getAssignedTo(),
+            'isActive' => $box->isActive(),
         ];
 
         return new JsonResponse($data, JsonResponse::HTTP_OK);
@@ -211,11 +218,12 @@ class BoxController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-         if (empty($data['municipality']) || empty($data['localisation']) || empty($data['adresse'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Les champs municipality, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+         if (empty($data['commune']) || empty($data['localisation']) || empty($data['adresse'])) {
+            return new JsonResponse(['success' => false, 'error' => 'Les champs commune, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $municipality = $this->municipalityRepository->find($data['municipality']);
+        // Rechercher la municipalité par son ID
+        $municipality = $this->municipalityRepository->find($data['commune']);
 
         if (!$municipality) {
             return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);

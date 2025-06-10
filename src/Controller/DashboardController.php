@@ -29,8 +29,10 @@ class DashboardController extends AbstractController
         // Calculer les statistiques des lignes téléphoniques
         $uniqueOperators = [];
         $uniqueServices = [];
-        $globalLines = 0;
-        $localLines = 0;
+        $globalLines = 0; // Cette variable ne sera plus utilisée pour les stats de fonctionnement
+        $localLines = 0; // Cette variable ne sera plus utilisée pour les stats de fonctionnement
+        $workingLines = 0; // Initialisation de la nouvelle variable
+        $notWorkingLines = 0; // Initialisation de la nouvelle variable
         
         foreach ($lines as $line) {
             $operator = $line->getOperator();
@@ -44,10 +46,10 @@ class DashboardController extends AbstractController
                 $uniqueServices[] = $service;
             }
             
-            if ($line->isGlobal()) {
-                $globalLines++;
+            if ($line->isWorking()) {
+                $workingLines++;
             } else {
-                $localLines++;
+                $notWorkingLines++;
             }
         }
 
@@ -55,8 +57,8 @@ class DashboardController extends AbstractController
             'total_lines' => count($lines),
             'unique_operators' => count($uniqueOperators),
             'unique_services' => count($uniqueServices),
-            'global_lines' => $globalLines,
-            'local_lines' => $localLines,
+            'working_lines' => $workingLines,
+            'not_working_lines' => $notWorkingLines,
         ];
 
         // Calculer les statistiques du parc
@@ -125,12 +127,14 @@ class DashboardController extends AbstractController
         foreach ($phoneLines as $line) {
             $formattedPhoneLines[] = [
                 'id' => $line->getId(),
+                'directLine' => $line->getDirectLine(),
+                'shortNumber' => $line->getShortNumber(),
                 'location' => $line->getLocation(),
                 'service' => $line->getService(),
                 'assignedTo' => $line->getAssignedTo(),
                 'operator' => $line->getOperator(),
                 'lineType' => $line->getLineType(),
-                'isGlobal' => $line->isGlobal(),
+                'isWorking' => $line->isWorking(),
                 'municipality' => $line->getMunicipality() ? [
                     'id' => $line->getMunicipality()->getId(),
                     'name' => $line->getMunicipality()->getName(),
@@ -142,8 +146,8 @@ class DashboardController extends AbstractController
             'total_lines' => count($phoneLines),
             'unique_operators' => count(array_values(array_unique(array_column($formattedPhoneLines, 'operator')))),
             'unique_services' => count(array_values(array_unique(array_column($formattedPhoneLines, 'service')))),
-            'global_lines' => count(array_filter($formattedPhoneLines, fn($line) => $line['isGlobal'])),
-            'local_lines' => count(array_filter($formattedPhoneLines, fn($line) => !$line['isGlobal'])),
+            'working_lines' => count(array_filter($formattedPhoneLines, fn($line) => $line['isWorking'])),
+            'not_working_lines' => count(array_filter($formattedPhoneLines, fn($line) => !$line['isWorking'])),
         ];
 
         $municipalities = $municipalityRepository->findAll();

@@ -215,6 +215,8 @@ class EquipmentController extends AbstractController
                 'type' => $equipment->getType(),
                 'brand' => $equipment->getBrand(),
                 'model' => $equipment->getModel(),
+                'description' => $equipment->getDescription(),
+                'ligne_support' => $equipment->getLigneSupport(),
                 'municipality' => $equipment->getMunicipality(),
                 'location' => $equipment->getLocation(),
                 'assignedTo' => $equipment->getAssignedTo(),

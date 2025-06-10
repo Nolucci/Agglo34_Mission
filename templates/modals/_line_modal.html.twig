@@ -46,10 +46,18 @@
                             {% endfor %}
                         </select>
                     </div>
-                     <div class="form-group form-check">
-                        <input type="checkbox" class="form-check-input" id="line-isGlobal" name="isGlobal">
-                        <label class="form-check-label" for="line-isGlobal">Ligne Globale</label>
-                    </div>
+    <div class="form-group">
+        <label for="line-directLine">Ligne Directe (SDA):</label>
+        <input type="text" class="form-control" id="line-directLine" name="directLine">
+    </div>
+    <div class="form-group">
+        <label for="line-shortNumber">Numéro Court:</label>
+        <input type="text" class="form-control" id="line-shortNumber" name="shortNumber">
+    </div>
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="line-isWorking" name="isWorking" checked>
+        <label class="form-check-label" for="line-isWorking">Ligne Fonctionnelle</label>
+    </div>
                 </form>
             </div>
             <div class="modal-footer">
