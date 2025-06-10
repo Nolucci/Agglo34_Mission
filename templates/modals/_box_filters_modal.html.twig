@@ -20,8 +20,8 @@
                                     <option value="">Toutes les communes</option>
                                     {% set municipalities = [] %}
                                     {% for box in boxes %}
-                                        {% if box.municipality is not null and not (box.municipality in municipalities) %}
-                                            {% set municipalities = municipalities|merge([box.municipality]) %}
+                                        {% if box.commune is not null and not (box.commune in municipalities) %}
+                                            {% set municipalities = municipalities|merge([box.commune]) %}
                                         {% endif %}
                                     {% endfor %}
                                     {% for municipality in municipalities|sort %}

@@ -7,7 +7,7 @@
 3. [Tableau de bord](#tableau-de-bord)
 4. [Gestion des lignes téléphoniques](#gestion-des-lignes-téléphoniques)
 5. [Gestion du parc informatique](#gestion-du-parc-informatique)
-6. [Gestion des boîtes](#gestion-des-boîtes)
+6. [Gestion des boxs](#gestion-des-boxs)
 7. [Gestion des archives](#gestion-des-archives)
 8. [Gestion des agents](#gestion-des-agents)
 9. [Calendrier](#calendrier)
@@ -148,23 +148,23 @@ Ces fonctionnalités s'appuient sur des requêtes SQL optimisées pour PostgreSQ
 
 Pour voir les détails d'un équipement, cliquez sur l'équipement correspondant dans le tableau. Une fenêtre modale s'ouvrira avec les informations détaillées.
 
-## 6. Gestion des boîtes <a name="gestion-des-boîtes"></a>
+## 6. Gestion des boxs <a name="gestion-des-boxs"></a>
 
-La section "Boîtes" permet de gérer les boîtes associées aux communes.
+La section "boxs" permet de gérer les boxs associées aux communes.
 
-### Liste des boîtes
+### Liste des boxs
 
-Pour accéder à la liste des boîtes, cliquez sur "Boîtes" dans le menu de navigation.
+Pour accéder à la liste des boxs, cliquez sur "boxs" dans le menu de navigation.
 
-La page affiche la liste de toutes les boîtes avec leur nom et description.
+La page affiche la liste de toutes les boxs avec leur nom et description.
 
-### Détails d'une boîte
+### Détails d'une box
 
-Pour accéder aux détails d'une boîte spécifique, cliquez sur son identifiant ou son nom dans la liste.
+Pour accéder aux détails d'une box spécifique, cliquez sur son identifiant ou son nom dans la liste.
 
 La page de détails affiche :
-- Les informations de la boîte
-- Les lignes téléphoniques associées à la commune de la boîte
+- Les informations de la box
+- Les lignes téléphoniques associées à la commune de la box
 
 ## 7. Gestion des archives <a name="gestion-des-archives"></a>
 

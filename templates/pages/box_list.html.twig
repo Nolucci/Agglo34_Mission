@@ -125,10 +125,10 @@
                                             <tbody>
                                                 {% for box in boxes %}
                                                 <tr>
-                                                    <td>{{ box.municipality is not empty and box.municipality.name is defined ? box.municipality.name : 'Non défini' }}</td>
-                                                    <td>{{ box.location is not empty ? box.location : 'Non défini' }}</td>
-                                                    <td>{{ box.address is not empty ? box.address : 'Non défini' }}</td>
-                                                    <td>{{ box.phoneLine is not empty and box.phoneLine.number is defined ? box.phoneLine.number : 'Non défini' }}</td>
+                                                    <td>{{ box.commune is not empty ? box.commune : 'Non défini' }}</td>
+                                                    <td>{{ box.localisation is not empty ? box.localisation : 'Non défini' }}</td>
+                                                    <td>{{ box.adresse is not empty ? box.adresse : 'Non défini' }}</td>
+                                                    <td>{{ box.ligne_support is not empty ? box.ligne_support : 'Non défini' }}</td>
                                                     <td>{{ box.type is not empty ? box.type : 'Non défini' }}</td>
                                                     <td>{{ box.assignedTo is not empty ? box.assignedTo : 'Non assigné' }}</td>
                                                     <td>
@@ -374,11 +374,11 @@
             boxesToDisplay.forEach(box => {
                 const row = `
                     <tr>
-                        <td>${box.municipality || 'Non défini'}</td>
+                        <td>${box.commune || 'Non défini'}</td>
                         <td>${box.model || 'Non défini'}</td>
                         <td>${box.type || 'Non défini'}</td>
                         <td>${box.brand || 'Non défini'}</td>
-                        <td>${box.location || 'Non défini'}</td>
+                        <td>${box.localisation || 'Non défini'}</td>
                         <td>${box.assignedTo || 'Non assigné'}</td>
                         <td>
                             ${box.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
@@ -415,8 +415,8 @@
                     displayedBoxes = allBoxes.filter(box => {
                         for (const key in box) {
                             const value = box[key];
-                            if (key === 'municipality') {
-                                if (value && value.name && value.name.toLowerCase().includes(searchTerm)) {
+                            if (key === 'commune') {
+                                if (value && value.toLowerCase().includes(searchTerm)) {
                                     return true;
                                 }
                             } else if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
@@ -448,7 +448,7 @@
                     const matchesModel = filterModel === '' || (box.model && box.model.toLowerCase().includes(filterModel));
                     const matchesType = filterType === '' || (box.type && box.type.toLowerCase().includes(filterType));
                     const matchesBrand = filterBrand === '' || (box.brand && box.brand.toLowerCase().includes(filterBrand));
-                    const matchesMunicipality = filterMunicipality === '' || (box.municipality && box.municipality.toLowerCase().includes(filterMunicipality));
+                    const matchesMunicipality = filterMunicipality === '' || (box.commune && box.commune.toLowerCase().includes(filterMunicipality));
                     const matchesStatus = filterStatus === '' || (box.isActive ? 'actif' : 'inactif').includes(filterStatus);
                     const matchesLocation = filterLocation === '' || (box.location && box.location.toLowerCase().includes(filterLocation));
 

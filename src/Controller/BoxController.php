@@ -20,10 +20,13 @@ class BoxController extends AbstractController
     private $boxRepository;
     private $entityManager;
 
-    public function __construct(BoxRepository $boxRepository, EntityManagerInterface $entityManager)
+    private $municipalityRepository;
+
+    public function __construct(BoxRepository $boxRepository, EntityManagerInterface $entityManager, MunicipalityRepository $municipalityRepository)
     {
         $this->boxRepository = $boxRepository;
         $this->entityManager = $entityManager;
+        $this->municipalityRepository = $municipalityRepository;
     }
 
     #[Route('/box/{id}', name: 'box_index')]
@@ -46,7 +49,7 @@ class BoxController extends AbstractController
         ];
 
         return $this->render('pages/box.html.twig', [
-            'page_title' => 'Détails de la boîte',
+            'page_title' => 'Détails de la box',
             'municipality' => $municipality,
             'phoneLines' => $phoneLines,
             'parkItems' => $parkItems,
@@ -114,9 +117,25 @@ class BoxController extends AbstractController
             'image_url' => '/images/img.png',
         ];
 
+        $boxData = [];
+        foreach ($boxes as $box) {
+            $boxData[] = [
+                'id' => $box->getId(),
+                'commune' => $box->getMunicipality() ? $box->getMunicipality()->getName() : 'Non défini',
+                'localisation' => $box->getLocation(),
+                'adresse' => $box->getAddress(),
+                'ligne_support' => $box->getPhoneLine() ? ($box->getPhoneLine()) : 'Non défini',
+                'type' => $box->getType(),
+                'model' => $box->getModel(),
+                'brand' => $box->getBrand(),
+                'assignedTo' => $box->getAssignedTo(),
+                'isActive' => $box->isActive(),
+            ];
+        }
+
         return $this->render('pages/box_list.html.twig', [
-            'boxes' => $boxes,
-            'page_title' => 'Liste des boîtes',
+            'boxes' => $boxData,
+            'page_title' => 'Liste des boxs',
             'user' => $user,
             'boxStats' => $boxStats,
             'boxTypeChartData' => $boxTypeChartData,
@@ -129,16 +148,30 @@ class BoxController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (empty($data['commune']) || empty($data['localisation']) || empty($data['adresse'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Les champs commune, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        if (empty($data['municipality']) || empty($data['localisation']) || empty($data['adresse'])) {
+            return new JsonResponse(['success' => false, 'error' => 'Les champs municipality, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $municipality = $this->municipalityRepository->find($data['municipality']);
+
+        if (!$municipality) {
+            return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $box = new Box();
-        $box->setCommune($data['commune']);
-        $box->setLocalisation($data['localisation']);
-        $box->setAdresse($data['adresse']);
-        $box->setLigneSupport($data['ligne_support'] ?? null);
+        $box->setMunicipality($municipality);
+        $box->setLocation($data['localisation']);
+        $box->setAddress($data['adresse']);
+        // Assuming ligne_support, type, brand, model, name, description, assignedTo, isActive are also in $data and need to be set
+        $box->setPhoneLine($data['ligne_support'] ?? null);
         $box->setType($data['type'] ?? null);
+        $box->setBrand($data['brand'] ?? null);
+        $box->setModel($data['model'] ?? null);
+        $box->setName($data['name'] ?? null);
+        $box->setDescription($data['description'] ?? null);
+        $box->setAssignedTo($data['assignedTo'] ?? null);
+        $box->setIsActive($data['isActive'] ?? true);
+
 
         $this->entityManager->persist($box);
         $this->entityManager->flush();
@@ -178,15 +211,28 @@ class BoxController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-         if (empty($data['commune']) || empty($data['localisation']) || empty($data['adresse'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Les champs commune, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+         if (empty($data['municipality']) || empty($data['localisation']) || empty($data['adresse'])) {
+            return new JsonResponse(['success' => false, 'error' => 'Les champs municipality, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $box->setCommune($data['commune']);
-        $box->setLocalisation($data['localisation']);
-        $box->setAdresse($data['adresse']);
-        $box->setLigneSupport($data['ligne_support'] ?? null);
+        $municipality = $this->municipalityRepository->find($data['municipality']);
+
+        if (!$municipality) {
+            return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $box->setMunicipality($municipality);
+        $box->setLocation($data['localisation']);
+        $box->setAddress($data['adresse']);
+        // Assuming ligne_support, type, brand, model, name, description, assignedTo, isActive are also in $data and need to be set
+        $box->setPhoneLine($data['ligne_support'] ?? null);
         $box->setType($data['type'] ?? null);
+        $box->setBrand($data['brand'] ?? null);
+        $box->setModel($data['model'] ?? null);
+        $box->setName($data['name'] ?? null);
+        $box->setDescription($data['description'] ?? null);
+        $box->setAssignedTo($data['assignedTo'] ?? null);
+        $box->setIsActive($data['isActive'] ?? $box->isActive());
 
         $this->entityManager->flush();
 

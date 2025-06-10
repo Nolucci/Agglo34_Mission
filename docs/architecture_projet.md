@@ -26,7 +26,7 @@ L'application Agglo34 est une application web basée sur le framework Symfony qu
 │             │             │             │             │           │
 │  Gestion    │  Gestion    │  Gestion    │  Gestion    │  Autres   │
 │  des lignes │  du parc    │  des        │  des        │  modules  │
-│  téléphon.  │  informat.  │  boîtes     │  archives   │           │
+│  téléphon.  │  informat.  │  boxs     │  archives   │           │
 │             │             │             │             │           │
 └─────────────┴─────────────┴─────────────┴─────────────┴───────────┘
 ```
@@ -169,7 +169,7 @@ Le modèle de données de l'application est composé des entités principales su
 - **PhoneLine** : Représente une ligne téléphonique
   - Relation avec Municipality (ManyToOne)
 
-- **Box** : Représente une boîte associée à une commune
+- **Box** : Représente une box associée à une commune
   - Pas de relation directe dans le modèle actuel
 
 - **Archive** : Représente une archive
@@ -310,7 +310,7 @@ L'application présente plusieurs interfaces utilisateur principales :
 - **Tableau de bord** : Vue d'ensemble avec statistiques et carte
 - **Lignes téléphoniques** : Gestion des lignes téléphoniques
 - **Parc informatique** : Gestion des équipements informatiques
-- **Boîtes** : Gestion des boîtes par commune
+- **boxs** : Gestion des boxs par commune
 - **Archives** : Gestion des archives
 - **Agents** : Gestion des utilisateurs
 - **Calendrier** : Visualisation des événements

@@ -28,8 +28,9 @@ class Box
     #[ORM\Column(length: 255)]
     private ?string $model = null;
     
-    #[ORM\Column(length: 255)]
-    private ?string $municipality = null;
+    #[ORM\ManyToOne(targetEntity: Municipality::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Municipality $municipality = null;
     
     #[ORM\Column(length: 255)]
     private ?string $location = null;
@@ -111,12 +112,12 @@ class Box
         return $this;
     }
     
-    public function getMunicipality(): ?string
+    public function getMunicipality(): ?Municipality
     {
         return $this->municipality;
     }
 
-    public function setMunicipality(string $municipality): static
+    public function setMunicipality(?Municipality $municipality): static
     {
         $this->municipality = $municipality;
 
