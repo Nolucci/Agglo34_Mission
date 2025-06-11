@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Si un ID est présent, c'est une mise à jour
         if (equipmentId) {
             url = `/equipment/update/${equipmentId}`;
-            method = 'POST';
+            method = 'PUT';
         }
 
         console.log("Envoi des données d'équipement:", formData);
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Envoi de la requête de suppression à /equipment/delete/" + id);
 
         fetch(`/equipment/delete/${id}`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             }
