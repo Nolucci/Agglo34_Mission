@@ -88,6 +88,9 @@ document.addEventListener('DOMContentLoaded', function() {
             method = 'POST';
         }
 
+        console.log("Envoi des données d'équipement:", formData);
+        console.log("URL:", url, "Méthode:", method);
+
         // Envoi de la requête
         fetch(url, {
             method: method,
@@ -96,7 +99,16 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                console.error("Erreur HTTP:", response.status, response.statusText);
+                return response.text().then(text => {
+                    console.error("Réponse d'erreur:", text);
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Fermer le modal
@@ -184,10 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (option) {
                 option.selected = true;
             } else if (equipment.municipality) {
-                // Si l'option n'existe pas mais qu'on a une valeur, créer une nouvelle option
-                const newOption = new Option(equipment.municipality, equipment.municipality);
-                municipalitySelect.add(newOption);
-                newOption.selected = true;
+                // Si l'option n'existe pas mais qu'on a une valeur, utiliser l'ID de la municipalité
+                console.error('Option de municipalité non trouvée pour ID:', equipment.municipality);
+                // Ne pas créer de nouvelle option, car nous avons besoin de l'ID correct
             }
         }
 

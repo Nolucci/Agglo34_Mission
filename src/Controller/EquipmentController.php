@@ -17,10 +17,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class EquipmentController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
+    private $municipalityRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, MunicipalityRepository $municipalityRepository)
     {
         $this->entityManager = $entityManager;
+        $this->municipalityRepository = $municipalityRepository;
     }
 
     #[Route('/create', name: 'equipment_create', methods: ['POST'])]
@@ -38,7 +40,14 @@ class EquipmentController extends AbstractController
         $equipment->setType($data['type'] ?? '');
         $equipment->setBrand($data['brand'] ?? '');
         $equipment->setModel($data['model'] ?? '');
-        $equipment->setMunicipality($data['municipality'] ?? '');
+
+        // Récupérer l'objet Municipality à partir de l'ID
+        $municipality = null;
+        if (isset($data['municipality']) && $data['municipality'] !== null) {
+            $municipality = $this->municipalityRepository->find($data['municipality']);
+        }
+        $equipment->setMunicipality($municipality);
+
         $equipment->setLocation($data['location'] ?? '');
         $equipment->setAssignedTo($data['assignedTo'] ?? null);
         $equipment->setIsActive($data['isActive'] ?? true);
@@ -135,7 +144,7 @@ class EquipmentController extends AbstractController
                             'type' => $equipment->getType(),
                             'brand' => $equipment->getBrand(),
                             'model' => $equipment->getModel(),
-                            'municipality' => $equipment->getMunicipality(),
+                            'municipality' => $equipment->getMunicipality() ? $equipment->getMunicipality()->getId() : null,
                             'location' => $equipment->getLocation(),
                             'assignedTo' => $equipment->getAssignedTo(),
                             'isActive' => $equipment->isActive(),
@@ -155,7 +164,7 @@ class EquipmentController extends AbstractController
                 'type' => $equipment->getType(),
                 'brand' => $equipment->getBrand(),
                 'model' => $equipment->getModel(),
-                'municipality' => $equipment->getMunicipality(),
+                'municipality' => $equipment->getMunicipality() ? $equipment->getMunicipality()->getId() : null,
                 'location' => $equipment->getLocation(),
                 'assignedTo' => $equipment->getAssignedTo(),
                 'isActive' => $equipment->isActive(),
@@ -179,7 +188,7 @@ class EquipmentController extends AbstractController
             'type' => $equipment->getType(),
             'brand' => $equipment->getBrand(),
             'model' => $equipment->getModel(),
-            'municipality' => $equipment->getMunicipality(),
+            'municipality' => $equipment->getMunicipality() ? $equipment->getMunicipality()->getId() : null,
             'location' => $equipment->getLocation(),
             'assignedTo' => $equipment->getAssignedTo(),
             'isActive' => $equipment->isActive(),
@@ -207,7 +216,7 @@ class EquipmentController extends AbstractController
             'type' => $equipment->getType(),
             'brand' => $equipment->getBrand(),
             'model' => $equipment->getModel(),
-            'municipality' => $equipment->getMunicipality(),
+            'municipality' => $equipment->getMunicipality() ? $equipment->getMunicipality()->getId() : null,
             'location' => $equipment->getLocation(),
             'assignedTo' => $equipment->getAssignedTo(),
             'isActive' => $equipment->isActive(),
@@ -240,8 +249,8 @@ class EquipmentController extends AbstractController
                 'brand' => $equipment->getBrand(),
                 'model' => $equipment->getModel(),
                 'description' => $equipment->getDescription(),
-                'ligne_support' => $equipment->getLigneSupport(),
-                'municipality' => $equipment->getMunicipality(),
+                'phoneLine' => $equipment->getPhoneLine(),
+                'municipality' => $equipment->getMunicipality() ? $equipment->getMunicipality()->getId() : null,
                 'location' => $equipment->getLocation(),
                 'assignedTo' => $equipment->getAssignedTo(),
                 'isActive' => $equipment->isActive(),

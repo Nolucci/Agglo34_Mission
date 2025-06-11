@@ -376,7 +376,7 @@
             equipmentsToDisplay.forEach(equipment => {
                 const row = `
                     <tr>
-                        <td>${equipment.municipality && equipment.municipality.name ? equipment.municipality.name : 'Non défini'}</td>
+                        <td>${equipment.municipality && typeof equipment.municipality === 'object' && equipment.municipality.name ? equipment.municipality.name : 'Non défini'}</td>
                         <td>${equipment.type || 'Non défini'}</td>
                         <td>${equipment.brand || 'Non défini'}</td>
                         <td>${equipment.model || 'Non défini'}</td>
@@ -418,7 +418,7 @@
                         for (const key in equipment) {
                             const value = equipment[key];
                             if (key === 'municipality') {
-                                if (value && value.name && value.name.toLowerCase().includes(searchTerm)) {
+                                if (value && typeof value === 'object' && value.name && value.name.toLowerCase().includes(searchTerm)) {
                                     return true;
                                 }
                             } else if (value !== null && value !== undefined && value.toString().toLowerCase().includes(searchTerm)) {
@@ -446,7 +446,12 @@
                 displayedEquipments = allEquipments.filter(equipment => {
                     const matchesType = filterType === '' || (equipment.type && equipment.type.toLowerCase().includes(filterType));
                     const matchesBrand = filterBrand === '' || (equipment.brand && equipment.brand.toLowerCase().includes(filterBrand));
-                    const matchesMunicipality = filterMunicipality === '' || (equipment.municipality && equipment.municipality.toLowerCase().includes(filterMunicipality));
+
+                    // Pour la municipalité, vérifier si c'est un objet avec un nom ou juste un ID
+                    const matchesMunicipality = filterMunicipality === '' ||
+                        (equipment.municipality && typeof equipment.municipality === 'object' &&
+                         equipment.municipality.name && equipment.municipality.name.toLowerCase().includes(filterMunicipality));
+
                     const matchesStatus = filterStatus === '' || (equipment.isActive ? 'actif' : 'inactif').includes(filterStatus);
 
                     return matchesType && matchesBrand && matchesMunicipality && matchesStatus;

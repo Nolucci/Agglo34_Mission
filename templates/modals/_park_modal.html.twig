@@ -39,7 +39,7 @@
                         <select class="form-control" id="equipment-municipality" name="municipality" required>
                             <option value="">Sélectionner une commune</option>
                             {% for municipality in municipalities %}
-                                <option value="{{ municipality.name }}">{{ municipality.name }}</option>
+                                <option value="{{ municipality.id }}">{{ municipality.name }}</option>
                             {% endfor %}
                         </select>
                     </div>

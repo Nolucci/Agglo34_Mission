@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             console.log("Données de la boîte à enregistrer :", boxData);
+            const jsonData = JSON.stringify(boxData);
+            console.log("Données JSON à envoyer :", jsonData);
 
             // Envoyer les données modifiées au serveur via AJAX (PUT request)
             fetch(`/api/box/update/${boxId}`, {
@@ -82,11 +84,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(boxData),
+                body: jsonData,
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`Erreur HTTP ! statut : ${response.status}`);
+                    console.error("Erreur HTTP:", response.status, response.statusText);
+                    return response.text().then(text => {
+                        console.error("Réponse d'erreur:", text);
+                        throw new Error(`Erreur HTTP ! statut : ${response.status}`);
+                    });
                 }
                 return response.json();
             })

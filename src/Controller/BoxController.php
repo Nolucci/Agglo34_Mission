@@ -75,7 +75,8 @@ class BoxController extends AbstractController
 
         foreach ($boxes as $box) {
             if ($box->getMunicipality()) {
-                $uniqueMunicipalities[$box->getMunicipality()] = $box->getMunicipality();
+                $municipality = $box->getMunicipality();
+                $uniqueMunicipalities[$municipality->getId()] = $municipality->getName();
             }
             if ($box->getType()) {
                 $boxTypes[$box->getType()] = ($boxTypes[$box->getType()] ?? 0) + 1;
@@ -218,9 +219,20 @@ class BoxController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-         if (empty($data['commune']) || empty($data['localisation']) || empty($data['adresse'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Les champs commune, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        // Afficher les données reçues pour le débogage
+        error_log('Données reçues pour la mise à jour de la box: ' . print_r($data, true));
+
+        // Afficher les données reçues pour le débogage
+        error_log('Données reçues pour la mise à jour de la box: ' . print_r($data, true));
+
+        // Vérifier si les champs obligatoires sont présents
+        if (empty($data['commune'])) {
+            return new JsonResponse(['success' => false, 'error' => 'Le champ commune est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
         }
+        if (empty($data['localisation'])) {
+            return new JsonResponse(['success' => false, 'error' => 'Le champ localisation est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        // Le champ adresse est facultatif
 
         // Rechercher la municipalité par son ID
         $municipality = $this->municipalityRepository->find($data['commune']);
@@ -231,7 +243,12 @@ class BoxController extends AbstractController
 
         $box->setMunicipality($municipality);
         $box->setLocation($data['localisation']);
-        $box->setAddress($data['adresse']);
+
+        // Adresse est facultative
+        if (isset($data['adresse']) && !empty($data['adresse'])) {
+            $box->setAddress($data['adresse']);
+        }
+
         // Assuming ligne_support, type, brand, model, name, description, assignedTo, isActive are also in $data and need to be set
         $box->setPhoneLine($data['ligne_support'] ?? null);
         $box->setType($data['type'] ?? null);

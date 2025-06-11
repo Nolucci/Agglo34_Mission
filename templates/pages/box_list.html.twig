@@ -125,7 +125,7 @@
                                             <tbody>
                                                 {% for box in boxes %}
                                                 <tr>
-                                                    <td>{{ box.commune is not empty ? box.commune : 'Non défini' }}</td>
+                                                    <td>{{ box.commune }}</td>
                                                     <td>{{ box.localisation is not empty ? box.localisation : 'Non défini' }}</td>
                                                     <td>{{ box.adresse is not empty ? box.adresse : 'Non défini' }}</td>
                                                     <td>{{ box.ligne_support is not empty ? box.ligne_support : 'Non défini' }}</td>
@@ -377,10 +377,10 @@
                 const row = `
                     <tr>
                         <td>${box.commune || 'Non défini'}</td>
-                        <td>${box.model || 'Non défini'}</td>
-                        <td>${box.type || 'Non défini'}</td>
-                        <td>${box.brand || 'Non défini'}</td>
                         <td>${box.localisation || 'Non défini'}</td>
+                        <td>${box.adresse || 'Non défini'}</td>
+                        <td>${box.ligne_support || 'Non défini'}</td>
+                        <td>${box.type || 'Non défini'}</td>
                         <td>${box.assignedTo || 'Non assigné'}</td>
                         <td>
                             ${box.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
@@ -452,7 +452,7 @@
                     const matchesBrand = filterBrand === '' || (box.brand && box.brand.toLowerCase().includes(filterBrand));
                     const matchesMunicipality = filterMunicipality === '' || (box.commune && box.commune.toLowerCase().includes(filterMunicipality));
                     const matchesStatus = filterStatus === '' || (box.isActive ? 'actif' : 'inactif').includes(filterStatus);
-                    const matchesLocation = filterLocation === '' || (box.location && box.location.toLowerCase().includes(filterLocation));
+                    const matchesLocation = filterLocation === '' || (box.localisation && box.localisation.toLowerCase().includes(filterLocation));
 
 
                     return matchesModel && matchesType && matchesBrand && matchesMunicipality && matchesStatus && matchesLocation;
