@@ -58,19 +58,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Récupération des données du formulaire
         const formData = {
-            type: document.getElementById('equipment-type').value.trim() || null,
-            brand: document.getElementById('equipment-brand').value.trim() || null,
-            model: document.getElementById('equipment-model').value.trim() || null,
-            description: document.getElementById('equipment-description').value.trim() || null,
-            assignedTo: document.getElementById('equipment-assignedTo').value.trim() || null,
-            location: document.getElementById('equipment-location').value.trim() || null,
-            municipality: document.getElementById('equipment-municipality').value.trim() || null,
-            isActive: document.getElementById('equipment-isActive').checked,
+            commune: document.getElementById('equipment-commune').value.trim() || null,
+            etiquetage: document.getElementById('equipment-etiquetage').value.trim() || null,
+            modele: document.getElementById('equipment-modele').value.trim() || null,
+            numeroSerie: document.getElementById('equipment-numeroSerie').value.trim() || null,
+            service: document.getElementById('equipment-service').value.trim() || null,
+            utilisateur: document.getElementById('equipment-utilisateur').value.trim() || null,
+            dateGarantie: document.getElementById('equipment-dateGarantie').value || null,
+            os: document.getElementById('equipment-os').value.trim() || null,
+            version: document.getElementById('equipment-version').value.trim() || null,
+            statut: document.getElementById('equipment-statut').value,
             username: 'Utilisateur' // Idéalement, récupérer l'utilisateur connecté
         };
 
         // Vérifier que les valeurs ne sont pas nulles pour les champs requis
-        const requiredFields = ['type', 'brand', 'model', 'location', 'municipality'];
+        const requiredFields = ['commune', 'modele', 'service'];
         for (const field of requiredFields) {
             if (formData[field] === null || formData[field] === undefined) {
                 alert(`Le champ ${field} ne peut pas être vide.`);
@@ -180,29 +182,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Remplir le formulaire avec les données
         equipmentIdInput.value = equipment.id;
-        document.getElementById('equipment-type').value = equipment.type || '';
-        document.getElementById('equipment-brand').value = equipment.brand || '';
-        document.getElementById('equipment-model').value = equipment.model || '';
-        document.getElementById('equipment-description').value = equipment.description || '';
-        document.getElementById('equipment-assignedTo').value = equipment.assignedTo || '';
-        document.getElementById('equipment-location').value = equipment.location || '';
+        document.getElementById('equipment-etiquetage').value = equipment.etiquetage || '';
+        document.getElementById('equipment-modele').value = equipment.modele || '';
+        document.getElementById('equipment-numeroSerie').value = equipment.numeroSerie || '';
+        document.getElementById('equipment-service').value = equipment.service || '';
+        document.getElementById('equipment-utilisateur').value = equipment.utilisateur || '';
 
-        const municipalitySelect = document.getElementById('equipment-municipality');
-        if (municipalitySelect) {
+        // Formater la date si elle existe
+        if (equipment.dateGarantie) {
+            const date = new Date(equipment.dateGarantie);
+            const formattedDate = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            document.getElementById('equipment-dateGarantie').value = formattedDate;
+        } else {
+            document.getElementById('equipment-dateGarantie').value = '';
+        }
+
+        document.getElementById('equipment-os').value = equipment.os || '';
+        document.getElementById('equipment-version').value = equipment.version || '';
+
+        const communeSelect = document.getElementById('equipment-commune');
+        if (communeSelect) {
             // Trouver l'option correspondante
-            const options = Array.from(municipalitySelect.options);
-            const option = options.find(opt => opt.value === equipment.municipality);
+            const options = Array.from(communeSelect.options);
+            const option = options.find(opt => opt.value === (equipment.commune ? equipment.commune.id : null));
 
             if (option) {
                 option.selected = true;
-            } else if (equipment.municipality) {
-                // Si l'option n'existe pas mais qu'on a une valeur, utiliser l'ID de la municipalité
-                console.error('Option de municipalité non trouvée pour ID:', equipment.municipality);
+            } else if (equipment.commune) {
+                // Si l'option n'existe pas mais qu'on a une valeur, utiliser l'ID de la commune
+                console.error('Option de commune non trouvée pour ID:', equipment.commune.id);
                 // Ne pas créer de nouvelle option, car nous avons besoin de l'ID correct
             }
         }
 
-        document.getElementById('equipment-isActive').checked = equipment.isActive;
+        const statutSelect = document.getElementById('equipment-statut');
+        if (statutSelect) {
+            statutSelect.value = equipment.statut || 'Actif';
+        }
 
         // Changer le titre du modal
         document.getElementById('parkModalLabel').textContent = 'Modifier un Équipement Informatique';

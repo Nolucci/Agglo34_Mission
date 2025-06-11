@@ -25,7 +25,7 @@ class DashboardController extends AbstractController
         $lines = $phoneLineRepository->findAll();
         $municipalities = $municipalityRepository->findAll();
         $equipments = $boxRepository->findAll();
-        
+
         // Calculer les statistiques des lignes téléphoniques
         $uniqueOperators = [];
         $uniqueServices = [];
@@ -33,19 +33,19 @@ class DashboardController extends AbstractController
         $localLines = 0; // Cette variable ne sera plus utilisée pour les stats de fonctionnement
         $workingLines = 0; // Initialisation de la nouvelle variable
         $notWorkingLines = 0; // Initialisation de la nouvelle variable
-        
+
         foreach ($lines as $line) {
             $operator = $line->getOperator();
             $service = $line->getService();
-            
+
             if ($operator && !in_array($operator, $uniqueOperators)) {
                 $uniqueOperators[] = $operator;
             }
-            
+
             if ($service && !in_array($service, $uniqueServices)) {
                 $uniqueServices[] = $service;
             }
-            
+
             if ($line->isWorking()) {
                 $workingLines++;
             } else {
@@ -69,15 +69,15 @@ class DashboardController extends AbstractController
         foreach ($equipments as $equipment) {
             $location = $equipment->getLocation();
             $municipality = $equipment->getMunicipality();
-            
+
             if ($location && !in_array($location, $uniqueParkServices)) {
                 $uniqueParkServices[] = $location;
             }
-            
+
             if ($municipality && !in_array($municipality, $uniqueMunicipalities)) {
                 $uniqueMunicipalities[] = $municipality;
             }
-            
+
             if ($equipment->isActive()) {
                 $activeEquipments++;
             }
@@ -92,7 +92,7 @@ class DashboardController extends AbstractController
 
         // Récupérer l'utilisateur connecté ou utiliser des données par défaut
         $currentUser = $this->getUser();
-        
+
         if ($currentUser) {
             $user = [
                 'name' => $currentUser->getUsername(),
@@ -196,59 +196,56 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/park', name: 'park')]
-    public function park(MunicipalityRepository $municipalityRepository, \App\Repository\BoxRepository $boxRepository): Response
+    public function park(MunicipalityRepository $municipalityRepository, \App\Repository\EquipmentRepository $equipmentRepository): Response
     {
-        $equipments = $boxRepository->findAll();
+        $equipments = $equipmentRepository->findAll();
         $municipalities = $municipalityRepository->findAll();
 
         $formattedEquipments = [];
         foreach ($equipments as $equipment) {
-            $municipality = $equipment->getMunicipality();
-            $formattedMunicipality = null;
+            $commune = $equipment->getCommune();
+            $formattedCommune = null;
 
-            if ($municipality instanceof \App\Entity\Municipality) {
-                $formattedMunicipality = [
-                    'id' => $municipality->getId(),
-                    'name' => $municipality->getName(),
-                ];
-            } elseif (is_string($municipality) && !empty($municipality)) {
-                // Handle case where municipality is stored as a string
-                $formattedMunicipality = [
-                    'id' => null, // No ID available for string municipalities
-                    'name' => $municipality,
+            if ($commune instanceof \App\Entity\Municipality) {
+                $formattedCommune = [
+                    'id' => $commune->getId(),
+                    'name' => $commune->getName(),
                 ];
             }
 
             $formattedEquipments[] = [
                 'id' => $equipment->getId(),
-                'type' => $equipment->getType(),
-                'brand' => $equipment->getBrand(),
-                'model' => $equipment->getModel(),
-                'assignedTo' => $equipment->getAssignedTo(),
-                'location' => $equipment->getLocation(),
-                'isActive' => $equipment->isActive(),
-                'municipality' => $formattedMunicipality,
+                'commune' => $formattedCommune,
+                'etiquetage' => $equipment->getEtiquetage(),
+                'modele' => $equipment->getModele(),
+                'numeroSerie' => $equipment->getNumeroSerie(),
+                'service' => $equipment->getService(),
+                'utilisateur' => $equipment->getUtilisateur(),
+                'dateGarantie' => $equipment->getDateGarantie() ? $equipment->getDateGarantie()->format('Y-m-d') : null,
+                'os' => $equipment->getOs(),
+                'version' => $equipment->getVersion(),
+                'statut' => $equipment->getStatut(),
             ];
         }
 
         // Calculer les statistiques du parc
         $uniqueServices = [];
-        $uniqueMunicipalities = [];
+        $uniqueCommunes = [];
         $activeEquipments = 0;
 
         foreach ($formattedEquipments as $equipment) {
-            // Compter les services uniques (utilisons location comme service pour l'exemple)
-            if (isset($equipment['location']) && !in_array($equipment['location'], $uniqueServices)) {
-                $uniqueServices[] = $equipment['location'];
+            // Compter les services uniques
+            if (isset($equipment['service']) && !in_array($equipment['service'], $uniqueServices)) {
+                $uniqueServices[] = $equipment['service'];
             }
-            
-            // Compter les municipalités uniques
-            if (isset($equipment['municipality']) && $equipment['municipality'] !== null && !in_array($equipment['municipality']['name'], $uniqueMunicipalities)) {
-                $uniqueMunicipalities[] = $equipment['municipality']['name'];
+
+            // Compter les communes uniques
+            if (isset($equipment['commune']) && $equipment['commune'] !== null && !in_array($equipment['commune']['name'], $uniqueCommunes)) {
+                $uniqueCommunes[] = $equipment['commune']['name'];
             }
-            
-            // Compter les équipements actifs
-            if (isset($equipment['isActive']) && $equipment['isActive']) {
+
+            // Compter les équipements actifs (statut 'Actif')
+            if (isset($equipment['statut']) && $equipment['statut'] === 'Actif') {
                 $activeEquipments++;
             }
         }
@@ -256,7 +253,7 @@ class DashboardController extends AbstractController
         $parkStats = [
             'total_equipments' => count($equipments),
             'unique_services' => count($uniqueServices),
-            'unique_municipalities' => count($uniqueMunicipalities),
+            'unique_municipalities' => count($uniqueCommunes),
             'active_equipments' => $activeEquipments,
         ];
 
@@ -271,8 +268,8 @@ class DashboardController extends AbstractController
             'equipments' => $formattedEquipments,
             'municipalities' => $municipalities,
             'parkStats' => $parkStats,
-            'teamChartData' => $this->generateParkStatsByType($formattedEquipments),
-            'statusChartData' => $this->generateParkStatsByStatus($formattedEquipments),
+            'teamChartData' => $this->generateParkStatsByModele($formattedEquipments),
+            'statusChartData' => $this->generateParkStatsByStatut($formattedEquipments),
             'user' => $user,
         ]);
     }
@@ -337,7 +334,7 @@ class DashboardController extends AbstractController
             $settings->setWelcomeMessage('Bienvenue sur l\'application Agglo34 Mission');
             $settings->setAlertThreshold(5);
             $settings->setFeatureEnabled(false);
-            
+
             // Persister le nouvel objet
             $entityManager->persist($settings);
             $entityManager->flush();
@@ -395,10 +392,10 @@ class DashboardController extends AbstractController
         $stats = [];
         foreach ($lines as $line) {
             $municipality = $line->getMunicipality();
-            
+
             if ($municipality) {
                 $municipalityName = $municipality->getName();
-                
+
                 if ($municipalityName) {
                     if (!isset($stats[$municipalityName])) {
                         $stats[$municipalityName] = 0;
@@ -407,7 +404,7 @@ class DashboardController extends AbstractController
                 }
             }
         }
-        
+
         // Si aucune donnée n'est disponible, fournir des données par défaut
         if (empty($stats)) {
             return [
@@ -422,23 +419,23 @@ class DashboardController extends AbstractController
         ];
     }
 
-    private function generateParkStatsByType(array $formattedEquipments): array
+    private function generateParkStatsByModele(array $formattedEquipments): array
     {
         $stats = [];
-        
+
         if (empty($formattedEquipments)) {
             return [
-                'labels' => ['Ordinateurs', 'Imprimantes', 'Téléphones', 'Autres'],
-                'data' => [0, 0, 0, 0],
+                'labels' => ['Aucune donnée'],
+                'data' => [0],
             ];
         }
-        
+
         foreach ($formattedEquipments as $equipment) {
-            $type = $equipment['type'];
-            if (!isset($stats[$type])) {
-                $stats[$type] = 0;
+            $modele = $equipment['modele'];
+            if (!isset($stats[$modele])) {
+                $stats[$modele] = 0;
             }
-            $stats[$type]++;
+            $stats[$modele]++;
         }
 
         return [
@@ -464,24 +461,29 @@ class DashboardController extends AbstractController
         ];
     }
 
-    private function generateParkStatsByStatus(array $formattedEquipments): array
+    private function generateParkStatsByStatut(array $formattedEquipments): array
     {
         $stats = [
             'Actif' => 0,
             'Inactif' => 0,
+            'Panne' => 0,
         ];
-        
+
         if (empty($formattedEquipments)) {
             return [
                 'labels' => array_keys($stats),
                 'data' => array_values($stats),
             ];
         }
-        
+
         foreach ($formattedEquipments as $equipment) {
-            if ($equipment['isActive']) {
-                $stats['Actif']++;
+            if (isset($equipment['statut'])) {
+                if (!isset($stats[$equipment['statut']])) {
+                     $stats[$equipment['statut']] = 0;
+                }
+                $stats[$equipment['statut']]++;
             } else {
+                // Compter les équipements sans statut défini comme Inactif par défaut
                 $stats['Inactif']++;
             }
         }

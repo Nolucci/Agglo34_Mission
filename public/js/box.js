@@ -18,16 +18,17 @@ function editBox(boxId) {
             if (communeSelect) {
                 communeSelect.value = boxData.commune; // boxData.commune contient maintenant l'ID de la municipalité
             }
-            document.getElementById('box-localisation').value = boxData.localisation;
+            document.getElementById('box-service').value = boxData.service;
             document.getElementById('box-adresse').value = boxData.adresse;
             document.getElementById('box-ligne_support').value = boxData.ligne_support;
             document.getElementById('box-type').value = boxData.type;
-            document.getElementById('box-name').value = boxData.name;
-            document.getElementById('box-description').value = boxData.description;
-            document.getElementById('box-brand').value = boxData.brand;
-            document.getElementById('box-model').value = boxData.model;
-            document.getElementById('box-assignedTo').value = boxData.assignedTo;
-            document.getElementById('box-isActive').checked = boxData.isActive; // Pour la case à cocher
+            document.getElementById('box-attribueA').value = boxData.attribueA;
+
+            // Sélectionner l'option correcte dans le champ select du statut
+            const statutSelect = document.getElementById('box-statut');
+            if (statutSelect) {
+                statutSelect.value = boxData.statut;
+            }
 
             // Changer le titre du modal pour "Modifier une Box"
             document.getElementById('boxModalLabel').innerText = 'Modifier une Box';
@@ -47,31 +48,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saveBoxBtn) {
         saveBoxBtn.addEventListener('click', function() {
             const boxId = document.getElementById('box-id').value;
-            const commune = document.getElementById('box-commune').value; // Récupère l'ID de la municipalité sélectionnée
-            const localisation = document.getElementById('box-localisation').value;
+            const commune = document.getElementById('box-commune').value;
+            const service = document.getElementById('box-service').value;
             const adresse = document.getElementById('box-adresse').value;
             const ligneSupport = document.getElementById('box-ligne_support').value;
             const type = document.getElementById('box-type').value;
-            const name = document.getElementById('box-name').value;
-            const description = document.getElementById('box-description').value;
-            const brand = document.getElementById('box-brand').value;
-            const model = document.getElementById('box-model').value;
-            const assignedTo = document.getElementById('box-assignedTo').value;
-            const isActive = document.getElementById('box-isActive').checked; // Pour la case à cocher
+            const attribueA = document.getElementById('box-attribueA').value;
+            const statut = document.getElementById('box-statut').value;
 
             const boxData = {
                 // Pas besoin d'envoyer l'ID dans le corps pour une requête PUT avec ID dans l'URL
-                commune: commune, // C'est l'ID de la municipalité maintenant
-                localisation: localisation,
+                commune: commune,
+                service: service,
                 adresse: adresse,
                 ligne_support: ligneSupport,
                 type: type,
-                name: name,
-                description: description,
-                brand: brand,
-                model: model,
-                assignedTo: assignedTo,
-                isActive: isActive
+                attribueA: attribueA,
+                statut: statut
             };
 
             console.log("Données de la boîte à enregistrer :", boxData);

@@ -13,174 +13,138 @@ class Box
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $description = null;
-    
-    #[ORM\Column(length: 255)]
-    private ?string $type = null;
-    
-    #[ORM\Column(length: 255)]
-    private ?string $brand = null;
-    
-    #[ORM\Column(length: 255)]
-    private ?string $model = null;
-    
     #[ORM\ManyToOne(targetEntity: Municipality::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Municipality $municipality = null;
-    
-    #[ORM\Column(length: 255)]
-    private ?string $location = null;
-    
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $assignedTo = null;
+    private ?Municipality $commune = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $address = null;
+    private ?string $service = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $phoneLine = null;
+    private ?string $adresse = null;
 
-    #[ORM\Column]
-    private bool $isActive = true;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ligneSupport = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $type = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $attribueA = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $statut = null; // Actif, Inactif
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getCommune(): ?Municipality
     {
-        return $this->name;
+        return $this->commune;
     }
 
-    public function setName(string $name): static
+    public function setCommune(?Municipality $commune): static
     {
-        $this->name = $name;
+        $this->commune = $commune;
 
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getService(): ?string
     {
-        return $this->description;
+        return $this->service;
     }
 
-    public function setDescription(?string $description): static
+    public function setService(?string $service): static
     {
-        $this->description = $description;
+        $this->service = $service;
 
         return $this;
     }
-    
+
+    public function getAdresse(): ?string
+    {
+        return $this->adresse;
+    }
+
+    public function setAdresse(?string $adresse): static
+    {
+        $this->adresse = $adresse;
+
+        return $this;
+    }
+
+    public function getLigneSupport(): ?string
+    {
+        return $this->ligneSupport;
+    }
+
+    public function setLigneSupport(?string $ligneSupport): static
+    {
+        $this->ligneSupport = $ligneSupport;
+
+        return $this;
+    }
+
     public function getType(): ?string
     {
         return $this->type;
     }
 
-    public function setType(string $type): static
+    public function setType(?string $type): static
     {
         $this->type = $type;
 
         return $this;
     }
-    
-    public function getBrand(): ?string
+
+    public function getAttribueA(): ?string
     {
-        return $this->brand;
+        return $this->attribueA;
     }
 
-    public function setBrand(string $brand): static
+    public function setAttribueA(?string $attribueA): static
     {
-        $this->brand = $brand;
-
-        return $this;
-    }
-    
-    public function getModel(): ?string
-    {
-        return $this->model;
-    }
-
-    public function setModel(string $model): static
-    {
-        $this->model = $model;
+        $this->attribueA = $attribueA;
 
         return $this;
     }
-    
-    public function getMunicipality(): ?Municipality
+
+    public function getStatut(): ?string
     {
-        return $this->municipality;
+        return $this->statut;
     }
 
-    public function setMunicipality(?Municipality $municipality): static
+    public function setStatut(?string $statut): static
     {
-        $this->municipality = $municipality;
+        $this->statut = $statut;
 
         return $this;
     }
-    
+
+    /**
+     * Méthode d'adaptation pour la compatibilité avec le DashboardController
+     */
     public function getLocation(): ?string
     {
-        return $this->location;
+        return $this->service;
     }
 
-    public function setLocation(string $location): static
+    /**
+     * Méthode d'adaptation pour la compatibilité avec le DashboardController
+     */
+    public function getMunicipality(): ?Municipality
     {
-        $this->location = $location;
-
-        return $this;
-    }
-    
-    public function getAssignedTo(): ?string
-    {
-        return $this->assignedTo;
+        return $this->commune;
     }
 
-    public function setAssignedTo(?string $assignedTo): static
-    {
-        $this->assignedTo = $assignedTo;
-
-        return $this;
-    }
-    
-    public function getAddress(): ?string
-    {
-        return $this->address;
-    }
-
-    public function setAddress(?string $address): static
-    {
-        $this->address = $address;
-
-        return $this;
-    }
-
-    public function getPhoneLine(): ?string
-    {
-        return $this->phoneLine;
-    }
-
-    public function setPhoneLine(?string $phoneLine): static
-    {
-        $this->phoneLine = $phoneLine;
-
-        return $this;
-    }
-
+    /**
+     * Méthode d'adaptation pour la compatibilité avec le DashboardController
+     */
     public function isActive(): bool
     {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
-
-        return $this;
+        return $this->statut === 'Actif';
     }
 }

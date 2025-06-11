@@ -32,8 +32,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-location">Localisation</label>
-                                <input type="text" class="form-control" id="filter-location" name="location" placeholder="Entrez la localisation">
+                                <label for="filter-service">Service</label>
+                                <input type="text" class="form-control" id="filter-service" name="service" placeholder="Entrez le service">
                             </div>
                         </div>
                     </div>
@@ -57,38 +57,16 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-model">Modèle</label>
-                                <select class="form-control" id="filter-model" name="model">
-                                    <option value="">Tous les modèles</option>
-                                    {% set models = [] %}
-                                    {% for box in boxes %}
-                                        {% if box.model is not null and not (box.model in models) %}
-                                            {% set models = models|merge([box.model]) %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% for model in models|sort %}
-                                        <option value="{{ model }}">{{ model }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label for="filter-adresse">Adresse</label>
+                                <input type="text" class="form-control" id="filter-adresse" name="adresse" placeholder="Entrez l'adresse">
                             </div>
                         </div>
                     </div>
                      <div class="row">
                          <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-brand">Marque</label>
-                                <select class="form-control" id="filter-brand" name="brand">
-                                    <option value="">Toutes les marques</option>
-                                    {% set brands = [] %}
-                                    {% for box in boxes %}
-                                        {% if box.brand is not null and not (box.brand in brands) %}
-                                            {% set brands = brands|merge([box.brand]) %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% for brand in brands|sort %}
-                                        <option value="{{ brand }}">{{ brand }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label for="filter-ligne_support">Ligne Support</label>
+                                <input type="text" class="form-control" id="filter-ligne_support" name="ligne_support" placeholder="Entrez la ligne support">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -143,20 +121,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (const key in filters) {
                     if (key === 'status') {
                          const filterValue = filters[key];
-                         const boxStatus = box.isActive ? 'actif' : 'inactif';
+                         const boxStatus = box.statut ? box.statut.toLowerCase() : '';
                          if (filterValue !== '' && boxStatus !== filterValue) {
                              passesFilter = false;
                              break;
                          }
                     } else if (key === 'municipality') {
                         const filterValue = filters[key];
-                        if (filterValue !== '' && (!box.municipality || box.municipality.toLowerCase() !== filterValue)) {
+                        if (filterValue !== '' && (!box.commune || box.commune.toLowerCase() !== filterValue)) {
                             passesFilter = false;
                             break;
                         }
-                    } else if (key === 'location') {
+                    } else if (key === 'service') {
                          const filterValue = filters[key];
-                         if (filterValue !== '' && (!box.location || !box.location.toLowerCase().includes(filterValue))) {
+                         if (filterValue !== '' && (!box.service || !box.service.toLowerCase().includes(filterValue))) {
                              passesFilter = false;
                              break;
                          }
@@ -166,15 +144,15 @@ document.addEventListener('DOMContentLoaded', function() {
                              passesFilter = false;
                              break;
                          }
-                    } else if (key === 'model') {
+                    } else if (key === 'adresse') {
                          const filterValue = filters[key];
-                         if (filterValue !== '' && (!box.model || box.model.toLowerCase() !== filterValue)) {
+                         if (filterValue !== '' && (!box.adresse || !box.adresse.toLowerCase().includes(filterValue))) {
                              passesFilter = false;
                              break;
                          }
-                    } else if (key === 'brand') {
+                    } else if (key === 'ligne_support') {
                          const filterValue = filters[key];
-                         if (filterValue !== '' && (!box.brand || box.brand.toLowerCase() !== filterValue)) {
+                         if (filterValue !== '' && (!box.ligne_support || !box.ligne_support.toLowerCase().includes(filterValue))) {
                              passesFilter = false;
                              break;
                          }

@@ -61,12 +61,11 @@ class BoxController extends AbstractController
     public function list(MunicipalityRepository $municipalityRepository): Response
     {
         $boxes = $this->boxRepository->findAll();
-        $municipalities = $municipalityRepository->findAll(); // Récupérer toutes les municipalités
+        $municipalities = $municipalityRepository->findAll();
 
-        // Calcul des statistiques des box
         $totalBoxes = count($boxes);
         $activeBoxes = count(array_filter($boxes, function(Box $box) {
-            return $box->isActive();
+            return $box->getStatut() === 'Actif';
         }));
 
         $uniqueMunicipalities = [];
@@ -74,14 +73,14 @@ class BoxController extends AbstractController
         $boxStatuses = ['Actif' => 0, 'Inactif' => 0];
 
         foreach ($boxes as $box) {
-            if ($box->getMunicipality()) {
-                $municipality = $box->getMunicipality();
+            if ($box->getCommune()) {
+                $municipality = $box->getCommune();
                 $uniqueMunicipalities[$municipality->getId()] = $municipality->getName();
             }
             if ($box->getType()) {
                 $boxTypes[$box->getType()] = ($boxTypes[$box->getType()] ?? 0) + 1;
             }
-            if ($box->isActive()) {
+            if ($box->getStatut() === 'Actif') {
                 $boxStatuses['Actif']++;
             } else {
                 $boxStatuses['Inactif']++;
@@ -89,29 +88,24 @@ class BoxController extends AbstractController
         }
 
         $uniqueMunicipalitiesCount = count($uniqueMunicipalities);
-        // Pour les services uniques, on pourrait avoir besoin d'une logique spécifique liée aux lignes téléphoniques si une box peut être associée à plusieurs services via les lignes.
-        // Pour l'instant, je vais laisser unique_services à 0 ou le calculer différemment si nécessaire.
-        $uniqueServicesCount = 0; // À adapter si nécessaire
+        $uniqueServicesCount = 0;
 
         $boxStats = [
             'total_boxes' => $totalBoxes,
-            'unique_services' => $uniqueServicesCount, // À adapter
+            'unique_services' => $uniqueServicesCount,
             'unique_municipalities' => $uniqueMunicipalitiesCount,
             'active_boxes' => $activeBoxes,
         ];
 
-        // Données pour le graphique par type de box
         $boxTypeChartData = [
             'labels' => array_keys($boxTypes),
             'data' => array_values($boxTypes),
         ];
 
-        // Données pour le graphique par statut de box
         $boxStatusChartData = [
             'labels' => array_keys($boxStatuses),
             'data' => array_values($boxStatuses),
         ];
-
 
         $user = [
             'name' => 'Frederic F',
@@ -123,15 +117,13 @@ class BoxController extends AbstractController
         foreach ($boxes as $box) {
             $boxData[] = [
                 'id' => $box->getId(),
-                'commune' => $box->getMunicipality() ? $box->getMunicipality()->getName() : 'Non défini',
-                'localisation' => $box->getLocation(),
-                'adresse' => $box->getAddress(),
-                'ligne_support' => $box->getPhoneLine() ? ($box->getPhoneLine()) : 'Non défini',
+                'commune' => $box->getCommune() ? $box->getCommune()->getName() : 'Non défini',
+                'service' => $box->getService(),
+                'adresse' => $box->getAdresse(),
+                'ligne_support' => $box->getLigneSupport() ? ($box->getLigneSupport()) : 'Non défini',
                 'type' => $box->getType(),
-                'model' => $box->getModel(),
-                'brand' => $box->getBrand(),
-                'assignedTo' => $box->getAssignedTo(),
-                'isActive' => $box->isActive(),
+                'attribueA' => $box->getAttribueA(),
+                'statut' => $box->getStatut(),
             ];
         }
 
@@ -142,7 +134,7 @@ class BoxController extends AbstractController
             'boxStats' => $boxStats,
             'boxTypeChartData' => $boxTypeChartData,
             'boxStatusChartData' => $boxStatusChartData,
-            'municipalities' => $municipalities, // Passer les municipalités au template
+            'municipalities' => $municipalities,
         ]);
     }
 
@@ -151,29 +143,44 @@ class BoxController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (empty($data['municipality']) || empty($data['localisation']) || empty($data['adresse'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Les champs municipality, localisation et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        // Validation et préparation de l'ID de la commune
+        $communeData = $data['commune'] ?? null;
+        $municipalityId = null;
+
+        if ($communeData !== null && $communeData !== '') {
+            // Tenter de valider et convertir en entier
+            $municipalityId = filter_var($communeData, FILTER_VALIDATE_INT);
+
+            // Si la validation échoue ou si l'ID est invalide (par exemple, 0 si 0 n'est pas un ID valide)
+            if ($municipalityId === false || $municipalityId <= 0) { // Assumer que les IDs sont positifs
+                return new JsonResponse(['success' => false, 'error' => 'Format d\'ID de commune invalide.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
         }
 
-        $municipality = $this->municipalityRepository->find($data['municipality']);
+        // Rechercher la municipalité par ID
+        $municipality = null;
+        if ($municipalityId !== null) {
+            $municipality = $this->municipalityRepository->find($municipalityId);
 
-        if (!$municipality) {
-            return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
+            if (!$municipality) {
+                return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
         }
+
+        // Vérifier si les champs obligatoires sont présents après la validation de la commune
+        if (empty($data['service']) || empty($data['adresse'])) {
+             return new JsonResponse(['success' => false, 'error' => 'Les champs service et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
 
         $box = new Box();
-        $box->setMunicipality($municipality);
-        $box->setLocation($data['localisation']);
-        $box->setAddress($data['adresse']);
-        // Assuming ligne_support, type, brand, model, name, description, assignedTo, isActive are also in $data and need to be set
-        $box->setPhoneLine($data['ligne_support'] ?? null);
+        $box->setCommune($municipality); // $municipality est maintenant soit une entité Municipality, soit null
+        $box->setService($data['service']);
+        $box->setAdresse($data['adresse']);
+        $box->setLigneSupport($data['ligne_support'] ?? null);
         $box->setType($data['type'] ?? null);
-        $box->setBrand($data['brand'] ?? null);
-        $box->setModel($data['model'] ?? null);
-        $box->setName($data['name'] ?? null);
-        $box->setDescription($data['description'] ?? null);
-        $box->setAssignedTo($data['assignedTo'] ?? null);
-        $box->setIsActive($data['isActive'] ?? true);
+        $box->setAttribueA($data['attribueA'] ?? null);
+        $box->setStatut($data['statut'] ?? 'Inactif');
 
 
         $this->entityManager->persist($box);
@@ -193,16 +200,13 @@ class BoxController extends AbstractController
 
         $data = [
             'id' => $box->getId(),
-            'commune' => $box->getMunicipality() ? $box->getMunicipality()->getId() : null, // Renvoyer l'ID de la municipalité
-            'localisation' => $box->getLocation(),
-            'adresse' => $box->getAddress(),
-            'ligne_support' => $box->getPhoneLine(),
+            'commune' => $box->getCommune() ? $box->getCommune()->getId() : null,
+            'service' => $box->getService(),
+            'adresse' => $box->getAdresse(),
+            'ligne_support' => $box->getLigneSupport(),
             'type' => $box->getType(),
-            // Ajouter d'autres champs si nécessaire pour le formulaire de modification
-            'brand' => $box->getBrand(),
-            'model' => $box->getModel(),
-            'assignedTo' => $box->getAssignedTo(),
-            'isActive' => $box->isActive(),
+            'attribueA' => $box->getAttribueA(),
+            'statut' => $box->getStatut(),
         ];
 
         return new JsonResponse($data, JsonResponse::HTTP_OK);
@@ -219,45 +223,43 @@ class BoxController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        // Afficher les données reçues pour le débogage
-        error_log('Données reçues pour la mise à jour de la box: ' . print_r($data, true));
+        // Validation et préparation de l'ID de la commune
+        $communeData = $data['commune'] ?? null;
+        $municipalityId = null;
 
-        // Afficher les données reçues pour le débogage
-        error_log('Données reçues pour la mise à jour de la box: ' . print_r($data, true));
+        if ($communeData !== null && $communeData !== '') {
+            // Tenter de valider et convertir en entier
+            $municipalityId = filter_var($communeData, FILTER_VALIDATE_INT);
 
-        // Vérifier si les champs obligatoires sont présents
-        if (empty($data['commune'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Le champ commune est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-        if (empty($data['localisation'])) {
-            return new JsonResponse(['success' => false, 'error' => 'Le champ localisation est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-        // Le champ adresse est facultatif
-
-        // Rechercher la municipalité par son ID
-        $municipality = $this->municipalityRepository->find($data['commune']);
-
-        if (!$municipality) {
-            return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
+            // Si la validation échoue ou si l'ID est invalide (par exemple, 0 si 0 n'est pas un ID valide)
+            if ($municipalityId === false || $municipalityId <= 0) { // Assumer que les IDs sont positifs
+                return new JsonResponse(['success' => false, 'error' => 'Format d\'ID de commune invalide.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
         }
 
-        $box->setMunicipality($municipality);
-        $box->setLocation($data['localisation']);
+        // Rechercher la municipalité par ID
+        $municipality = null;
+        if ($municipalityId !== null) {
+            $municipality = $this->municipalityRepository->find($municipalityId);
 
-        // Adresse est facultative
-        if (isset($data['adresse']) && !empty($data['adresse'])) {
-            $box->setAddress($data['adresse']);
+            if (!$municipality) {
+                return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
         }
 
-        // Assuming ligne_support, type, brand, model, name, description, assignedTo, isActive are also in $data and need to be set
-        $box->setPhoneLine($data['ligne_support'] ?? null);
-        $box->setType($data['type'] ?? null);
-        $box->setBrand($data['brand'] ?? null);
-        $box->setModel($data['model'] ?? null);
-        $box->setName($data['name'] ?? null);
-        $box->setDescription($data['description'] ?? null);
-        $box->setAssignedTo($data['assignedTo'] ?? null);
-        $box->setIsActive($data['isActive'] ?? $box->isActive());
+         // Vérifier si les champs obligatoires sont présents après la validation de la commune
+        if (empty($data['service']) || empty($data['adresse'])) {
+             return new JsonResponse(['success' => false, 'error' => 'Les champs service et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+
+        $box->setCommune($municipality); // $municipality est maintenant soit une entité Municipality, soit null
+        $box->setService($data['service']);
+        $box->setAdresse($data['adresse']);
+        $box->setLigneSupport($data['ligne_support'] ?? $box->getLigneSupport());
+        $box->setType($data['type'] ?? $box->getType());
+        $box->setAttribueA($data['attribueA'] ?? $box->getAttribueA());
+        $box->setStatut($data['statut'] ?? $box->getStatut());
 
         $this->entityManager->flush();
 
@@ -273,36 +275,28 @@ class BoxController extends AbstractController
             return new JsonResponse(['success' => false, 'error' => 'Box non trouvée.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Archive the box data
         $archive = new \App\Entity\Archive();
-        // Utiliser 'Equipment' comme type d'entité si c'est un équipement du parc informatique
         $archive->setEntityType('Box');
         $archive->setEntityId($box->getId());
         $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
         $archive->setData([
-            'name' => $box->getName(),
+            'commune_id' => $box->getCommune() ? $box->getCommune()->getId() : null,
+            'commune_name' => $box->getCommune() ? $box->getCommune()->getName() : null,
+            'service' => $box->getService(),
+            'adresse' => $box->getAdresse(),
+            'ligneSupport' => $box->getLigneSupport(),
             'type' => $box->getType(),
-            'brand' => $box->getBrand(),
-            'model' => $box->getModel(),
-            'municipality_id' => $box->getMunicipality() ? $box->getMunicipality()->getId() : null,
-            'municipality_name' => $box->getMunicipality() ? $box->getMunicipality()->getName() : null,
-            'location' => $box->getLocation(),
-            'address' => $box->getAddress(),
-            'phoneLine' => $box->getPhoneLine(),
-            'assignedTo' => $box->getAssignedTo(),
-            'isActive' => $box->isActive(),
-            'description' => $box->getDescription(),
+            'attribueA' => $box->getAttribueA(),
+            'statut' => $box->getStatut(),
         ]);
 
         $this->entityManager->persist($archive);
 
-        // Create a log entry
         $log = new \App\Entity\Log();
         $log->setAction('DELETE');
-        // Utiliser 'Equipment' comme type d'entité si c'est un équipement du parc informatique
         $log->setEntityType('Box');
         $log->setEntityId($box->getId());
-        $log->setDetails('Suppression de la box: ' . $box->getName());
+        $log->setDetails('Suppression de la box: ' . $box->getId());
         $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
         $log->setCreatedAt(new \DateTimeImmutable());
 

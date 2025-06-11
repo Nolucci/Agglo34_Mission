@@ -11,41 +11,53 @@
                 <form id="equipment-form">
                     <input type="hidden" id="equipment-id" name="id">
                     <div class="form-group">
-                        <label for="equipment-type">Type:</label>
-                        <input type="text" class="form-control" id="equipment-type" name="type" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="equipment-brand">Marque:</label>
-                        <input type="text" class="form-control" id="equipment-brand" name="brand" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="equipment-model">Modèle:</label>
-                        <input type="text" class="form-control" id="equipment-model" name="model" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="equipment-description">Description:</label>
-                        <textarea class="form-control" id="equipment-description" name="description" rows="2"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="equipment-assignedTo">Attribué à:</label>
-                        <input type="text" class="form-control" id="equipment-assignedTo" name="assignedTo">
-                    </div>
-                    <div class="form-group">
-                        <label for="equipment-location">Localisation:</label>
-                        <input type="text" class="form-control" id="equipment-location" name="location" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="equipment-municipality">Commune:</label>
-                        <select class="form-control" id="equipment-municipality" name="municipality" required>
+                        <label for="equipment-commune">Commune:</label>
+                        <select class="form-control" id="equipment-commune" name="commune" required>
                             <option value="">Sélectionner une commune</option>
                             {% for municipality in municipalities %}
                                 <option value="{{ municipality.id }}">{{ municipality.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group form-check">
-                        <input type="checkbox" class="form-check-input" id="equipment-isActive" name="isActive" checked>
-                        <label class="form-check-label" for="equipment-isActive">Actif</label>
+                    <div class="form-group">
+                        <label for="equipment-etiquetage">Étiquetage:</label>
+                        <input type="text" class="form-control" id="equipment-etiquetage" name="etiquetage">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-modele">Modèle:</label>
+                        <input type="text" class="form-control" id="equipment-modele" name="modele" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-numeroSerie">Numéro de série:</label>
+                        <input type="text" class="form-control" id="equipment-numeroSerie" name="numeroSerie">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-service">Service:</label>
+                        <input type="text" class="form-control" id="equipment-service" name="service" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-utilisateur">Utilisateur:</label>
+                        <input type="text" class="form-control" id="equipment-utilisateur" name="utilisateur">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-dateGarantie">Date de garantie:</label>
+                        <input type="date" class="form-control" id="equipment-dateGarantie" name="dateGarantie">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-os">Système d'exploitation:</label>
+                        <input type="text" class="form-control" id="equipment-os" name="os">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-version">Version:</label>
+                        <input type="text" class="form-control" id="equipment-version" name="version">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-statut">Statut:</label>
+                        <select class="form-control" id="equipment-statut" name="statut">
+                            <option value="Actif">Actif</option>
+                            <option value="Inactif">Inactif</option>
+                            <option value="Panne">Panne</option>
+                        </select>
                     </div>
                 </form>
             </div>

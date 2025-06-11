@@ -113,7 +113,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>Commune</th>
-                                                    <th>Localisation</th>
+                                                    <th>Service</th>
                                                     <th>Adresse</th>
                                                     <th>Ligne Support</th>
                                                     <th>Type</th>
@@ -126,13 +126,13 @@
                                                 {% for box in boxes %}
                                                 <tr>
                                                     <td>{{ box.commune }}</td>
-                                                    <td>{{ box.localisation is not empty ? box.localisation : 'Non défini' }}</td>
+                                                    <td>{{ box.service is not empty ? box.service : 'Non défini' }}</td>
                                                     <td>{{ box.adresse is not empty ? box.adresse : 'Non défini' }}</td>
                                                     <td>{{ box.ligne_support is not empty ? box.ligne_support : 'Non défini' }}</td>
                                                     <td>{{ box.type is not empty ? box.type : 'Non défini' }}</td>
-                                                    <td>{{ box.assignedTo is not empty ? box.assignedTo : 'Non assigné' }}</td>
+                                                    <td>{{ box.attribueA is not empty ? box.attribueA : 'Non assigné' }}</td>
                                                     <td>
-                                                        {% if box.isActive %}
+                                                        {% if box.statut == 'Actif' %}
                                                             <span class="badge badge-success">Actif</span>
                                                         {% else %}
                                                             <span class="badge badge-secondary">Inactif</span>
@@ -377,13 +377,13 @@
                 const row = `
                     <tr>
                         <td>${box.commune || 'Non défini'}</td>
-                        <td>${box.localisation || 'Non défini'}</td>
+                        <td>${box.service || 'Non défini'}</td>
                         <td>${box.adresse || 'Non défini'}</td>
                         <td>${box.ligne_support || 'Non défini'}</td>
                         <td>${box.type || 'Non défini'}</td>
-                        <td>${box.assignedTo || 'Non assigné'}</td>
+                        <td>${box.attribueA || 'Non assigné'}</td>
                         <td>
-                            ${box.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
+                            ${box.statut === 'Actif' ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
                         </td>
                         <td>
                             <div class="btn-group">
@@ -438,24 +438,23 @@
 
         if (applyBoxFiltersButton) {
             applyBoxFiltersButton.addEventListener('click', function() {
-                const filterModel = document.getElementById('filter-model').value.toLowerCase();
                 const filterType = document.getElementById('filter-type').value.toLowerCase();
-                const filterBrand = document.getElementById('filter-brand').value.toLowerCase();
+                const filterService = document.getElementById('filter-service').value.toLowerCase();
                 const filterMunicipality = document.getElementById('filter-municipality').value.toLowerCase();
                 const filterStatus = document.getElementById('filter-status').value.toLowerCase();
-                const filterLocation = document.getElementById('filter-location').value.toLowerCase();
+                const filterAdresse = document.getElementById('filter-adresse').value.toLowerCase();
+                const filterLigneSupport = document.getElementById('filter-ligne_support').value.toLowerCase();
 
 
                 displayedBoxes = allBoxes.filter(box => {
-                    const matchesModel = filterModel === '' || (box.model && box.model.toLowerCase().includes(filterModel));
                     const matchesType = filterType === '' || (box.type && box.type.toLowerCase().includes(filterType));
-                    const matchesBrand = filterBrand === '' || (box.brand && box.brand.toLowerCase().includes(filterBrand));
+                    const matchesService = filterService === '' || (box.service && box.service.toLowerCase().includes(filterService));
                     const matchesMunicipality = filterMunicipality === '' || (box.commune && box.commune.toLowerCase().includes(filterMunicipality));
-                    const matchesStatus = filterStatus === '' || (box.isActive ? 'actif' : 'inactif').includes(filterStatus);
-                    const matchesLocation = filterLocation === '' || (box.localisation && box.localisation.toLowerCase().includes(filterLocation));
+                    const matchesStatus = filterStatus === '' || (box.statut && box.statut.toLowerCase().includes(filterStatus));
+                    const matchesAdresse = filterAdresse === '' || (box.adresse && box.adresse.toLowerCase().includes(filterAdresse));
+                    const matchesLigneSupport = filterLigneSupport === '' || (box.ligne_support && box.ligne_support.toLowerCase().includes(filterLigneSupport));
 
-
-                    return matchesModel && matchesType && matchesBrand && matchesMunicipality && matchesStatus && matchesLocation;
+                    return matchesType && matchesMunicipality && matchesStatus && matchesService && matchesAdresse && matchesLigneSupport;
                 });
 
                 renderBoxesTable(displayedBoxes);

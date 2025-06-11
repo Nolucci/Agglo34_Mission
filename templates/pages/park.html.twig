@@ -113,11 +113,14 @@
                                             <thead>
                                                 <tr>
                                                     <th>Commune</th>
-                                                    <th>Type</th>
-                                                    <th>Marque</th>
+                                                    <th>Étiquetage</th>
                                                     <th>Modèle</th>
-                                                    <th>Attribué à</th>
-                                                    <th>Localisation</th>
+                                                    <th>Numéro de série</th>
+                                                    <th>Service</th>
+                                                    <th>Utilisateur</th>
+                                                    <th>Date de garantie</th>
+                                                    <th>OS</th>
+                                                    <th>Version</th>
                                                     <th>Statut</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -125,15 +128,20 @@
                                             <tbody>
                                                 {% for equipment in equipments %}
                                                 <tr>
-                                                    <td>{{ equipment.municipality is not empty and equipment.municipality.name is defined ? equipment.municipality.name : 'Non défini' }}</td>
-                                                    <td>{{ equipment.type is not empty ? equipment.type : 'Non défini' }}</td>
-                                                    <td>{{ equipment.brand is not empty ? equipment.brand : 'Non défini' }}</td>
-                                                    <td>{{ equipment.model is not empty ? equipment.model : 'Non défini' }}</td>
-                                                    <td>{{ equipment.assignedTo is not empty ? equipment.assignedTo : 'Non assigné' }}</td>
-                                                    <td>{{ equipment.location is not empty ? equipment.location : 'Non défini' }}</td>
+                                                    <td>{{ equipment.commune is not empty and equipment.commune.name is defined ? equipment.commune.name : 'Non défini' }}</td>
+                                                    <td>{{ equipment.etiquetage is not empty ? equipment.etiquetage : 'Non défini' }}</td>
+                                                    <td>{{ equipment.modele is not empty ? equipment.modele : 'Non défini' }}</td>
+                                                    <td>{{ equipment.numeroSerie is not empty ? equipment.numeroSerie : 'Non défini' }}</td>
+                                                    <td>{{ equipment.service is not empty ? equipment.service : 'Non défini' }}</td>
+                                                    <td>{{ equipment.utilisateur is not empty ? equipment.utilisateur : 'Non assigné' }}</td>
+                                                    <td>{{ equipment.dateGarantie is not empty ? equipment.dateGarantie|date('Y-m-d') : 'Non défini' }}</td>
+                                                    <td>{{ equipment.os is not empty ? equipment.os : 'Non défini' }}</td>
+                                                    <td>{{ equipment.version is not empty ? equipment.version : 'Non défini' }}</td>
                                                     <td>
-                                                        {% if equipment.isActive %}
+                                                        {% if equipment.statut == 'Actif' %}
                                                             <span class="badge badge-success">Actif</span>
+                                                        {% elseif equipment.statut == 'Panne' %}
+                                                            <span class="badge badge-danger">Panne</span>
                                                         {% else %}
                                                             <span class="badge badge-secondary">Inactif</span>
                                                         {% endif %}
@@ -376,14 +384,19 @@
             equipmentsToDisplay.forEach(equipment => {
                 const row = `
                     <tr>
-                        <td>${equipment.municipality && typeof equipment.municipality === 'object' && equipment.municipality.name ? equipment.municipality.name : 'Non défini'}</td>
-                        <td>${equipment.type || 'Non défini'}</td>
-                        <td>${equipment.brand || 'Non défini'}</td>
-                        <td>${equipment.model || 'Non défini'}</td>
-                        <td>${equipment.assignedTo || 'Non assigné'}</td>
-                        <td>${equipment.location || 'Non défini'}</td>
+                        <td>${equipment.commune && typeof equipment.commune === 'object' && equipment.commune.name ? equipment.commune.name : 'Non défini'}</td>
+                        <td>${equipment.etiquetage || 'Non défini'}</td>
+                        <td>${equipment.modele || 'Non défini'}</td>
+                        <td>${equipment.numeroSerie || 'Non défini'}</td>
+                        <td>${equipment.service || 'Non défini'}</td>
+                        <td>${equipment.utilisateur || 'Non assigné'}</td>
+                        <td>${equipment.dateGarantie ? new Date(equipment.dateGarantie).toISOString().split('T')[0] : 'Non défini'}</td>
+                        <td>${equipment.os || 'Non défini'}</td>
+                        <td>${equipment.version || 'Non défini'}</td>
                         <td>
-                            ${equipment.isActive ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
+                            ${equipment.statut === 'Actif' ? '<span class="badge badge-success">Actif</span>' :
+                              equipment.statut === 'Panne' ? '<span class="badge badge-danger">Panne</span>' :
+                              '<span class="badge badge-secondary">Inactif</span>'}
                         </td>
                         <td>
                             <div class="btn-group">
@@ -417,7 +430,7 @@
                     displayedEquipments = allEquipments.filter(equipment => {
                         for (const key in equipment) {
                             const value = equipment[key];
-                            if (key === 'municipality') {
+                            if (key === 'commune') {
                                 if (value && typeof value === 'object' && value.name && value.name.toLowerCase().includes(searchTerm)) {
                                     return true;
                                 }
@@ -438,23 +451,23 @@
 
         if (applyParkFiltersButton) {
             applyParkFiltersButton.addEventListener('click', function() {
-                const filterType = document.getElementById('filter-type').value.toLowerCase();
-                const filterBrand = document.getElementById('filter-brand').value.toLowerCase();
-                const filterMunicipality = document.getElementById('filter-municipality').value.toLowerCase();
-                const filterStatus = document.getElementById('filter-status').value.toLowerCase();
+                const filterModele = document.getElementById('filter-modele').value.toLowerCase();
+                const filterService = document.getElementById('filter-service').value.toLowerCase();
+                const filterCommune = document.getElementById('filter-commune').value.toLowerCase();
+                const filterStatut = document.getElementById('filter-statut').value.toLowerCase();
 
                 displayedEquipments = allEquipments.filter(equipment => {
-                    const matchesType = filterType === '' || (equipment.type && equipment.type.toLowerCase().includes(filterType));
-                    const matchesBrand = filterBrand === '' || (equipment.brand && equipment.brand.toLowerCase().includes(filterBrand));
+                    const matchesModele = filterModele === '' || (equipment.modele && equipment.modele.toLowerCase().includes(filterModele));
+                    const matchesService = filterService === '' || (equipment.service && equipment.service.toLowerCase().includes(filterService));
 
-                    // Pour la municipalité, vérifier si c'est un objet avec un nom ou juste un ID
-                    const matchesMunicipality = filterMunicipality === '' ||
-                        (equipment.municipality && typeof equipment.municipality === 'object' &&
-                         equipment.municipality.name && equipment.municipality.name.toLowerCase().includes(filterMunicipality));
+                    // Pour la commune, vérifier si c'est un objet avec un nom ou juste un ID
+                    const matchesCommune = filterCommune === '' ||
+                        (equipment.commune && typeof equipment.commune === 'object' &&
+                         equipment.commune.id && equipment.commune.id.toString() === filterCommune);
 
-                    const matchesStatus = filterStatus === '' || (equipment.isActive ? 'actif' : 'inactif').includes(filterStatus);
+                    const matchesStatut = filterStatut === '' || (equipment.statut && equipment.statut.toLowerCase() === filterStatut);
 
-                    return matchesType && matchesBrand && matchesMunicipality && matchesStatus;
+                    return matchesModele && matchesService && matchesCommune && matchesStatut;
                 });
 
                 renderEquipmentsTable(displayedEquipments);

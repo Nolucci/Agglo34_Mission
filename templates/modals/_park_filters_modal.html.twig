@@ -15,34 +15,34 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-type">Type</label>
-                                <select class="form-control" id="filter-type" name="type">
-                                    <option value="">Tous les types</option>
-                                    {% set types = [] %}
+                                <label for="filter-modele">Modèle</label>
+                                <select class="form-control" id="filter-modele" name="modele">
+                                    <option value="">Tous les modèles</option>
+                                    {% set modeles = [] %}
                                     {% for equipment in equipments %}
-                                        {% if equipment.type is not null and not (equipment.type in types) %}
-                                            {% set types = types|merge([equipment.type]) %}
+                                        {% if equipment.modele is not null and not (equipment.modele in modeles) %}
+                                            {% set modeles = modeles|merge([equipment.modele]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for type in types|sort %}
-                                        <option value="{{ type }}">{{ type }}</option>
+                                    {% for modele in modeles|sort %}
+                                        <option value="{{ modele }}">{{ modele }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-brand">Marque</label>
-                                <select class="form-control" id="filter-brand" name="brand">
-                                    <option value="">Toutes les marques</option>
-                                    {% set brands = [] %}
+                                <label for="filter-service">Service</label>
+                                <select class="form-control" id="filter-service" name="service">
+                                    <option value="">Tous les services</option>
+                                    {% set services = [] %}
                                     {% for equipment in equipments %}
-                                        {% if equipment.brand is not null and not (equipment.brand in brands) %}
-                                            {% set brands = brands|merge([equipment.brand]) %}
+                                        {% if equipment.service is not null and not (equipment.service in services) %}
+                                            {% set services = services|merge([equipment.service]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for brand in brands|sort %}
-                                        <option value="{{ brand }}">{{ brand }}</option>
+                                    {% for service in services|sort %}
+                                        <option value="{{ service }}">{{ service }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -51,17 +51,17 @@
                     <div class="row">
                          <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-municipality">Commune</label>
-                                <select class="form-control" id="filter-municipality" name="municipality">
+                                <label for="filter-commune">Commune</label>
+                                <select class="form-control" id="filter-commune" name="commune">
                                     <option value="">Toutes les communes</option>
-                                    {% set municipalities = [] %}
-                                    {% set municipalities = {} %}
+                                    {% set communes = [] %}
+                                    {% set communes = {} %}
                                     {% for equipment in equipments %}
-                                        {% if equipment.municipality is not null and equipment.municipality.id is defined and not (equipment.municipality.id in municipalities|keys) %}
-                                            {% set municipalities = municipalities|merge({(equipment.municipality.id): equipment.municipality.name}) %}
+                                        {% if equipment.commune is not null and equipment.commune.id is defined and not (equipment.commune.id in communes|keys) %}
+                                            {% set communes = communes|merge({(equipment.commune.id): equipment.commune.name}) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for id, name in municipalities|sort %}
+                                    {% for id, name in communes|sort %}
                                         <option value="{{ id }}">{{ name }}</option>
                                     {% endfor %}
                                 </select>
@@ -69,11 +69,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="filter-status">Statut</label>
-                                <select class="form-control" id="filter-status" name="status">
+                                <label for="filter-statut">Statut</label>
+                                <select class="form-control" id="filter-statut" name="statut">
                                     <option value="">Tous les statuts</option>
                                     <option value="actif">Actif</option>
                                     <option value="inactif">Inactif</option>
+                                    <option value="panne">Panne</option>
                                 </select>
                             </div>
                         </div>
@@ -117,24 +118,31 @@ document.addEventListener('DOMContentLoaded', function() {
             displayedEquipments = allEquipments.filter(equipment => {
                 let passesFilter = true;
                 for (const key in filters) {
-                    if (key === 'status') {
+                    if (key === 'statut') {
                          const filterValue = filters[key];
-                         const equipmentStatus = equipment.isActive ? 'actif' : 'inactif';
-                         if (filterValue !== '' && equipmentStatus !== filterValue) {
+                         const equipmentStatut = equipment.statut ? equipment.statut.toLowerCase() : '';
+                         if (filterValue !== '' && equipmentStatut !== filterValue) {
                              passesFilter = false;
                              break;
                          }
-                    } else if (key === 'municipality') {
+                    } else if (key === 'commune') {
                         const filterValue = filters[key];
-                        if (filterValue !== '' && (!equipment.municipality || equipment.municipality.id.toString() !== filterValue)) {
+                        if (filterValue !== '' && (!equipment.commune || equipment.commune.id.toString() !== filterValue)) {
                             passesFilter = false;
                             break;
                         }
-                    }
-                    else if (equipment[key] && equipment[key].toLowerCase() !== filters[key]) {
-                         // For other dropdowns, we need an exact match
-                         passesFilter = false;
-                         break;
+                    } else if (key === 'modele') {
+                        const filterValue = filters[key];
+                        if (filterValue !== '' && (!equipment.modele || equipment.modele.toLowerCase() !== filterValue)) {
+                            passesFilter = false;
+                            break;
+                        }
+                    } else if (key === 'service') {
+                        const filterValue = filters[key];
+                        if (filterValue !== '' && (!equipment.service || equipment.service.toLowerCase() !== filterValue)) {
+                            passesFilter = false;
+                            break;
+                        }
                     }
                 }
                 return passesFilter;
