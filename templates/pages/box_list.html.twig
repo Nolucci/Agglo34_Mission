@@ -175,6 +175,8 @@
     {{ parent() }}
     <script src="{{ asset('js/park-map.js') }}"></script>
     <script src="{{ asset('js/box.js') }}"></script>
+    <!-- Charger delete-confirmation.js après les autres scripts pour s'assurer que les fonctions sont définies -->
+    <script src="{{ asset('js/delete-confirmation.js') }}" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialiser la carte si l'élément existe
@@ -462,35 +464,6 @@
                 $('#boxFiltersModal').modal('hide');
             });
         }
-    $(document).ready(function() {
-        $('#staticModal').on('show.bs.modal', function (event) {
-            const button = $(event.relatedTarget); // Button that triggered the modal
-            const itemId = button.data('id'); // Extract info from data-* attributes
-            const itemType = button.data('type');
-
-            const modal = $(this);
-            modal.find('.modal-title').text('Confirmer la suppression de ' + itemType.charAt(0).toUpperCase() + itemType.slice(1));
-            modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cette ' + (itemType === 'box' ? 'box' : 'élément') + ' ?');
-
-            // Set data attributes on the confirm button
-            const confirmButton = modal.find('.btn-primary');
-            confirmButton.data('id', itemId);
-            confirmButton.data('type', itemType);
-        });
-
-        $('#staticModal .btn-primary').on('click', function() {
-            const button = $(this);
-            const itemId = button.data('id');
-            const itemType = button.data('type');
-
-            if (itemType === 'box') {
-                deleteBox(itemId);
-            } else {
-                console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
-                // Close the modal
-                $('#staticModal').modal('hide');
-            }
-        });
-    });
+    // Le code de gestion de la confirmation de suppression a été déplacé dans delete-confirmation.js
     </script>
 {% endblock %}

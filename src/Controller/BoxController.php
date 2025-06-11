@@ -256,9 +256,44 @@ class BoxController extends AbstractController
             return new JsonResponse(['success' => false, 'error' => 'Box non trouvée.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        // Archive the box data
+        $archive = new \App\Entity\Archive();
+        // Utiliser 'Equipment' comme type d'entité si c'est un équipement du parc informatique
+        $archive->setEntityType('Box');
+        $archive->setEntityId($box->getId());
+        $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
+        $archive->setData([
+            'name' => $box->getName(),
+            'type' => $box->getType(),
+            'brand' => $box->getBrand(),
+            'model' => $box->getModel(),
+            'municipality_id' => $box->getMunicipality() ? $box->getMunicipality()->getId() : null,
+            'municipality_name' => $box->getMunicipality() ? $box->getMunicipality()->getName() : null,
+            'location' => $box->getLocation(),
+            'address' => $box->getAddress(),
+            'phoneLine' => $box->getPhoneLine(),
+            'assignedTo' => $box->getAssignedTo(),
+            'isActive' => $box->isActive(),
+            'description' => $box->getDescription(),
+        ]);
+
+        $this->entityManager->persist($archive);
+
+        // Create a log entry
+        $log = new \App\Entity\Log();
+        $log->setAction('DELETE');
+        // Utiliser 'Equipment' comme type d'entité si c'est un équipement du parc informatique
+        $log->setEntityType('Box');
+        $log->setEntityId($box->getId());
+        $log->setDetails('Suppression de la box: ' . $box->getName());
+        $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+        $log->setCreatedAt(new \DateTimeImmutable());
+
+        $this->entityManager->persist($log);
+
         $this->entityManager->remove($box);
         $this->entityManager->flush();
 
-        return new JsonResponse(['success' => true, 'message' => 'Box supprimée avec succès.'], JsonResponse::HTTP_OK);
+        return new JsonResponse(['success' => true, 'message' => 'Box supprimée et archivée avec succès.'], JsonResponse::HTTP_OK);
     }
 }

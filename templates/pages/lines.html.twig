@@ -143,12 +143,14 @@
                                                         {% endif %}
                                                     </td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine({{ line.id }})" data-id="{{ line.id }}">
-                                                            <i class="fa fa-edit"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-danger delete-btn" data-id="{{ line.id }}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
+                                                        <div class="btn-group">
+                                                            <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine({{ line.id }})">
+                                                                <i class="fa fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger delete-btn" data-id="{{ line.id }}" data-type="phone_line" onclick="openDeleteModal({{ line.id }}, 'phone_line')">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
@@ -382,12 +384,14 @@
                             ${line.isWorking ? '<span class="badge badge-success">Fonctionne</span>' : '<span class="badge badge-danger">Ne fonctionne pas</span>'}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine(${line.id})" data-id="${line.id}">
-                                <i class="fa fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger delete-btn" data-id="${line.id}" data-type="phone_line" data-toggle="modal" data-target="#staticModal">
-                                <i class="fa fa-trash"></i>
-                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine(${line.id})">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="${line.id}" data-type="phone_line" onclick="openDeleteModal(${line.id}, 'phone_line')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -491,7 +495,48 @@
         });
     }
     </script>
-    
+    <!-- Fonction pour ouvrir le modal de suppression -->
+    <script>
+        function openDeleteModal(id, type) {
+            console.log("Ouverture du modal de suppression pour", type, "avec ID", id);
+
+            // Stocker les données dans le modal
+            const modal = document.getElementById('staticModal');
+            if (modal) {
+                modal.setAttribute('data-item-id', id);
+                modal.setAttribute('data-item-type', type);
+
+                if (type === 'phone_line') {
+                    modal.setAttribute('data-line-id', id);
+                }
+
+                // Mettre à jour le texte du modal
+                const title = modal.querySelector('.modal-title');
+                const body = modal.querySelector('.modal-body p');
+
+                if (title) {
+                    title.textContent = 'Confirmer la suppression de ' +
+                        (type === 'equipment' ? 'l\'équipement' :
+                         type === 'box' ? 'la box' :
+                         type === 'phone_line' ? 'la ligne téléphonique' : 'l\'élément');
+                }
+
+                if (body) {
+                    body.textContent = 'Voulez-vous vraiment supprimer ' +
+                        (type === 'equipment' ? 'cet équipement' :
+                         type === 'box' ? 'cette box' :
+                         type === 'phone_line' ? 'cette ligne téléphonique' : 'cet élément') + ' ?';
+                }
+
+                // Ouvrir explicitement la modale avec jQuery
+                $('#staticModal').modal('show');
+            } else {
+                console.error("Modal #staticModal non trouvé dans le DOM");
+            }
+        }
+    </script>
+    <!-- Charger delete-confirmation.js avant phone-lines.js pour éviter les conflits -->
+    <script src="{{ asset('js/delete-confirmation.js') }}"></script>
     <script src="{{ asset('js/phone-lines.js') }}"></script>
-   
+
 {% endblock %}

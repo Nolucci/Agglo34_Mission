@@ -108,8 +108,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-// Fonction pour gérer la suppression d'une box
-function deleteBox(boxId) {
+    // Le gestionnaire pour le bouton de confirmation de suppression est déjà défini dans le template HTML
+    // Nous n'avons pas besoin de le redéfinir ici pour éviter les conflits
+});
+
+// Fonction pour gérer la suppression d'une box (définie globalement)
+// Exposer la fonction globalement pour qu'elle soit accessible depuis delete-confirmation.js
+window.deleteBox = function(boxId) {
     console.log("Supprimer la boîte avec l'ID : " + boxId);
 
     fetch(`/api/box/delete/${boxId}`, {
@@ -127,7 +132,8 @@ function deleteBox(boxId) {
     .then(data => {
         console.log("Réponse du serveur (suppression) :", data);
         if (data.success) {
-            alert("Box supprimée avec succès !");
+            // Fermer la modal de confirmation si elle est ouverte
+            $('#staticModal').modal('hide');
             // Recharger la page ou mettre à jour la table si nécessaire
             window.location.reload(); // Option simple pour recharger la page
         } else {
@@ -139,4 +145,3 @@ function deleteBox(boxId) {
         alert("Erreur lors de la suppression de la box.");
     });
 }
-});

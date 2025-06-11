@@ -16,28 +16,39 @@ class ArchiveRepository extends ServiceEntityRepository
         parent::__construct($registry, Archive::class);
     }
 
-//    /**
-//     * @return Archive[] Returns an array of Archive objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Trouve les archives en fonction des filtres appliqués
+     *
+     * @param array $filters Les filtres à appliquer
+     * @return Archive[] Returns an array of Archive objects
+     */
+    public function findByFilters(array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->orderBy('a.archivedAt', 'DESC');
 
-//    public function findOneBySomeField($value): ?Archive
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        // Filtre par type d'entité
+        if (!empty($filters['entityType'])) {
+            $qb->andWhere('a.entityType = :entityType')
+               ->setParameter('entityType', $filters['entityType']);
+        }
+
+        // Filtre par date de début
+        if (!empty($filters['startDate'])) {
+            $startDate = new \DateTime($filters['startDate']);
+            $startDate->setTime(0, 0, 0);
+            $qb->andWhere('a.archivedAt >= :startDate')
+               ->setParameter('startDate', $startDate);
+        }
+
+        // Filtre par date de fin
+        if (!empty($filters['endDate'])) {
+            $endDate = new \DateTime($filters['endDate']);
+            $endDate->setTime(23, 59, 59);
+            $qb->andWhere('a.archivedAt <= :endDate')
+               ->setParameter('endDate', $endDate);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

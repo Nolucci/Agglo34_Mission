@@ -7,6 +7,7 @@ use App\Entity\PhoneLine;
 use App\Repository\MunicipalityRepository;
 use App\Repository\PhoneLineRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use \App\Repository\ArchiveRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,15 +19,18 @@ class PhoneLineController extends AbstractController
     private $entityManager;
     private $phoneLineRepository;
     private $municipalityRepository;
+    private $archiveRepository;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         PhoneLineRepository $phoneLineRepository,
-        MunicipalityRepository $municipalityRepository
+        MunicipalityRepository $municipalityRepository,
+        ArchiveRepository $archiveRepository
     ) {
         $this->entityManager = $entityManager;
         $this->phoneLineRepository = $phoneLineRepository;
         $this->municipalityRepository = $municipalityRepository;
+        $this->archiveRepository = $archiveRepository;
     }
 
     #[Route('/api/phone-line/create', name: 'phone_line_create', methods: ['POST'])]
@@ -99,6 +103,9 @@ class PhoneLineController extends AbstractController
     public function update(Request $request, int $id): JsonResponse
     {
         try {
+            // Log at the very beginning of the method
+            $this->createLog('Méthode update appelée pour ID: ' . $id, $id);
+
             // Log the start of the update process and the received data
             $this->createLog('Début de la mise à jour de la ligne téléphonique', $id);
             $data = json_decode($request->getContent(), true);
@@ -163,7 +170,7 @@ class PhoneLineController extends AbstractController
                 // Cast municipality ID to integer
                 $municipalityId = (int) $data['municipality'];
                 $this->createLog('Recherche de la municipalité avec ID: ' . $municipalityId, $id);
-                
+
                 $municipality = $this->municipalityRepository->find($municipalityId);
                 if (!$municipality) {
                     $this->createLog('Municipalité non trouvée pour la mise à jour (ID: ' . $municipalityId . ')', $id);
@@ -176,8 +183,27 @@ class PhoneLineController extends AbstractController
             // Log before persisting changes
             $this->createLog('Tentative de persistance des modifications pour la ligne téléphonique', $id);
 
-            // Persister les modifications
-            $this->entityManager->flush();
+            // Log the state of the PhoneLine entity before flushing
+            $this->createLog('État de l\'entité PhoneLine avant flush (ID: ' . $id . '): ' . json_encode($phoneLine), $id);
+
+            // Vérifier si l'EntityManager est ouvert avant de flusher
+            if (!$this->entityManager->isOpen()) {
+                $this->createLog('EntityManager est fermé avant flush', $id);
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Une erreur interne a rendu l\'EntityManager inutilisable.'
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+             // Persister les modifications
+             try {
+                 $this->createLog('Tentative de flush des modifications', $id);
+                 $this->entityManager->flush();
+                 $this->createLog('Flush des modifications réussi', $id);
+             } catch (\Exception $e) {
+                 error_log('Erreur lors du flush: ' . $e->getMessage());
+                 throw $e; // Relancer l'exception pour qu'elle soit traitée par le bloc catch principal
+             }
 
             // Créer un log
             $this->createLog('Modification d\'une ligne téléphonique réussie', $id);
@@ -187,10 +213,15 @@ class PhoneLineController extends AbstractController
                 'message' => 'Ligne téléphonique mise à jour avec succès'
             ]);
         } catch (\Exception $e) {
-            $this->createLog('Erreur lors de la mise à jour: ' . $e->getMessage(), $id);
+            // Log the error message and the stack trace for better debugging
+            $errorMessage = 'Erreur lors de la mise à jour (ID: ' . $id . '): ' . $e->getMessage();
+            $this->createLog($errorMessage, $id);
+            // Log the stack trace
+            $this->createLog('Stack Trace: ' . $e->getTraceAsString(), $id);
+
             return $this->json([
                 'success' => false,
-                'error' => 'Une erreur est survenue lors de la mise à jour: ' . $e->getMessage()
+                'error' => 'Une erreur est survenue lors de la mise à jour. Veuillez consulter les logs pour plus de détails.'
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -203,16 +234,48 @@ class PhoneLineController extends AbstractController
             return $this->json(['error' => 'Ligne téléphonique non trouvée'], Response::HTTP_NOT_FOUND);
         }
 
-        // Supprimer la ligne téléphonique
-        $this->entityManager->remove($phoneLine);
-        $this->entityManager->flush();
+        // Archive the phone line data
+        $archive = new \App\Entity\Archive();
+        $archive->setEntityType('PhoneLine');
+        $archive->setEntityId($phoneLine->getId());
 
-        // Créer un log
-        $this->createLog('Suppression d\'une ligne téléphonique', $id);
+        // Définir explicitement le fuseau horaire Europe/Paris pour corriger le décalage de 2h
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+        $archive->setArchivedAt($now);
+
+        // Assurer que les données sont correctement encodées pour préserver les accents
+        $archiveData = [
+            'location' => $this->ensureUtf8($phoneLine->getLocation()),
+            'service' => $this->ensureUtf8($phoneLine->getService()),
+            'assignedTo' => $this->ensureUtf8($phoneLine->getAssignedTo()),
+            'phoneBrand' => $this->ensureUtf8($phoneLine->getPhoneBrand()),
+            'model' => $this->ensureUtf8($phoneLine->getModel()),
+            'operator' => $this->ensureUtf8($phoneLine->getOperator()),
+            'lineType' => $this->ensureUtf8($phoneLine->getLineType()),
+            'directLine' => $this->ensureUtf8($phoneLine->getDirectLine()),
+            'shortNumber' => $this->ensureUtf8($phoneLine->getShortNumber()),
+            'isWorking' => $phoneLine->isWorking(),
+            'municipality_id' => $phoneLine->getMunicipality() ? $phoneLine->getMunicipality()->getId() : null,
+            'municipality_name' => $phoneLine->getMunicipality() ? $this->ensureUtf8($phoneLine->getMunicipality()->getName()) : null,
+        ];
+
+        $archive->setData($archiveData);
+
+        // Persister l'archive directement avec l'EntityManager
+        $this->entityManager->persist($archive);
+
+        // Create a log entry
+        $this->createLog('Suppression et archivage d\'une ligne téléphonique', $id);
+
+        // Remove the phone line
+        $this->entityManager->remove($phoneLine);
+
+        // Effectuer un seul flush pour toutes les opérations
+        $this->entityManager->flush();
 
         return $this->json([
             'success' => true,
-            'message' => 'Ligne téléphonique supprimée avec succès'
+            'message' => 'Ligne téléphonique supprimée et archivée avec succès'
         ]);
     }
 
@@ -279,13 +342,49 @@ class PhoneLineController extends AbstractController
      */
     private function createLog(string $action, int $phoneLineId): void
     {
-        $log = new Log();
-        // Use setUsername instead of setUser
-        $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
-        $log->setAction($action . ' (ID: ' . $phoneLineId . ')');
-        $log->setCreatedAt(new \DateTimeImmutable());
+        try {
+            // Vérifier si l'EntityManager est ouvert avant de l'utiliser
+            if (!$this->entityManager->isOpen()) {
+                // Si l'EntityManager est fermé, on ne peut pas créer de log
+                error_log('EntityManager fermé - Impossible de créer un log: ' . $action . ' (ID: ' . $phoneLineId . ')');
+                return;
+            }
 
-        $this->entityManager->persist($log);
-        $this->entityManager->flush();
+            $log = new Log();
+            // Définir tous les champs obligatoires
+            $log->setEntityType('PhoneLine'); // Type d'entité
+            $log->setEntityId($phoneLineId);  // ID de l'entité
+            $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+            $log->setAction($action);
+            $log->setCreatedAt(new \DateTimeImmutable());
+
+            $this->entityManager->persist($log);
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            // En cas d'erreur lors de la création du log, on l'écrit dans les logs système
+            error_log('Erreur lors de la création du log: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Assure que les chaînes de caractères sont correctement encodées en UTF-8
+     * pour préserver les accents et caractères spéciaux
+     */
+    private function ensureUtf8(?string $str): ?string
+    {
+        if ($str === null) {
+            return null;
+        }
+
+        // Détecter l'encodage actuel
+        $encoding = mb_detect_encoding($str, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+
+        // Si l'encodage n'est pas UTF-8, convertir la chaîne
+        if ($encoding && $encoding !== 'UTF-8') {
+            return mb_convert_encoding($str, 'UTF-8', $encoding);
+        }
+
+        // Si l'encodage est déjà UTF-8 ou n'a pas pu être détecté, retourner la chaîne telle quelle
+        return $str;
     }
 }

@@ -6,21 +6,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const equipmentForm = document.getElementById('equipment-form');
     const saveButton = document.getElementById('save-equipment');
     const equipmentIdInput = document.getElementById('equipment-id');
-    
+
     // Gestionnaire pour le bouton d'enregistrement
     if (saveButton) {
         saveButton.addEventListener('click', function() {
             saveEquipment();
         });
     }
-    
+
     // Gestionnaire pour les boutons de suppression
     document.addEventListener('click', function(e) {
         if (e.target && e.target.closest('.delete-btn')) {
             const button = e.target.closest('.delete-btn');
             const itemId = button.dataset.id;
             const itemType = button.dataset.type;
-            
+
             if (itemType === 'equipment') {
                 // Le clic sur le bouton confirmer dans le modal est géré séparément
                 document.querySelector('#staticModal .btn-primary').dataset.id = itemId;
@@ -28,30 +28,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
-    // Gestionnaire pour le bouton de confirmation de suppression
-    const confirmDeleteButton = document.querySelector('#staticModal .btn-primary');
-    if (confirmDeleteButton) {
-        confirmDeleteButton.addEventListener('click', function() {
-            const itemId = this.dataset.id;
-            const itemType = this.dataset.type;
-            
-            if (itemType === 'equipment') {
-                deleteEquipment(itemId);
-            }
-        });
-    }
-    
+
+    // Le gestionnaire pour le bouton de confirmation de suppression est déjà défini dans le template HTML
+    // Nous n'avons pas besoin de le redéfinir ici pour éviter les conflits
+
     /**
      * Fonction pour sauvegarder un équipement (création ou mise à jour)
      */
     function saveEquipment() {
         if (!equipmentForm) return;
-        
+
         // Validation du formulaire
         const requiredInputs = equipmentForm.querySelectorAll('[required]');
         let isValid = true;
-        
+
         requiredInputs.forEach(field => {
             if (!field.value.trim()) {
                 field.classList.add('is-invalid');
@@ -60,12 +50,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 field.classList.remove('is-invalid');
             }
         });
-        
+
         if (!isValid) {
             alert('Veuillez remplir tous les champs obligatoires');
             return;
         }
-        
+
         // Récupération des données du formulaire
         const formData = {
             type: document.getElementById('equipment-type').value.trim() || null,
@@ -78,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             isActive: document.getElementById('equipment-isActive').checked,
             username: 'Utilisateur' // Idéalement, récupérer l'utilisateur connecté
         };
-        
+
         // Vérifier que les valeurs ne sont pas nulles pour les champs requis
         const requiredFields = ['type', 'brand', 'model', 'location', 'municipality'];
         for (const field of requiredFields) {
@@ -87,17 +77,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        
+
         const equipmentId = equipmentIdInput.value;
         let url = '/equipment/create';
         let method = 'POST';
-        
+
         // Si un ID est présent, c'est une mise à jour
         if (equipmentId) {
             url = `/equipment/update/${equipmentId}`;
             method = 'POST';
         }
-        
+
         // Envoi de la requête
         fetch(url, {
             method: method,
@@ -111,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 // Fermer le modal
                 $('#parkModal').modal('hide');
-                
+
                 // Recharger la page pour afficher les changements
                 window.location.reload();
             } else {
@@ -123,11 +113,23 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Une erreur est survenue lors de l\'enregistrement');
         });
     }
-    
+
     /**
      * Fonction pour supprimer un équipement
+     * Exposée globalement pour être accessible depuis delete-confirmation.js
      */
-    function deleteEquipment(id) {
+    window.deleteEquipment = function(id) {
+        console.log("Fonction deleteEquipment appelée avec ID:", id);
+
+        // Vérifier que l'ID est valide
+        if (!id) {
+            console.error("ID d'équipement invalide:", id);
+            alert("Erreur: ID d'équipement invalide");
+            return;
+        }
+
+        console.log("Envoi de la requête de suppression à /equipment/delete/" + id);
+
         fetch(`/equipment/delete/${id}`, {
             method: 'POST',
             headers: {
@@ -139,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 // Fermer le modal
                 $('#staticModal').modal('hide');
-                
+
                 // Recharger la page pour afficher les changements
                 window.location.reload();
             } else {
@@ -151,19 +153,19 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Une erreur est survenue lors de la suppression');
         });
     }
-    
+
     /**
      * Fonction pour éditer un équipement existant
      */
     window.editEquipment = function(id) {
         // Récupérer les données de l'équipement
         const equipment = allEquipments.find(e => e.id === parseInt(id));
-        
+
         if (!equipment) {
             console.error('Équipement non trouvé:', id);
             return;
         }
-        
+
         // Remplir le formulaire avec les données
         equipmentIdInput.value = equipment.id;
         document.getElementById('equipment-type').value = equipment.type || '';
@@ -172,13 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('equipment-description').value = equipment.description || '';
         document.getElementById('equipment-assignedTo').value = equipment.assignedTo || '';
         document.getElementById('equipment-location').value = equipment.location || '';
-        
+
         const municipalitySelect = document.getElementById('equipment-municipality');
         if (municipalitySelect) {
             // Trouver l'option correspondante
             const options = Array.from(municipalitySelect.options);
             const option = options.find(opt => opt.value === equipment.municipality);
-            
+
             if (option) {
                 option.selected = true;
             } else if (equipment.municipality) {
@@ -188,16 +190,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 newOption.selected = true;
             }
         }
-        
+
         document.getElementById('equipment-isActive').checked = equipment.isActive;
-        
+
         // Changer le titre du modal
         document.getElementById('parkModalLabel').textContent = 'Modifier un Équipement Informatique';
-        
+
         // Ouvrir le modal
         $('#parkModal').modal('show');
     };
-    
+
     /**
      * Réinitialiser le formulaire lors de l'ouverture du modal pour ajouter
      */
