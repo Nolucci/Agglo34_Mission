@@ -213,16 +213,16 @@ class PhoneLineController extends AbstractController
                 'message' => 'Ligne téléphonique mise à jour avec succès'
             ]);
         } catch (\Exception $e) {
-            // Log the error message and the stack trace for better debugging
             $errorMessage = 'Erreur lors de la mise à jour (ID: ' . $id . '): ' . $e->getMessage();
-            $this->createLog($errorMessage, $id);
-            // Log the stack trace
-            $this->createLog('Stack Trace: ' . $e->getTraceAsString(), $id);
-
-            return $this->json([
-                'success' => false,
-                'error' => 'Une erreur est survenue lors de la mise à jour. Veuillez consulter les logs pour plus de détails.'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            try {
+                $this->createLog($errorMessage, $id);
+                $this->createLog('Stack Trace: ' . $e->getTraceAsString(), $id);
+            } catch (\Exception $logException) {
+                error_log('Erreur critique lors de la tentative de log de l\'erreur de mise à jour: ' . $logException->getMessage());
+                error_log('Erreur originale de mise à jour: ' . $errorMessage);
+                error_log('Stack Trace originale: ' . $e->getTraceAsString());
+            }
+            throw $e;
         }
     }
 
@@ -234,16 +234,13 @@ class PhoneLineController extends AbstractController
             return $this->json(['error' => 'Ligne téléphonique non trouvée'], Response::HTTP_NOT_FOUND);
         }
 
-        // Archive the phone line data
         $archive = new \App\Entity\Archive();
         $archive->setEntityType('PhoneLine');
         $archive->setEntityId($phoneLine->getId());
 
-        // Définir explicitement le fuseau horaire Europe/Paris pour corriger le décalage de 2h
         $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
         $archive->setArchivedAt($now);
 
-        // Assurer que les données sont correctement encodées pour préserver les accents
         $archiveData = [
             'location' => $this->ensureUtf8($phoneLine->getLocation()),
             'service' => $this->ensureUtf8($phoneLine->getService()),
@@ -261,16 +258,12 @@ class PhoneLineController extends AbstractController
 
         $archive->setData($archiveData);
 
-        // Persister l'archive directement avec l'EntityManager
         $this->entityManager->persist($archive);
 
-        // Create a log entry
         $this->createLog('Suppression et archivage d\'une ligne téléphonique', $id);
 
-        // Remove the phone line
         $this->entityManager->remove($phoneLine);
 
-        // Effectuer un seul flush pour toutes les opérations
         $this->entityManager->flush();
 
         return $this->json([
