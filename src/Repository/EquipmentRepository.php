@@ -38,4 +38,18 @@ class EquipmentRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * @return Equipment[] Returns an array of Equipment objects with their associated Commune
+     */
+    public function findAllWithCommune(int $limit = null, int $offset = null): array
+    {
+        return $this->createQueryBuilder('e')
+            ->leftJoin('e.commune', 'm')
+            ->addSelect('m')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
 }

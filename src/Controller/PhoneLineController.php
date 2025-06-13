@@ -33,6 +33,50 @@ class PhoneLineController extends AbstractController
         $this->archiveRepository = $archiveRepository;
     }
 
+    #[Route('/api/phone-line/delete-all', name: 'phone_line_delete_all', methods: ['DELETE'])]
+    public function deleteAll(): JsonResponse
+    {
+        $phoneLines = $this->phoneLineRepository->findAll();
+        $count = count($phoneLines);
+
+        foreach ($phoneLines as $phoneLine) {
+            $archive = new \App\Entity\Archive();
+            $archive->setEntityType('PhoneLine');
+            $archive->setEntityId($phoneLine->getId());
+
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
+            $archive->setArchivedAt($now);
+
+            $archiveData = [
+                'location' => $this->ensureUtf8($phoneLine->getLocation()),
+                'service' => $this->ensureUtf8($phoneLine->getService()),
+                'assignedTo' => $this->ensureUtf8($phoneLine->getAssignedTo()),
+                'phoneBrand' => $this->ensureUtf8($phoneLine->getPhoneBrand()),
+                'model' => $this->ensureUtf8($phoneLine->getModel()),
+                'operator' => $this->ensureUtf8($phoneLine->getOperator()),
+                'lineType' => $this->ensureUtf8($phoneLine->getLineType()),
+                'directLine' => $this->ensureUtf8($phoneLine->getDirectLine()),
+                'shortNumber' => $this->ensureUtf8($phoneLine->getShortNumber()),
+                'isWorking' => $phoneLine->isWorking(),
+                'municipality_id' => $phoneLine->getMunicipality() ? $phoneLine->getMunicipality()->getId() : null,
+                'municipality_name' => $phoneLine->getMunicipality() ? $this->ensureUtf8($phoneLine->getMunicipality()->getName()) : null,
+            ];
+
+            $archive->setData($archiveData);
+            $this->entityManager->persist($archive);
+
+            $this->createLog('Suppression et archivage d\'une ligne téléphonique (suppression en masse)', $phoneLine->getId());
+            $this->entityManager->remove($phoneLine);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => $count . ' lignes téléphoniques supprimées et archivées avec succès'
+        ]);
+    }
+
     #[Route('/api/phone-line/create', name: 'phone_line_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
@@ -273,11 +317,16 @@ class PhoneLineController extends AbstractController
     }
 
     #[Route('/api/phone-line/list', name: 'phone_line_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        $phoneLines = $this->phoneLineRepository->findAll();
-        $data = [];
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 50);
+        $offset = ($page - 1) * $limit;
 
+        $totalPhoneLines = $this->phoneLineRepository->count([]);
+        $phoneLines = $this->phoneLineRepository->findBy([], null, $limit, $offset);
+
+        $data = [];
         foreach ($phoneLines as $phoneLine) {
             $data[] = [
                 'id' => $phoneLine->getId(),
@@ -298,7 +347,13 @@ class PhoneLineController extends AbstractController
             ];
         }
 
-        return $this->json($data);
+        return $this->json([
+            'data' => $data,
+            'total' => $totalPhoneLines,
+            'page' => $page,
+            'limit' => $limit,
+            'totalPages' => ceil($totalPhoneLines / $limit)
+        ]);
     }
 
     #[Route('/api/phone-line/{id}', name: 'phone_line_get', methods: ['GET'])]

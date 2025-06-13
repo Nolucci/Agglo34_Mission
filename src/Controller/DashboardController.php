@@ -23,7 +23,25 @@ class DashboardController extends AbstractController
     {
         // Récupérer les données de la base de données
         $lines = $phoneLineRepository->findAll();
-        $municipalities = $municipalityRepository->findAll();
+
+        // Récupérer toutes les communes
+        $allMunicipalities = $municipalityRepository->findAll();
+
+        // Créer un tableau associatif pour éliminer les doublons par nom (insensible à la casse)
+        $uniqueMunicipalities = [];
+        foreach ($allMunicipalities as $municipality) {
+            $lowerName = strtolower($municipality->getName());
+            if (!isset($uniqueMunicipalities[$lowerName])) {
+                $uniqueMunicipalities[$lowerName] = $municipality;
+            }
+        }
+
+        // Convertir en tableau simple et trier par nom
+        $municipalities = array_values($uniqueMunicipalities);
+        usort($municipalities, function($a, $b) {
+            return strcasecmp($a->getName(), $b->getName());
+        });
+
         $equipments = $boxRepository->findAll();
 
         // Calculer les statistiques des lignes téléphoniques
@@ -150,7 +168,23 @@ class DashboardController extends AbstractController
             'not_working_lines' => count(array_filter($formattedPhoneLines, fn($line) => !$line['isWorking'])),
         ];
 
-        $municipalities = $municipalityRepository->findAll();
+        // Récupérer toutes les communes
+        $allMunicipalities = $municipalityRepository->findAll();
+
+        // Créer un tableau associatif pour éliminer les doublons par nom (insensible à la casse)
+        $uniqueMunicipalities = [];
+        foreach ($allMunicipalities as $municipality) {
+            $lowerName = strtolower($municipality->getName());
+            if (!isset($uniqueMunicipalities[$lowerName])) {
+                $uniqueMunicipalities[$lowerName] = $municipality;
+            }
+        }
+
+        // Convertir en tableau simple et trier par nom
+        $municipalities = array_values($uniqueMunicipalities);
+        usort($municipalities, function($a, $b) {
+            return strcasecmp($a->getName(), $b->getName());
+        });
 
         $user = [
             'name' => 'Frederic F',
@@ -199,7 +233,24 @@ class DashboardController extends AbstractController
     public function park(MunicipalityRepository $municipalityRepository, \App\Repository\EquipmentRepository $equipmentRepository): Response
     {
         $equipments = $equipmentRepository->findAll();
-        $municipalities = $municipalityRepository->findAll();
+
+        // Récupérer toutes les communes
+        $allMunicipalities = $municipalityRepository->findAll();
+
+        // Créer un tableau associatif pour éliminer les doublons par nom (insensible à la casse)
+        $uniqueMunicipalities = [];
+        foreach ($allMunicipalities as $municipality) {
+            $lowerName = strtolower($municipality->getName());
+            if (!isset($uniqueMunicipalities[$lowerName])) {
+                $uniqueMunicipalities[$lowerName] = $municipality;
+            }
+        }
+
+        // Convertir en tableau simple et trier par nom
+        $municipalities = array_values($uniqueMunicipalities);
+        usort($municipalities, function($a, $b) {
+            return strcasecmp($a->getName(), $b->getName());
+        });
 
         $formattedEquipments = [];
         foreach ($equipments as $equipment) {

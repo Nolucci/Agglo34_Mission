@@ -86,9 +86,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const filesArray = Array.from(files);
 
         filesArray.forEach(file => {
-            if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx')) {
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.csv') || fileName.endsWith('.xlsx')) {
+                console.log(`Fichier accepté: ${file.name} (${file.type})`);
+                // Ajouter un attribut pour identifier le type de fichier
+                file.isCSV = fileName.endsWith('.csv');
+                file.isXLSX = fileName.endsWith('.xlsx');
                 selectedFiles.push(file);
             } else {
+                console.log(`Fichier rejeté: ${file.name} (${file.type})`);
                 //Show alert
                 showModal("Error", "Seuls les fichiers CSV et XLSX sont autorisés.");
             }
@@ -110,6 +116,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             //Show Modal use jQuery if bootstrap version is < 5.0
             $(modal).modal('show');
+
+            // Ajouter un gestionnaire d'événements pour le bouton Confirmer
+            const confirmButton = modal.querySelector('.btn-primary');
+            if (confirmButton) {
+                // Supprimer les gestionnaires d'événements existants pour éviter les doublons
+                confirmButton.replaceWith(confirmButton.cloneNode(true));
+                const newConfirmButton = modal.querySelector('.btn-primary');
+
+                newConfirmButton.addEventListener('click', function() {
+                    $(modal).modal('hide');
+                });
+            }
         }
         else
             console.error("Modal with id staticModal wasn't found");
@@ -184,36 +202,95 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadButton.addEventListener('click', uploadFiles);
 
     function uploadFiles() {
-        if (selectedFiles.length === 0) {
-            alert("Aucun fichier sélectionné pour le téléchargement.");
-            return;
+        debugger; // Ajout d'un point de débogage ici
+            if (selectedFiles.length === 0) {
+                showModal("Erreur", "Aucun fichier sélectionné pour le téléchargement.");
+                return;
+            }
+
+        // Variable pour suivre les requêtes en cours
+        let pendingRequests = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let allMessages = [];
+
+        // Fonction pour finaliser après toutes les requêtes
+        function finalize() {
+            if (pendingRequests === 0) {
+                // Toutes les requêtes sont terminées
+                let finalMessage = "";
+
+                if (successCount > 0) {
+                    finalMessage += `${successCount} fichier(s) traité(s) avec succès. `;
+                }
+
+                if (errorCount > 0) {
+                    finalMessage += `${errorCount} fichier(s) ont rencontré des erreurs. `;
+                }
+
+                if (allMessages.length > 0) {
+                    finalMessage += "\n\nDétails:\n" + allMessages.join("\n");
+                }
+
+                if (finalMessage) {
+                    showModal(successCount > 0 ? "Traitement terminé" : "Erreur", finalMessage);
+                }
+
+                // Réinitialiser la liste des fichiers
+                selectedFiles = [];
+                displayFilePreview();
+                uploadButton.style.display = 'none';
+            }
         }
 
+        // Traiter tous les fichiers sélectionnés
         selectedFiles.forEach(file => {
+            pendingRequests++;
+
+            // Déterminer l'URL en fonction du type de fichier
+            let url = '/uploads';
+            if (file.isCSV || file.isXLSX) {
+                url = '/equipment/import-csv';
+            }
+
             const formData = new FormData();
             formData.append('file', file);
+            console.log(`Ajout du fichier à la requête: ${file.name}, taille: ${file.size}, URL: ${url}`);
 
-            fetch('/uploads', {
+            console.log(`Envoi du fichier ${file.name} à ${url}`);
+            fetch(url, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        console.log(`Fichier ${data.name} uploadé avec succès à ${data.path}`);
-                        // Tu peux ici afficher un message à l'utilisateur, ou ajouter une ligne dans ton tableau
-                    } else {
-                        showModal("Erreur", data.message || "Erreur inconnue lors de l'envoi.");
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur lors de l’envoi du fichier :', error);
-                    showModal("Erreur", "Erreur réseau ou serveur lors de l'envoi.");
-                });
+            .then(response => {
+                console.log(`Réponse du serveur pour ${file.name}: status ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                console.log(`Données reçues du serveur pour ${file.name}:`, data);
+                if (data.status === 'success') {
+                    successCount++;
+                    allMessages.push(`Fichier ${file.name} traité avec succès.`);
+                    console.log(`Succès: ${file.name} traité`);
+                } else {
+                    errorCount++;
+                    allMessages.push(`Erreur pour ${file.name}: ${data.message || "Erreur inconnue."}`);
+                    console.error(`Erreur: ${file.name} - ${data.message || "Erreur inconnue."}`);
+                }
+            })
+            .catch(error => {
+                errorCount++;
+                console.error(`Erreur lors de l'envoi du fichier ${file.name}:`, error);
+                allMessages.push(`Erreur réseau ou serveur lors de l'envoi de ${file.name}.`);
+            })
+            .finally(() => {
+                pendingRequests--;
+                finalize();
+            });
         });
-        selectedFiles = [];
-        displayFilePreview();
-        uploadButton.style.display = 'none';
     }
 
     // Formater la taille des fichiers

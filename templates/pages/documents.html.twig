@@ -62,7 +62,6 @@
                                     <input type="file" id="file-input" multiple style="display: none;">
                                 </div>
                                 <ul id="file-list"></ul>
-                                <!-- Ajoutez ce bouton -->
                                 <button id="upload-button" class="btn btn-primary mb-3" style="display: none;">Télécharger les fichiers</button>
                                 <table id="file-info-table" style="display: none;">
                                     <thead>
@@ -93,7 +92,7 @@
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                                                <button type="button" class="btn btn-primary">Confirmer</button>
+                                                <button type="button" class="btn btn-primary" data-dismiss="modal">Confirmer</button>
                                             </div>
                                         </div>
                                     </div>
@@ -108,5 +107,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/file-upload.js') }}"></script>
+    {# <script src="{{ asset('js/file-upload.js') }}"></script> #}
 {% endblock %}

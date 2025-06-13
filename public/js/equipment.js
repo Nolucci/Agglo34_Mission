@@ -238,4 +238,35 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('parkModalLabel').textContent = 'Ajouter un Équipement Informatique';
         }
     });
+
+    // Gestionnaire pour le bouton de confirmation de suppression de tous les équipements
+    const confirmDeleteAllEquipmentsBtn = document.getElementById('confirm-delete-all-equipments-btn');
+    if (confirmDeleteAllEquipmentsBtn) {
+        confirmDeleteAllEquipmentsBtn.addEventListener('click', function() {
+            console.log("Clic sur le bouton de confirmation de suppression de tous les équipements");
+
+            fetch('/equipment/delete-all', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Tous les équipements supprimés avec succès");
+                    // Fermer le modal
+                    $('#deleteAllEquipmentsModal').modal('hide');
+                    // Recharger la page
+                    window.location.reload();
+                } else {
+                    alert('Erreur: ' + (data.message || 'Une erreur est survenue lors de la suppression de tous les équipements'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de la suppression de tous les équipements');
+            });
+        });
+    }
 });

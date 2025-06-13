@@ -96,11 +96,14 @@
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Liste des Lignes Téléphoniques</strong>
-                                    <button class="btn btn-sm btn-success float-right mr-2" data-toggle="modal" data-target="#linesModal">
-                                        <i class="fa fa-plus"></i> Ajouter
+                                    <button class="btn btn-sm btn-danger float-right ml-2" id="delete-all-lines-btn" data-toggle="modal" data-target="#deleteAllModal">
+                                        <i class="fa fa-trash"></i> Supprimer tout
                                     </button>
-                                    <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#lignesFiltersModal">
+                                    <button class="btn btn-sm btn-primary float-right ml-2" data-toggle="modal" data-target="#lignesFiltersModal">
                                         <i class="fa fa-filter"></i> Filtres
+                                    </button>
+                                    <button class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#linesModal">
+                                        <i class="fa fa-plus"></i> Ajouter
                                     </button>
                                 </div>
                                 <div class="card-body" style="height: auto;">{# Adjusted height for table #}
@@ -124,38 +127,18 @@
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                {% for line in phoneLines %}
-                                                <tr>
-                                                    <td>{{ line.directLine is not empty ? line.directLine : 'Non défini' }}</td>
-                                                    <td>{{ line.shortNumber is not empty ? line.shortNumber : 'Non défini' }}</td>
-                                                    <td>{{ line.municipality is not empty and line.municipality.name is defined ? line.municipality.name : 'Non défini' }}</td>
-                                                    <td>{{ line.location is not empty ? line.location : 'Non défini' }}</td>
-                                                    <td>{{ line.service is not empty ? line.service : 'Non défini' }}</td>
-                                                    <td>{{ line.assignedTo is not empty ? line.assignedTo : 'Non défini' }}</td>
-                                                    <td>{{ line.operator is not empty ? line.operator : 'Non défini' }}</td>
-                                                    <td>{{ line.lineType is not empty ? line.lineType : 'Non défini' }}</td>
-                                                    <td>
-                                                        {% if line.isWorking %}
-                                                            <span class="badge badge-success">Fonctionne</span>
-                                                        {% else %}
-                                                            <span class="badge badge-danger">Ne fonctionne pas</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        <div class="btn-group">
-                                                            <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine({{ line.id }})">
-                                                                <i class="fa fa-edit"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-danger delete-btn" data-id="{{ line.id }}" data-type="phone_line" onclick="openDeleteModal({{ line.id }}, 'phone_line')">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
+                                            <tbody id="phone-lines-tbody">
+                                                <!-- Les données seront chargées via JavaScript -->
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <!-- Pagination intégrée dans le tableau -->
+                                    <div class="mt-3">
+                                        <nav aria-label="Pagination des lignes téléphoniques">
+                                            <ul class="pagination justify-content-center" id="phone-lines-pagination">
+                                                <!-- La pagination sera générée par JavaScript -->
+                                            </ul>
+                                        </nav>
                                     </div>
                                 </div>
                             </div>
@@ -170,7 +153,29 @@
 </div>
 
 {% import './infos/_macros.html.twig' as macros %}
-{{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cet ligne ?') }}
+{{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cette ligne ?') }}
+
+<!-- Modal pour confirmer la suppression de toutes les lignes -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1" role="dialog" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAllModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Voulez-vous vraiment supprimer <strong>toutes</strong> les lignes téléphoniques ? Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-all-lines-btn">Supprimer tout</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}
 
@@ -249,8 +254,95 @@
                   });
           }
       });
-      const allPhoneLines = {{ phoneLines | json_encode | raw }};
-      let displayedPhoneLines = [...allPhoneLines];
+      let allPhoneLines = [];
+      let displayedPhoneLines = [];
+      let currentPage = 1;
+      let totalPages = 1;
+      let itemsPerPage = 50;
+      let totalItems = 0;
+
+      // Charger les données des lignes téléphoniques avec pagination
+      function loadPhoneLines(page = 1) {
+          fetch(`/api/phone-line/list?page=${page}&limit=${itemsPerPage}`)
+              .then(response => response.json())
+              .then(data => {
+                  allPhoneLines = data.data;
+                  displayedPhoneLines = [...allPhoneLines];
+                  totalItems = data.total;
+                  totalPages = data.totalPages;
+                  currentPage = data.page;
+
+                  renderLinesTable(displayedPhoneLines);
+                  renderPagination();
+              })
+              .catch(error => {
+                  console.error('Erreur lors du chargement des lignes téléphoniques:', error);
+              });
+      }
+
+      // Générer la pagination
+      function renderPagination() {
+          const paginationElement = document.getElementById('phone-lines-pagination');
+          if (!paginationElement) return;
+
+          paginationElement.innerHTML = '';
+
+          // Bouton précédent
+          const prevLi = document.createElement('li');
+          prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+          const prevLink = document.createElement('a');
+          prevLink.className = 'page-link';
+          prevLink.href = '#';
+          prevLink.textContent = 'Précédent';
+          prevLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              if (currentPage > 1) {
+                  loadPhoneLines(currentPage - 1);
+              }
+          });
+          prevLi.appendChild(prevLink);
+          paginationElement.appendChild(prevLi);
+
+          // Pages numérotées
+          const maxPagesToShow = 5;
+          let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+          let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+          if (endPage - startPage + 1 < maxPagesToShow) {
+              startPage = Math.max(1, endPage - maxPagesToShow + 1);
+          }
+
+          for (let i = startPage; i <= endPage; i++) {
+              const pageLi = document.createElement('li');
+              pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+              const pageLink = document.createElement('a');
+              pageLink.className = 'page-link';
+              pageLink.href = '#';
+              pageLink.textContent = i;
+              pageLink.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  loadPhoneLines(i);
+              });
+              pageLi.appendChild(pageLink);
+              paginationElement.appendChild(pageLi);
+          }
+
+          // Bouton suivant
+          const nextLi = document.createElement('li');
+          nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+          const nextLink = document.createElement('a');
+          nextLink.className = 'page-link';
+          nextLink.href = '#';
+          nextLink.textContent = 'Suivant';
+          nextLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              if (currentPage < totalPages) {
+                  loadPhoneLines(currentPage + 1);
+              }
+          });
+          nextLi.appendChild(nextLink);
+          paginationElement.appendChild(nextLi);
+      }
 
         // Sales Chart
         var ctxSales = document.getElementById("sales-chart");
@@ -497,6 +589,38 @@
     </script>
     <!-- Fonction pour ouvrir le modal de suppression -->
     <script>
+        // Charger les lignes téléphoniques au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPhoneLines();
+
+            // Gestionnaire pour le bouton de suppression de toutes les lignes
+            const deleteAllBtn = document.getElementById('confirm-delete-all-lines-btn');
+            if (deleteAllBtn) {
+                deleteAllBtn.addEventListener('click', function() {
+                    fetch('/api/phone-line/delete-all', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            $('#deleteAllModal').modal('hide');
+                            alert(data.message);
+                            window.location.reload();
+                        } else {
+                            alert('Erreur: ' + (data.error || 'Une erreur est survenue lors de la suppression'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('Une erreur est survenue lors de la suppression');
+                    });
+                });
+            }
+        });
+
         function openDeleteModal(id, type) {
             console.log("Ouverture du modal de suppression pour", type, "avec ID", id);
 

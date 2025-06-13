@@ -16,6 +16,40 @@ class MunicipalityRepository extends ServiceEntityRepository
         parent::__construct($registry, Municipality::class);
     }
 
+    /**
+     * Recherche une commune par son nom de manière flexible
+     *
+     * @param string $name Le nom de la commune à rechercher
+     * @return Municipality|null La commune trouvée ou null
+     */
+    public function findByNameFlexible(string $name): ?Municipality
+    {
+        // D'abord, essayer une recherche exacte
+        $municipality = $this->findOneBy(['name' => $name]);
+        if ($municipality) {
+            return $municipality;
+        }
+
+        // Ensuite, essayer une recherche insensible à la casse
+        $municipality = $this->createQueryBuilder('m')
+            ->where('LOWER(m.name) = LOWER(:name)')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+        if ($municipality) {
+            return $municipality;
+        }
+
+        // Enfin, essayer une recherche partielle
+        return $this->createQueryBuilder('m')
+            ->where('LOWER(m.name) LIKE LOWER(:name)')
+            ->orWhere('LOWER(:name) LIKE LOWER(CONCAT(m.name, \'%\'))')
+            ->orWhere('LOWER(:name) LIKE LOWER(CONCAT(\'%\', m.name))')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Municipality[] Returns an array of Municipality objects
     //     */

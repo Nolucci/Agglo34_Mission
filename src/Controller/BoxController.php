@@ -29,6 +29,84 @@ class BoxController extends AbstractController
         $this->municipalityRepository = $municipalityRepository;
     }
 
+    #[Route('/api/box/delete-all', name: 'api_box_delete_all', methods: ['DELETE'])]
+    public function deleteAll(): JsonResponse
+    {
+        $boxes = $this->boxRepository->findAll();
+        $count = count($boxes);
+
+        foreach ($boxes as $box) {
+            $archive = new \App\Entity\Archive();
+            $archive->setEntityType('Box');
+            $archive->setEntityId($box->getId());
+            $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
+            $archive->setData([
+                'commune_id' => $box->getCommune() ? $box->getCommune()->getId() : null,
+                'commune_name' => $box->getCommune() ? $box->getCommune()->getName() : null,
+                'service' => $box->getService(),
+                'adresse' => $box->getAdresse(),
+                'ligneSupport' => $box->getLigneSupport(),
+                'type' => $box->getType(),
+                'attribueA' => $box->getAttribueA(),
+                'statut' => $box->getStatut(),
+            ]);
+
+            $this->entityManager->persist($archive);
+
+            $log = new \App\Entity\Log();
+            $log->setAction('DELETE');
+            $log->setEntityType('Box');
+            $log->setEntityId($box->getId());
+            $log->setDetails('Suppression de la box (suppression en masse): ' . $box->getId());
+            $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+            $log->setCreatedAt(new \DateTimeImmutable());
+
+            $this->entityManager->persist($log);
+
+            $this->entityManager->remove($box);
+        }
+
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => $count . ' boxs supprimées et archivées avec succès.'
+        ], JsonResponse::HTTP_OK);
+    }
+
+    #[Route('/api/box/list', name: 'api_box_list', methods: ['GET'])]
+    public function apiList(Request $request): JsonResponse
+    {
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 50);
+        $offset = ($page - 1) * $limit;
+
+        $totalBoxes = $this->boxRepository->count([]);
+        $boxes = $this->boxRepository->findBy([], null, $limit, $offset);
+
+        $boxData = [];
+        foreach ($boxes as $box) {
+            $boxData[] = [
+                'id' => $box->getId(),
+                'commune' => $box->getCommune() ? $box->getCommune()->getName() : 'Non défini',
+                'service' => $box->getService(),
+                'adresse' => $box->getAdresse(),
+                'ligne_support' => $box->getLigneSupport() ? ($box->getLigneSupport()) : 'Non défini',
+                'type' => $box->getType(),
+                'attribueA' => $box->getAttribueA(),
+                'statut' => $box->getStatut(),
+            ];
+        }
+
+        return new JsonResponse([
+            'boxes' => $boxData,
+            'total' => $totalBoxes,
+            'page' => $page,
+            'limit' => $limit,
+            'totalPages' => ceil($totalBoxes / $limit)
+        ]);
+    }
+
     #[Route('/box/{id}', name: 'box_index')]
     public function index(int $id, MunicipalityRepository $municipalityRepository, PhoneLineRepository $phoneLineRepository): Response
     {
@@ -58,10 +136,32 @@ class BoxController extends AbstractController
     }
 
     #[Route('/box', name: 'box_list')]
-    public function list(MunicipalityRepository $municipalityRepository): Response
+    public function list(MunicipalityRepository $municipalityRepository, Request $request): Response
     {
-        $boxes = $this->boxRepository->findAll();
-        $municipalities = $municipalityRepository->findAll();
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 50);
+        $offset = ($page - 1) * $limit;
+
+        $totalBoxes = $this->boxRepository->count([]);
+        $boxes = $this->boxRepository->findBy([], null, $limit, $offset);
+
+        // Récupérer toutes les communes
+        $allMunicipalities = $municipalityRepository->findAll();
+
+        // Créer un tableau associatif pour éliminer les doublons par nom (insensible à la casse)
+        $uniqueMunicipalitiesByName = [];
+        foreach ($allMunicipalities as $municipality) {
+            $lowerName = strtolower($municipality->getName());
+            if (!isset($uniqueMunicipalitiesByName[$lowerName])) {
+                $uniqueMunicipalitiesByName[$lowerName] = $municipality;
+            }
+        }
+
+        // Convertir en tableau simple et trier par nom
+        $municipalities = array_values($uniqueMunicipalitiesByName);
+        usort($municipalities, function($a, $b) {
+            return strcasecmp($a->getName(), $b->getName());
+        });
 
         $totalBoxes = count($boxes);
         $activeBoxes = count(array_filter($boxes, function(Box $box) {

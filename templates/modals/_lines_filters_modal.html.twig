@@ -18,13 +18,13 @@
                                 <label for="operatorFilter">Opérateur</label>
                                 <select class="form-control" id="operatorFilter" name="operator">
                                     <option value="">Tous les opérateurs</option>
-                                    {% set operators = [] %}
+                                    {% set operators = {} %}
                                     {% for line in phoneLines %}
-                                        {% if line.operator is not null and not (line.operator in operators) %}
-                                            {% set operators = operators|merge([line.operator]) %}
+                                        {% if line.operator is not null and line.operator|lower not in operators|keys %}
+                                            {% set operators = operators|merge({(line.operator|lower): line.operator}) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for operator in operators|sort %}
+                                    {% for key, operator in operators|sort %}
                                         <option value="{{ operator }}">{{ operator }}</option>
                                     {% endfor %}
                                 </select>
@@ -35,13 +35,13 @@
                                 <label for="lineTypeFilter">Type de Ligne</label>
                                 <select class="form-control" id="lineTypeFilter" name="lineType">
                                     <option value="">Tous les types</option>
-                                    {% set lineTypes = [] %}
+                                    {% set lineTypes = {} %}
                                     {% for line in phoneLines %}
-                                        {% if line.lineType is not null and not (line.lineType in lineTypes) %}
-                                            {% set lineTypes = lineTypes|merge([line.lineType]) %}
+                                        {% if line.lineType is not null and line.lineType|lower not in lineTypes|keys %}
+                                            {% set lineTypes = lineTypes|merge({(line.lineType|lower): line.lineType}) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for type in lineTypes|sort %}
+                                    {% for key, type in lineTypes|sort %}
                                         <option value="{{ type }}">{{ type }}</option>
                                     {% endfor %}
                                 </select>
@@ -54,13 +54,13 @@
                                 <label for="serviceFilter">Service</label>
                                 <select class="form-control" id="serviceFilter" name="service">
                                     <option value="">Tous les services</option>
-                                    {% set services = [] %}
+                                    {% set services = {} %}
                                     {% for line in phoneLines %}
-                                        {% if line.service is not null and not (line.service in services) %}
-                                            {% set services = services|merge([line.service]) %}
+                                        {% if line.service is not null and line.service|lower not in services|keys %}
+                                            {% set services = services|merge({(line.service|lower): line.service}) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for service in services|sort %}
+                                    {% for key, service in services|sort %}
                                         <option value="{{ service }}">{{ service }}</option>
                                     {% endfor %}
                                 </select>
@@ -79,7 +79,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="statusFilter">Statut</label>
                                 <select class="form-control" id="statusFilter" name="isWorking">
@@ -87,6 +87,48 @@
                                     <option value="1">Fonctionne</option>
                                     <option value="0">Ne fonctionne pas</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="locationFilter">Localisation</label>
+                                <input type="text" class="form-control" id="locationFilter" name="location" placeholder="Filtrer par localisation">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="assignedToFilter">Attribué à</label>
+                                <input type="text" class="form-control" id="assignedToFilter" name="assignedTo" placeholder="Filtrer par attribution">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phoneBrandFilter">Marque du téléphone</label>
+                                <input type="text" class="form-control" id="phoneBrandFilter" name="phoneBrand" placeholder="Filtrer par marque">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="modelFilter">Modèle</label>
+                                <input type="text" class="form-control" id="modelFilter" name="model" placeholder="Filtrer par modèle">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="directLineFilter">Ligne directe</label>
+                                <input type="text" class="form-control" id="directLineFilter" name="directLine" placeholder="Filtrer par ligne directe">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="shortNumberFilter">Numéro court</label>
+                                <input type="text" class="form-control" id="shortNumberFilter" name="shortNumber" placeholder="Filtrer par numéro court">
                             </div>
                         </div>
                     </div>
