@@ -2,6 +2,36 @@
 
 {% block title %}Archives{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .action-buttons {
+        white-space: nowrap;
+    }
+    .loading-spinner {
+        text-align: center;
+        padding: 20px;
+        display: none;
+    }
+    .no-archives {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #6c757d;
+    }
+    .json-data {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .json-data:hover {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="page-wrapper">
     <div class="page-container">
@@ -12,9 +42,14 @@
                         <div class="col-md-12">
                             <div class="overview-wrap">
                                 <h2 class="title-1">Archives</h2>
-                                <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#archivesFiltersModal">
-                                    <i class="fa fa-filter"></i> Filtres
-                                </button>
+                                <div class="float-right">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#archivesFiltersModal">
+                                        <i class="fa fa-filter"></i> Filtres
+                                    </button>
+                                    <button class="btn btn-sm btn-danger mr-2" id="delete-all-archives">
+                                        <i class="fa fa-trash"></i> Tout supprimer
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -28,19 +63,25 @@
                                             <th>ID Entité</th>
                                             <th>Date d'Archivage</th>
                                             <th>Données Archivées</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {% for archive in archives %}
-                                            <tr>
-                                                <td>{{ archive.entityType }}</td>
-                                                <td>{{ archive.entityId }}</td>
-                                                <td>{{ archive.archivedAt|date('Y-m-d H:i:s') }}</td>
-                                                <td>{{ archive.data|json_encode }}</td>
-                                            </tr>
-                                        {% endfor %}
+                                    <tbody id="archives-table-body">
+                                        <!-- Les archives seront chargées ici via JavaScript -->
                                     </tbody>
                                 </table>
+                                <div id="loading-spinner" class="loading-spinner">
+                                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                                    <p>Chargement des archives...</p>
+                                </div>
+                                <div id="no-archives" class="no-archives" style="display: none;">
+                                    <p>Aucune archive trouvée.</p>
+                                </div>
+                                <div id="load-more-container" class="text-center m-t-20" style="display: none;">
+                                    <button id="load-more-btn" class="btn btn-outline-primary">
+                                        <i class="fa fa-refresh"></i> Charger plus
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -50,4 +91,242 @@
     </div>
 </div>
 {% include './modals/_archives_filters_modal.html.twig' %}
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteAllConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteAllConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAllConfirmModalLabel">Confirmation de suppression</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer définitivement toutes les archives ?</p>
+                <p class="text-danger"><strong>Attention :</strong> Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-all">Supprimer définitivement</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de restauration -->
+<div class="modal fade" id="restoreConfirmModal" tabindex="-1" role="dialog" aria-labelledby="restoreConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="restoreConfirmModalLabel">Confirmation de restauration</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir restaurer cette archive ?</p>
+                <p>L'élément sera recréé dans sa table d'origine et supprimé des archives.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" id="confirm-restore">Restaurer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentPage = 1;
+    let hasMoreArchives = false;
+    let isLoading = false;
+    let archiveToRestore = null;
+
+    // Fonction pour charger les archives
+    function loadArchives(page = 1, append = false) {
+        if (isLoading) return;
+
+        isLoading = true;
+
+        // Afficher le spinner de chargement
+        if (!append) {
+            document.getElementById('archives-table-body').innerHTML = '';
+            document.getElementById('no-archives').style.display = 'none';
+        }
+        document.getElementById('loading-spinner').style.display = 'block';
+        document.getElementById('load-more-container').style.display = 'none';
+
+        // Récupérer les filtres actuels
+        const urlParams = new URLSearchParams(window.location.search);
+        const entityType = urlParams.get('entityType') || '';
+        const startDate = urlParams.get('startDate') || '';
+        const endDate = urlParams.get('endDate') || '';
+
+        // Construire l'URL avec les paramètres
+        let url = `{{ path('app_archive_load') }}?page=${page}`;
+        if (entityType) url += `&entityType=${entityType}`;
+        if (startDate) url += `&startDate=${startDate}`;
+        if (endDate) url += `&endDate=${endDate}`;
+
+        // Effectuer la requête AJAX
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                isLoading = false;
+                document.getElementById('loading-spinner').style.display = 'none';
+
+                if (data.archives.length === 0 && !append) {
+                    document.getElementById('no-archives').style.display = 'block';
+                    return;
+                }
+
+                // Mettre à jour les variables de pagination
+                currentPage = page;
+                hasMoreArchives = data.hasMore;
+
+                // Afficher les archives
+                const tableBody = document.getElementById('archives-table-body');
+
+                data.archives.forEach(archive => {
+                    const row = document.createElement('tr');
+
+                    // Créer les cellules
+                    row.innerHTML = `
+                        <td>${archive.entityType}</td>
+                        <td>${archive.entityId}</td>
+                        <td>${archive.archivedAt}</td>
+                        <td class="json-data">${JSON.stringify(archive.data)}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-sm btn-success restore-archive" data-id="${archive.id}">
+                                <i class="fa fa-undo"></i> Récupérer
+                            </button>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+
+                // Afficher ou masquer le bouton "Charger plus"
+                document.getElementById('load-more-container').style.display = hasMoreArchives ? 'block' : 'none';
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des archives:', error);
+                isLoading = false;
+                document.getElementById('loading-spinner').style.display = 'none';
+
+                // Afficher un message d'erreur
+                if (!append) {
+                    document.getElementById('archives-table-body').innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-danger">
+                                Une erreur est survenue lors du chargement des archives.
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+    }
+
+    // Charger les archives au chargement de la page
+    loadArchives();
+
+    // Gérer le clic sur le bouton "Charger plus"
+    document.getElementById('load-more-btn').addEventListener('click', function() {
+        if (hasMoreArchives && !isLoading) {
+            loadArchives(currentPage + 1, true);
+        }
+    });
+
+    // Gérer le clic sur le bouton "Tout supprimer"
+    document.getElementById('delete-all-archives').addEventListener('click', function() {
+        $('#deleteAllConfirmModal').modal('show');
+    });
+
+    // Gérer la confirmation de suppression de toutes les archives
+    document.getElementById('confirm-delete-all').addEventListener('click', function() {
+        // Fermer le modal de confirmation
+        $('#deleteAllConfirmModal').modal('hide');
+
+        // Effectuer la requête AJAX pour supprimer toutes les archives
+        fetch('{{ path('app_archive_delete_all') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Afficher un message de succès
+                alert(data.message);
+
+                // Recharger les archives
+                loadArchives();
+            } else {
+                // Afficher un message d'erreur
+                alert(data.message || 'Une erreur est survenue lors de la suppression des archives.');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la suppression des archives:', error);
+            alert('Une erreur est survenue lors de la suppression des archives.');
+        });
+    });
+
+    // Gérer le clic sur les boutons "Récupérer"
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('restore-archive') ||
+            (event.target.parentElement && event.target.parentElement.classList.contains('restore-archive'))) {
+
+            const button = event.target.classList.contains('restore-archive') ?
+                event.target : event.target.parentElement;
+
+            archiveToRestore = button.dataset.id;
+            $('#restoreConfirmModal').modal('show');
+        }
+    });
+
+    // Gérer la confirmation de restauration d'une archive
+    document.getElementById('confirm-restore').addEventListener('click', function() {
+        if (!archiveToRestore) return;
+
+        // Fermer le modal de confirmation
+        $('#restoreConfirmModal').modal('hide');
+
+        // Effectuer la requête AJAX pour restaurer l'archive
+        fetch(`{{ path('app_archive_restore', {'id': 'ARCHIVE_ID'}) }}`.replace('ARCHIVE_ID', archiveToRestore), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Afficher un message de succès
+                alert(data.message);
+
+                // Recharger les archives
+                loadArchives();
+            } else {
+                // Afficher un message d'erreur
+                alert(data.message || 'Une erreur est survenue lors de la restauration de l\'archive.');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la restauration de l\'archive:', error);
+            alert('Une erreur est survenue lors de la restauration de l\'archive.');
+        });
+
+        // Réinitialiser l'ID de l'archive à restaurer
+        archiveToRestore = null;
+    });
+});
+</script>
 {% endblock %}
