@@ -52,4 +52,31 @@ class EquipmentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Compte le nombre d'équipements pour une commune donnée
+     */
+    public function countByMunicipality(int $municipalityId): int
+    {
+        return $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.commune = :municipalityId')
+            ->setParameter('municipalityId', $municipalityId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Trouve les différentes versions d'équipements pour une commune donnée
+     */
+    public function findDistinctVersionsByMunicipality(int $municipalityId): array
+    {
+        return $this->createQueryBuilder('e')
+            ->select('DISTINCT e.version as version')
+            ->where('e.commune = :municipalityId')
+            ->andWhere('e.version IS NOT NULL')
+            ->setParameter('municipalityId', $municipalityId)
+            ->getQuery()
+            ->getResult();
+    }
 }

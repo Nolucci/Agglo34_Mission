@@ -20,7 +20,7 @@
         color: #6c757d;
     }
     .json-data {
-        max-width: 300px;
+        max-width: 250px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -28,6 +28,16 @@
     .json-data:hover {
         white-space: normal;
         word-wrap: break-word;
+    }
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .btn-group .btn {
+        margin-right: 3px;
     }
 </style>
 {% endblock %}
@@ -39,48 +49,52 @@
             <div class="section__content section__content--p30">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-md-12">
-                            <div class="overview-wrap">
-                                <h2 class="title-1">Archives</h2>
-                                <div class="float-right">
-                                    <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#archivesFiltersModal">
-                                        <i class="fa fa-filter"></i> Filtres
-                                    </button>
-                                    <button class="btn btn-sm btn-danger mr-2" id="delete-all-archives">
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong class="card-title">Liste des Archives</strong>
+                                    <button class="btn btn-sm btn-danger float-right ml-2" id="delete-all-archives">
                                         <i class="fa fa-trash"></i> Tout supprimer
                                     </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row m-t-25">
-                        <div class="col-md-12">
-                            <div class="table-responsive table--no-card m-b-40">
-                                <table class="table table-borderless table-striped table-earning">
-                                    <thead>
-                                        <tr>
-                                            <th>Type d'Entité</th>
-                                            <th>ID Entité</th>
-                                            <th>Date d'Archivage</th>
-                                            <th>Données Archivées</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="archives-table-body">
-                                        <!-- Les archives seront chargées ici via JavaScript -->
-                                    </tbody>
-                                </table>
-                                <div id="loading-spinner" class="loading-spinner">
-                                    <i class="fa fa-spinner fa-spin fa-2x"></i>
-                                    <p>Chargement des archives...</p>
-                                </div>
-                                <div id="no-archives" class="no-archives" style="display: none;">
-                                    <p>Aucune archive trouvée.</p>
-                                </div>
-                                <div id="load-more-container" class="text-center m-t-20" style="display: none;">
-                                    <button id="load-more-btn" class="btn btn-outline-primary">
-                                        <i class="fa fa-refresh"></i> Charger plus
+                                    <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#archivesFiltersModal">
+                                        <i class="fa fa-filter"></i> Filtres
                                     </button>
+                                </div>
+                                <div class="card-body" style="height: auto;">
+                                    <div class="form-group">
+                                        <label for="searchInput">Rechercher par attribut:</label>
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Entrez un terme de recherche">
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th width="15%">Type d'Entité</th>
+                                                    <th width="10%">ID Entité</th>
+                                                    <th width="15%">Date d'Archivage</th>
+                                                    <th width="45%">Données Archivées</th>
+                                                    <th width="15%">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="archives-table-body">
+                                                <!-- Les archives seront chargées ici via JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="loading-spinner" class="loading-spinner">
+                                        <i class="fa fa-spinner fa-spin fa-2x"></i>
+                                        <p>Chargement des archives...</p>
+                                    </div>
+                                    <div id="no-archives" class="no-archives" style="display: none;">
+                                        <p>Aucune archive trouvée.</p>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div id="load-more-container" class="text-center" style="display: none;">
+                                            <button id="load-more-btn" class="btn btn-outline-primary">
+                                                <i class="fa fa-refresh"></i> Charger plus
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -145,6 +159,77 @@ document.addEventListener('DOMContentLoaded', function() {
     let hasMoreArchives = false;
     let isLoading = false;
     let archiveToRestore = null;
+    let allArchives = [];
+    let displayedArchives = [];
+
+    // Fonction pour filtrer les archives par recherche
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+
+        if (searchTerm.length === 0) {
+            // Si le champ de recherche est vide, afficher toutes les archives
+            displayedArchives = [...allArchives];
+        } else {
+            // Sinon, filtrer les archives
+            displayedArchives = allArchives.filter(archive => {
+                // Rechercher dans le type d'entité
+                if (archive.entityType.toLowerCase().includes(searchTerm)) return true;
+
+                // Rechercher dans l'ID d'entité
+                if (archive.entityId.toString().includes(searchTerm)) return true;
+
+                // Rechercher dans la date d'archivage
+                if (archive.archivedAt.toLowerCase().includes(searchTerm)) return true;
+
+                // Rechercher dans les données archivées (convertir en chaîne JSON)
+                const dataString = JSON.stringify(archive.data).toLowerCase();
+                if (dataString.includes(searchTerm)) return true;
+
+                return false;
+            });
+        }
+
+        // Mettre à jour l'affichage
+        renderArchivesTable(displayedArchives);
+    });
+
+    // Fonction pour afficher les archives dans le tableau
+    function renderArchivesTable(archives) {
+        const tableBody = document.getElementById('archives-table-body');
+        tableBody.innerHTML = '';
+
+        if (archives.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center">
+                        <i class="fa fa-info-circle"></i> Aucune archive ne correspond à votre recherche.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        archives.forEach(archive => {
+            const row = document.createElement('tr');
+
+            // Créer les cellules
+            row.innerHTML = `
+                <td>${archive.entityType}</td>
+                <td>${archive.entityId}</td>
+                <td>${archive.archivedAt}</td>
+                <td class="json-data">${JSON.stringify(archive.data)}</td>
+                <td class="action-buttons">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success restore-archive" data-id="${archive.id}" title="Récupérer cette archive">
+                            <i class="fa fa-undo"></i> Récupérer
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+    }
 
     // Fonction pour charger les archives
     function loadArchives(page = 1, append = false) {
@@ -188,27 +273,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentPage = page;
                 hasMoreArchives = data.hasMore;
 
+                // Stocker les archives
+                if (append) {
+                    allArchives = [...allArchives, ...data.archives];
+                } else {
+                    allArchives = [...data.archives];
+                }
+
+                displayedArchives = [...allArchives];
+
                 // Afficher les archives
-                const tableBody = document.getElementById('archives-table-body');
-
-                data.archives.forEach(archive => {
-                    const row = document.createElement('tr');
-
-                    // Créer les cellules
-                    row.innerHTML = `
-                        <td>${archive.entityType}</td>
-                        <td>${archive.entityId}</td>
-                        <td>${archive.archivedAt}</td>
-                        <td class="json-data">${JSON.stringify(archive.data)}</td>
-                        <td class="action-buttons">
-                            <button class="btn btn-sm btn-success restore-archive" data-id="${archive.id}">
-                                <i class="fa fa-undo"></i> Récupérer
-                            </button>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(row);
-                });
+                renderArchivesTable(displayedArchives);
 
                 // Afficher ou masquer le bouton "Charger plus"
                 document.getElementById('load-more-container').style.display = hasMoreArchives ? 'block' : 'none';
@@ -223,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('archives-table-body').innerHTML = `
                         <tr>
                             <td colspan="5" class="text-center text-danger">
-                                Une erreur est survenue lors du chargement des archives.
+                                <i class="fa fa-exclamation-triangle"></i> Une erreur est survenue lors du chargement des archives.
                             </td>
                         </tr>
                     `;

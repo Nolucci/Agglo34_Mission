@@ -717,4 +717,44 @@ class EquipmentController extends AbstractController
 
         return strtr($string, $chars);
     }
+
+    #[Route('/statistics/{municipalityId}', name: 'equipment_statistics_by_municipality', methods: ['GET'])]
+    public function getStatisticsByMunicipality(int $municipalityId): JsonResponse
+    {
+        $municipality = $this->municipalityRepository->find($municipalityId);
+
+        if (!$municipality) {
+            return new JsonResponse(['success' => false, 'message' => 'Commune non trouvée'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Nombre d'équipements reliés
+        $equipmentCount = $this->equipmentRepository->countByMunicipality($municipalityId);
+
+        // Nombre d'incidents (panne)
+        // On considère les logs de type 'Equipment' avec action 'INCIDENT' liés aux équipements de cette commune
+        $incidentCount = 0;
+        $equipments = $this->equipmentRepository->findBy(['commune' => $municipalityId]);
+        foreach ($equipments as $equipment) {
+            // Compter les incidents pour chaque équipement
+            // Note: Cette logique peut être adaptée selon la façon dont les incidents sont enregistrés
+            $incidents = $this->entityManager->getRepository(Log::class)->findBy([
+                'entityType' => 'Equipment',
+                'entityId' => $equipment->getId(),
+                'action' => 'INCIDENT'
+            ]);
+            $incidentCount += count($incidents);
+        }
+
+        // Différents types de version des équipements
+        $equipmentVersions = $this->equipmentRepository->findDistinctVersionsByMunicipality($municipalityId);
+        $versions = array_column($equipmentVersions, 'version');
+
+        return new JsonResponse([
+            'success' => true,
+            'municipalityName' => $municipality->getName(),
+            'equipmentCount' => $equipmentCount,
+            'incidentCount' => $incidentCount,
+            'equipmentVersions' => $versions,
+        ]);
+    }
 }

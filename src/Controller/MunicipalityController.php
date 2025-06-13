@@ -36,7 +36,22 @@ class MunicipalityController extends AbstractController
     public function get(int $id): JsonResponse
     {
         $municipality = $this->municipalityRepository->find($id);
-        
+
+        if (!$municipality) {
+            return $this->json(['error' => 'Municipalité non trouvée'], 404);
+        }
+
+        return $this->json([
+            'id' => $municipality->getId(),
+            'name' => $municipality->getName()
+        ]);
+    }
+
+    #[Route('/api/municipalities/find-by-name/{name}', name: 'municipality_find_by_name', methods: ['GET'])]
+    public function findByName(string $name): JsonResponse
+    {
+        $municipality = $this->municipalityRepository->findByNameFlexible($name);
+
         if (!$municipality) {
             return $this->json(['error' => 'Municipalité non trouvée'], 404);
         }

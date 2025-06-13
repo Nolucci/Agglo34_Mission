@@ -1,0 +1,101 @@
+<!-- Modal Filtres Logs -->
+<div class="modal fade" id="logsFiltersModal" tabindex="-1" role="dialog" aria-labelledby="logsFiltersModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logsFiltersModalLabel">
+                    <i class="fa fa-filter"></i> Filtres des Logs
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="logs-filter-form" method="get" action="{{ path('app_logs') }}">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="entityType">Type d'entité</label>
+                                <select class="form-control" id="entityType" name="entityType">
+                                    <option value="">Tous les types</option>
+                                    {% for type in entityTypes %}
+                                        <option value="{{ type }}" {% if filters.entityType == type %}selected{% endif %}>{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="action">Action</label>
+                                <select class="form-control" id="action" name="action">
+                                    <option value="">Toutes les actions</option>
+                                    {% for action in actions %}
+                                        <option value="{{ action }}" {% if filters.action == action %}selected{% endif %}>{{ action }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="username">Utilisateur</label>
+                                <select class="form-control" id="username" name="username">
+                                    <option value="">Tous les utilisateurs</option>
+                                    {% for username in usernames %}
+                                        <option value="{{ username }}" {% if filters.username == username %}selected{% endif %}>{{ username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="startDate">Date de début</label>
+                                <input type="date" id="startDate" name="startDate" class="form-control" value="{{ filters.startDate }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="endDate">Date de fin</label>
+                                <input type="date" id="endDate" name="endDate" class="form-control" value="{{ filters.endDate }}">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="apply-logs-filters">
+                    <i class="fa fa-filter"></i> Appliquer les Filtres
+                </button>
+                <button type="button" class="btn btn-warning" id="reset-logs-filters">
+                    <i class="fa fa-refresh"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('apply-logs-filters');
+    const resetFiltersBtn = document.getElementById('reset-logs-filters');
+    const filtersForm = document.getElementById('logs-filter-form');
+
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            filtersForm.submit();
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            window.location.href = "{{ path('app_logs') }}";
+        });
+    }
+});
+</script>
