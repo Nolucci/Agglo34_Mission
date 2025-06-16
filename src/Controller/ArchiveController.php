@@ -73,7 +73,7 @@ class ArchiveController extends AbstractController
                 'id' => $archive->getId(),
                 'entityType' => $archive->getEntityType(),
                 'entityId' => $archive->getEntityId(),
-                'archivedAt' => $archive->getArchivedAt()->format('Y-m-d H:i:s'),
+                'archivedAt' => $archive->getArchivedAt()->format('c'),
                 'data' => $archive->getData(),
             ];
         }

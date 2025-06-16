@@ -182,6 +182,7 @@
 {% block javascripts %}
   {{ parent() }}
   <script src="{{ asset('js/map.js') }}"></script>
+  <script src="{{ asset('js/search-filter.js') }}"></script>
   <script>
       document.addEventListener('DOMContentLoaded', function() {
           // Initialiser la carte si l'élément existe
@@ -254,8 +255,8 @@
                   });
           }
       });
-      let allPhoneLines = [];
-      let displayedPhoneLines = [];
+      window.allPhoneLines = [];
+      window.displayedPhoneLines = [];
       let currentPage = 1;
       let totalPages = 1;
       let itemsPerPage = 50;
@@ -457,7 +458,7 @@
 
 
         // Fonction pour rendre la table des lignes
-        function renderLinesTable(linesToDisplay) {
+        window.renderLinesTable = function(linesToDisplay) {
             const tbody = document.querySelector('.table tbody');
             tbody.innerHTML = ''; // Clear current table
 

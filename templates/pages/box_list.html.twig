@@ -182,6 +182,7 @@
     {{ parent() }}
     <script src="{{ asset('js/park-map.js') }}"></script>
     <script src="{{ asset('js/box.js') }}"></script>
+    <script src="{{ asset('js/search-filter.js') }}"></script>
     <!-- Charger delete-confirmation.js après les autres scripts pour s'assurer que les fonctions sont définies -->
     <script src="{{ asset('js/delete-confirmation.js') }}" defer></script>
     <script>
@@ -258,8 +259,8 @@
         });
     </script>
     <script>
-        let allBoxes = [];
-        let displayedBoxes = [];
+        window.allBoxes = [];
+        window.displayedBoxes = [];
         let currentPage = 1;
         let totalPages = 1;
         let itemsPerPage = 50;
@@ -463,7 +464,7 @@
 
 
         // Fonction pour rendre la table des box
-        function renderBoxesTable(boxesToDisplay) {
+        window.renderBoxesTable = function(boxesToDisplay) {
             const tbody = document.querySelector('.table tbody'); // Assuming only one table for now
             tbody.innerHTML = ''; // Clear current table
 

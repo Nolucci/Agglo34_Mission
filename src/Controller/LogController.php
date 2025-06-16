@@ -103,7 +103,7 @@ class LogController extends AbstractController
                 'entityId' => $log->getEntityId(),
                 'details' => $log->getDetails(),
                 'username' => $log->getUsername(),
-                'createdAt' => $log->getCreatedAt()->format('Y-m-d H:i:s'),
+                'createdAt' => $log->getCreatedAt()->format('c'),
             ];
         }
 
