@@ -4,30 +4,39 @@
     <meta charset="UTF-8">
     <title>{{ titre }}</title>
     <style>
+        @page {
+            size: portrait;
+            margin: 10mm;
+        }
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 10mm; /* Réduire les marges */
+            font-size: 10px;
         }
         h1 {
             color: #333;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Réduire la marge */
+            font-size: 18px; /* Réduire la taille du titre */
         }
         .info {
             text-align: right;
-            margin-bottom: 20px;
-            font-size: 12px;
+            margin-bottom: 15px; /* Réduire la marge */
+            font-size: 10px; /* Réduire la taille de la police */
             color: #666;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Réduire la marge */
+            table-layout: fixed; /* Fixer la disposition du tableau */
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 5px; /* Réduire le padding */
             text-align: left;
+            word-wrap: break-word; /* Permettre le retour à la ligne */
+            font-size: 9px; /* Réduire la taille de la police dans le tableau */
         }
         th {
             background-color: #f2f2f2;
@@ -62,7 +71,7 @@
     <h1>{{ titre }}</h1>
 
     <div class="info">
-        <p>Date d'export: {{ date_export|date('d/m/Y H:i:s') }}</p>
+        <p>Date d'export: {{ date_export|date('d/m/Y H:i:s', 'Europe/Paris') }}</p>
         <p>Nombre de lignes téléphoniques: {{ phoneLines|length }}</p>
     </div>
 

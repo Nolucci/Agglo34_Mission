@@ -518,7 +518,7 @@ class PhoneLineController extends AbstractController
         // Rendre la vue HTML qui sera convertie en PDF côté client
         return $this->render('exports/phone_lines_pdf.html.twig', [
             'phoneLines' => $phoneLines,
-            'date_export' => new \DateTime(),
+            'date_export' => new \DateTime('now', new \DateTimeZone('Europe/Paris')),
             'titre' => 'Export des lignes téléphoniques'
         ]);
     }

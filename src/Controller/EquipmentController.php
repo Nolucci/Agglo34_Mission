@@ -860,7 +860,7 @@ class EquipmentController extends AbstractController
         // Rendre la vue HTML qui sera convertie en PDF côté client
         return $this->render('exports/equipments_pdf.html.twig', [
             'equipments' => $equipments,
-            'date_export' => new \DateTime(),
+            'date_export' => new \DateTime('now', new \DateTimeZone('Europe/Paris')),
             'titre' => 'Export du parc informatique'
         ]);
     }

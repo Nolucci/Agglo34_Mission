@@ -486,7 +486,7 @@ class BoxController extends AbstractController
         // Rendre la vue HTML qui sera convertie en PDF côté client
         return $this->render('exports/boxes_pdf.html.twig', [
             'boxes' => $boxes,
-            'date_export' => new \DateTime(),
+            'date_export' => new \DateTime('now', new \DateTimeZone('Europe/Paris')),
             'titre' => 'Export des boxs'
         ]);
     }
