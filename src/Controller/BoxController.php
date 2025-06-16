@@ -247,6 +247,11 @@ class BoxController extends AbstractController
         $communeData = $data['commune'] ?? null;
         $municipalityId = null;
 
+        // Vérifier si les champs obligatoires sont présents
+        if (empty($data['service']) || empty($data['adresse']) || empty($communeData)) {
+             return new JsonResponse(['success' => false, 'error' => 'Les champs commune, service et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         if ($communeData !== null && $communeData !== '') {
             // Tenter de valider et convertir en entier
             $municipalityId = filter_var($communeData, FILTER_VALIDATE_INT);
@@ -265,11 +270,8 @@ class BoxController extends AbstractController
             if (!$municipality) {
                 return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
             }
-        }
-
-        // Vérifier si les champs obligatoires sont présents après la validation de la commune
-        if (empty($data['service']) || empty($data['adresse'])) {
-             return new JsonResponse(['success' => false, 'error' => 'Les champs service et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        } else {
+            return new JsonResponse(['success' => false, 'error' => 'La commune est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
 
@@ -327,6 +329,11 @@ class BoxController extends AbstractController
         $communeData = $data['commune'] ?? null;
         $municipalityId = null;
 
+        // Vérifier si les champs obligatoires sont présents
+        if (empty($data['service']) || empty($data['adresse']) || empty($communeData)) {
+             return new JsonResponse(['success' => false, 'error' => 'Les champs commune, service et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         if ($communeData !== null && $communeData !== '') {
             // Tenter de valider et convertir en entier
             $municipalityId = filter_var($communeData, FILTER_VALIDATE_INT);
@@ -345,11 +352,8 @@ class BoxController extends AbstractController
             if (!$municipality) {
                 return new JsonResponse(['success' => false, 'error' => 'Commune non trouvée.'], JsonResponse::HTTP_BAD_REQUEST);
             }
-        }
-
-         // Vérifier si les champs obligatoires sont présents après la validation de la commune
-        if (empty($data['service']) || empty($data['adresse'])) {
-             return new JsonResponse(['success' => false, 'error' => 'Les champs service et adresse sont obligatoires.'], JsonResponse::HTTP_BAD_REQUEST);
+        } else {
+            return new JsonResponse(['success' => false, 'error' => 'La commune est obligatoire.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
 

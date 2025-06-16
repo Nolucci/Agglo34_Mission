@@ -10,6 +10,23 @@
             <div class="modal-body">
                 <form id="phone-line-form">
                     <div class="form-group">
+                        <label for="line-directLine">Ligne Directe (SDA):</label>
+                        <input type="text" class="form-control" id="line-directLine" name="directLine">
+                    </div>
+                    <div class="form-group">
+                        <label for="line-shortNumber">Numéro Court:</label>
+                        <input type="text" class="form-control" id="line-shortNumber" name="shortNumber">
+                    </div>
+                    <div class="form-group">
+                        <label for="line-municipality">Commune:</label>
+                        <select class="form-control" id="line-municipality" name="municipality" required>
+                            <option value="">Sélectionnez une commune</option>
+                            {% for municipality in municipalities %}
+                                <option value="{{ municipality.id }}">{{ municipality.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="line-location">Localisation:</label>
                         <input type="text" class="form-control" id="line-location" name="location" required>
                     </div>
@@ -22,14 +39,6 @@
                         <input type="text" class="form-control" id="line-assignedTo" name="assignedTo" required>
                     </div>
                     <div class="form-group">
-                        <label for="line-phoneBrand">Marque du Téléphone:</label>
-                        <input type="text" class="form-control" id="line-phoneBrand" name="phoneBrand">
-                    </div>
-                    <div class="form-group">
-                        <label for="line-model">Modèle:</label>
-                        <input type="text" class="form-control" id="line-model" name="model">
-                    </div>
-                    <div class="form-group">
                         <label for="line-operator">Opérateur:</label>
                         <input type="text" class="form-control" id="line-operator" name="operator" required>
                     </div>
@@ -38,26 +47,17 @@
                         <input type="text" class="form-control" id="line-lineType" name="lineType">
                     </div>
                     <div class="form-group">
-                        <label for="line-municipality">Commune:</label>
-                        <select class="form-control" id="line-municipality" name="municipality" required>
-                            <option value="">Sélectionnez une commune</option>
-                            {% for municipality in municipalities %}
-                                <option value="{{ municipality.id }}">{{ municipality.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="line-phoneBrand">Marque du Téléphone:</label>
+                        <input type="text" class="form-control" id="line-phoneBrand" name="phoneBrand">
                     </div>
-    <div class="form-group">
-        <label for="line-directLine">Ligne Directe (SDA):</label>
-        <input type="text" class="form-control" id="line-directLine" name="directLine">
-    </div>
-    <div class="form-group">
-        <label for="line-shortNumber">Numéro Court:</label>
-        <input type="text" class="form-control" id="line-shortNumber" name="shortNumber">
-    </div>
-    <div class="form-group form-check">
-        <input type="checkbox" class="form-check-input" id="line-isWorking" name="isWorking" checked>
-        <label class="form-check-label" for="line-isWorking">Ligne Fonctionnelle</label>
-    </div>
+                    <div class="form-group">
+                        <label for="line-model">Modèle:</label>
+                        <input type="text" class="form-control" id="line-model" name="model">
+                    </div>
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="line-isWorking" name="isWorking" checked>
+                        <label class="form-check-label" for="line-isWorking">Ligne Fonctionnelle</label>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">

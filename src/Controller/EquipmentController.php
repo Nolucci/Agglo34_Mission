@@ -93,11 +93,22 @@ class EquipmentController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Vérifier les champs requis
+        $requiredFields = ['commune', 'modele', 'service'];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field]) || (is_string($data[$field]) && trim($data[$field]) === '') || $data[$field] === null) {
+                return new JsonResponse(['success' => false, 'message' => "Le champ $field est requis"], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
         $equipment = new Equipment();
 
         $municipality = null;
         if (isset($data['commune']) && $data['commune'] !== null) {
             $municipality = $this->municipalityRepository->find($data['commune']);
+            if (!$municipality) {
+                return new JsonResponse(['success' => false, 'message' => 'Commune non trouvée'], Response::HTTP_BAD_REQUEST);
+            }
         }
         $equipment->setCommune($municipality);
 
@@ -175,6 +186,14 @@ class EquipmentController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Vérifier les champs requis
+        $requiredFields = ['commune', 'modele', 'service'];
+        foreach ($requiredFields as $field) {
+            if (isset($data[$field]) && ((is_string($data[$field]) && trim($data[$field]) === '') || $data[$field] === null)) {
+                return new JsonResponse(['success' => false, 'message' => "Le champ $field est requis"], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
         $oldValues = [
             'commune' => $equipment->getCommune() ? $equipment->getCommune()->getId() : null,
             'etiquetage' => $equipment->getEtiquetage(),
@@ -191,6 +210,9 @@ class EquipmentController extends AbstractController
         $municipality = null;
         if (isset($data['commune']) && $data['commune'] !== null) {
             $municipality = $this->municipalityRepository->find($data['commune']);
+            if (!$municipality) {
+                return new JsonResponse(['success' => false, 'message' => 'Commune non trouvée'], Response::HTTP_BAD_REQUEST);
+            }
         }
         $equipment->setCommune($municipality ?? $equipment->getCommune());
 

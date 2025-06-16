@@ -19,9 +19,24 @@ class MunicipalityController extends AbstractController
     #[Route('/api/municipalities', name: 'municipality_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        $municipalities = $this->municipalityRepository->findAll();
-        $data = [];
+        $allMunicipalities = $this->municipalityRepository->findAll();
 
+        // Créer un tableau associatif pour éliminer les doublons par nom (insensible à la casse)
+        $uniqueMunicipalities = [];
+        foreach ($allMunicipalities as $municipality) {
+            $lowerName = strtolower($municipality->getName());
+            if (!isset($uniqueMunicipalities[$lowerName])) {
+                $uniqueMunicipalities[$lowerName] = $municipality;
+            }
+        }
+
+        // Convertir en tableau simple et trier par nom
+        $municipalities = array_values($uniqueMunicipalities);
+        usort($municipalities, function($a, $b) {
+            return strcasecmp($a->getName(), $b->getName());
+        });
+
+        $data = [];
         foreach ($municipalities as $municipality) {
             $data[] = [
                 'id' => $municipality->getId(),
