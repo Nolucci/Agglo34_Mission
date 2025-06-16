@@ -314,7 +314,7 @@ class BoxController extends AbstractController
         return new JsonResponse($data, JsonResponse::HTTP_OK);
     }
 
-    #[Route('/api/box/update/{id}', name: 'api_box_update', methods: ['PUT'])]
+    #[Route('/api/box/{id}', name: 'api_box_update', methods: ['PUT'])]
     public function updateBox(int $id, Request $request): JsonResponse
     {
         $box = $this->boxRepository->find($id);

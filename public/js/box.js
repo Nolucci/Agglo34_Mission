@@ -42,8 +42,9 @@ function editBox(boxId) {
         });
 }
 
-// Gérer le clic sur le bouton "Enregistrer" du modal
+// Initialisation des gestionnaires d'événements au chargement du DOM
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestionnaire pour le bouton "Enregistrer" du modal
     const saveBoxBtn = document.getElementById('save-box-btn');
     if (saveBoxBtn) {
         saveBoxBtn.addEventListener('click', function() {
@@ -56,30 +57,73 @@ document.addEventListener('DOMContentLoaded', function() {
             const attribueA = document.getElementById('box-attribueA').value;
             const statut = document.getElementById('box-statut').value;
 
+            // S'assurer que les noms des champs correspondent exactement à ceux attendus par le contrôleur
             const boxData = {
-                // Pas besoin d'envoyer l'ID dans le corps pour une requête PUT avec ID dans l'URL
                 commune: commune,
                 service: service,
                 adresse: adresse,
-                ligne_support: ligneSupport,
+                ligne_support: ligneSupport, // Vérifier que ce nom correspond à celui attendu par le contrôleur
                 type: type,
-                attribueA: attribueA,
+                attribueA: attribueA, // Vérifier que ce nom correspond à celui attendu par le contrôleur
                 statut: statut
             };
+
+            // Validation des champs obligatoires côté client
+            if (!commune || commune.trim() === '') {
+                alert("Erreur: La commune est obligatoire.");
+                return;
+            }
+            if (!service || service.trim() === '') {
+                alert("Erreur: Le service est obligatoire.");
+                return;
+            }
+            if (!adresse || adresse.trim() === '') {
+                alert("Erreur: L'adresse est obligatoire.");
+                return;
+            }
 
             console.log("Données de la boîte à enregistrer :", boxData);
             const jsonData = JSON.stringify(boxData);
             console.log("Données JSON à envoyer :", jsonData);
 
-            // Envoyer les données modifiées au serveur via AJAX (PUT request)
-            fetch(`/api/box/update/${boxId}`, {
-                method: 'PUT',
+            // Déterminer si c'est une création ou une mise à jour
+            // Si l'ID est vide ou non défini, c'est une création
+            const isNewBox = !boxId || boxId.trim() === '';
+            console.log("DEBUG: boxId =", boxId); // Ajout pour débogage
+            console.log("DEBUG: isNewBox =", isNewBox); // Ajout pour débogage
+
+            const modalTitle = document.getElementById('boxModalLabel').innerText;
+            console.log("Titre du modal:", modalTitle);
+
+            let url;
+            let method;
+
+            if (isNewBox) {
+                // URL et méthode pour la création
+                url = '/api/box';
+                method = 'POST';
+                console.log("Mode: Création");
+            } else {
+                // URL et méthode pour la mise à jour
+                url = '/api/box/' + boxId;
+                method = 'PUT';
+                console.log("Mode: Mise à jour");
+            }
+
+            console.log("URL de l'API:", url);
+            console.log("Méthode HTTP:", method);
+
+            // Envoyer les données au serveur via AJAX
+            fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: jsonData,
             })
             .then(response => {
+                console.log("Statut de la réponse:", response.status, response.statusText);
+
                 if (!response.ok) {
                     console.error("Erreur HTTP:", response.status, response.statusText);
                     return response.text().then(text => {
@@ -87,18 +131,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         throw new Error(`Erreur HTTP ! statut : ${response.status}`);
                     });
                 }
-                return response.json();
+
+                return response.json().then(data => {
+                    console.log("Réponse JSON complète:", data);
+                    return data;
+                });
             })
             .then(data => {
                 console.log("Réponse du serveur :", data);
                 if (data.success) {
-                    alert("Box mise à jour avec succès !");
+                    alert("Box créée avec succès !");
                     // Fermer le modal après l'enregistrement réussi
                     $('#boxModal').modal('hide');
                     // Recharger la page ou mettre à jour la table si nécessaire
                     window.location.reload(); // Option simple pour recharger la page
                 } else {
-                    alert("Erreur lors de la mise à jour de la box : " + data.error);
+                    alert("Erreur lors de la création de la box : " + data.error);
                 }
             })
             .catch(error => {
@@ -107,8 +155,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-    // Le gestionnaire pour le bouton de confirmation de suppression est déjà défini dans le template HTML
-    // Nous n'avons pas besoin de le redéfinir ici pour éviter les conflits
+
+    // Gestionnaire pour le bouton "Ajouter" qui ouvre le modal
+    const addBoxBtn = document.querySelector('button[data-target="#boxModal"]');
+    if (addBoxBtn) {
+        addBoxBtn.addEventListener('click', function() {
+            // Réinitialiser le formulaire
+            document.getElementById('box-form').reset();
+            // Vider l'ID caché
+            document.getElementById('box-id').value = '';
+            // Changer le titre du modal
+            document.getElementById('boxModalLabel').innerText = 'Ajouter une Box';
+        });
+    }
 });
 
 // Fonction pour gérer la suppression d'une box (définie globalement)
@@ -143,4 +202,4 @@ window.deleteBox = function(boxId) {
         console.error("Erreur lors de la suppression de la box :", error);
         alert("Erreur lors de la suppression de la box.");
     });
-}
+};
