@@ -12,6 +12,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PhoneLineController extends AbstractController
@@ -434,5 +436,161 @@ class PhoneLineController extends AbstractController
 
         // Si l'encodage est déjà UTF-8 ou n'a pas pu être détecté, retourner la chaîne telle quelle
         return $str;
+    }
+
+    /**
+     * Exporte les données des lignes téléphoniques au format CSV
+     */
+    #[Route('/api/phone-line/export/csv', name: 'phone_line_export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request): Response
+    {
+        // Récupérer les filtres depuis la requête
+        $filters = $this->getFiltersFromRequest($request);
+
+        // Récupérer les lignes téléphoniques en fonction des filtres
+        $phoneLines = $this->getFilteredPhoneLines($filters);
+
+        $response = new StreamedResponse(function() use ($phoneLines) {
+            $handle = fopen('php://output', 'w+');
+
+            // Écrire l'en-tête UTF-8 BOM pour Excel
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Écrire les en-têtes des colonnes
+            fputcsv($handle, [
+                'ID',
+                'Commune',
+                'Localisation',
+                'Service',
+                'Attribué à',
+                'Marque du téléphone',
+                'Modèle',
+                'Opérateur',
+                'Type de ligne',
+                'Ligne directe (SDA)',
+                'Numéro court',
+                'Statut'
+            ], ';');
+
+            // Écrire les données
+            foreach ($phoneLines as $phoneLine) {
+                fputcsv($handle, [
+                    $phoneLine->getId(),
+                    $phoneLine->getMunicipality() ? $phoneLine->getMunicipality()->getName() : 'Non défini',
+                    $phoneLine->getLocation(),
+                    $phoneLine->getService(),
+                    $phoneLine->getAssignedTo(),
+                    $phoneLine->getPhoneBrand() ?: 'Non défini',
+                    $phoneLine->getModel() ?: 'Non défini',
+                    $phoneLine->getOperator(),
+                    $phoneLine->getLineType() ?: 'Non défini',
+                    $phoneLine->getDirectLine() ?: 'Non défini',
+                    $phoneLine->getShortNumber() ?: 'Non défini',
+                    $phoneLine->isWorking() ? 'Fonctionne' : 'Ne fonctionne pas'
+                ], ';');
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $disposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            'phone_lines_export_' . date('Y-m-d_His') . '.csv'
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
+    }
+
+    /**
+     * Prépare les données pour l'export PDF (rendu HTML qui sera converti en PDF côté client)
+     */
+    #[Route('/api/phone-line/export/pdf', name: 'phone_line_export_pdf', methods: ['GET'])]
+    public function exportPdf(Request $request): Response
+    {
+        // Récupérer les filtres depuis la requête
+        $filters = $this->getFiltersFromRequest($request);
+
+        // Récupérer les lignes téléphoniques en fonction des filtres
+        $phoneLines = $this->getFilteredPhoneLines($filters);
+
+        // Rendre la vue HTML qui sera convertie en PDF côté client
+        return $this->render('exports/phone_lines_pdf.html.twig', [
+            'phoneLines' => $phoneLines,
+            'date_export' => new \DateTime(),
+            'titre' => 'Export des lignes téléphoniques'
+        ]);
+    }
+
+    /**
+     * Récupère les filtres depuis la requête
+     */
+    private function getFiltersFromRequest(Request $request): array
+    {
+        $filters = [];
+
+        // Récupérer les filtres depuis les paramètres de la requête
+        if ($request->query->has('municipality')) {
+            $filters['municipality'] = $request->query->get('municipality');
+        }
+
+        if ($request->query->has('service')) {
+            $filters['service'] = $request->query->get('service');
+        }
+
+        if ($request->query->has('operator')) {
+            $filters['operator'] = $request->query->get('operator');
+        }
+
+        if ($request->query->has('lineType')) {
+            $filters['lineType'] = $request->query->get('lineType');
+        }
+
+        if ($request->query->has('isWorking')) {
+            $filters['isWorking'] = $request->query->get('isWorking') === 'true';
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Récupère les lignes téléphoniques filtrées
+     */
+    private function getFilteredPhoneLines(array $filters): array
+    {
+        $criteria = [];
+
+        // Construire les critères de recherche en fonction des filtres
+        if (isset($filters['municipality']) && !empty($filters['municipality'])) {
+            $municipality = $this->municipalityRepository->find($filters['municipality']);
+            if ($municipality) {
+                $criteria['municipality'] = $municipality;
+            }
+        }
+
+        if (isset($filters['service']) && !empty($filters['service'])) {
+            $criteria['service'] = $filters['service'];
+        }
+
+        if (isset($filters['operator']) && !empty($filters['operator'])) {
+            $criteria['operator'] = $filters['operator'];
+        }
+
+        if (isset($filters['lineType']) && !empty($filters['lineType'])) {
+            $criteria['lineType'] = $filters['lineType'];
+        }
+
+        if (isset($filters['isWorking'])) {
+            $criteria['isWorking'] = $filters['isWorking'];
+        }
+
+        // Si aucun filtre n'est appliqué, récupérer toutes les lignes téléphoniques
+        if (empty($criteria)) {
+            return $this->phoneLineRepository->findAll();
+        }
+
+        // Sinon, récupérer les lignes téléphoniques filtrées
+        return $this->phoneLineRepository->findBy($criteria);
     }
 }

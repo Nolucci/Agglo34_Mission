@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ titre }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .info {
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .badge-secondary {
+            background-color: #6c757d;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ titre }}</h1>
+
+    <div class="info">
+        <p>Date d'export: {{ date_export|date('d/m/Y H:i:s') }}</p>
+        <p>Nombre d'équipements: {{ equipments|length }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Commune</th>
+                <th>Étiquetage</th>
+                <th>Modèle</th>
+                <th>Numéro de série</th>
+                <th>Service</th>
+                <th>Utilisateur</th>
+                <th>Date de garantie</th>
+                <th>OS</th>
+                <th>Version</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipment in equipments %}
+                <tr>
+                    <td>{{ equipment.id }}</td>
+                    <td>{{ equipment.commune ? equipment.commune.name : 'Non défini' }}</td>
+                    <td>{{ equipment.etiquetage ?: 'Non défini' }}</td>
+                    <td>{{ equipment.modele }}</td>
+                    <td>{{ equipment.numeroSerie ?: 'Non défini' }}</td>
+                    <td>{{ equipment.service }}</td>
+                    <td>{{ equipment.utilisateur ?: 'Non défini' }}</td>
+                    <td>{{ equipment.dateGarantie ? equipment.dateGarantie|date('Y-m-d') : 'Non défini' }}</td>
+                    <td>{{ equipment.os ?: 'Non défini' }}</td>
+                    <td>{{ equipment.version ?: 'Non défini' }}</td>
+                    <td>
+                        {% if equipment.statut == 'Actif' %}
+                            <span class="badge-success">Actif</span>
+                        {% elseif equipment.statut == 'Panne' %}
+                            <span class="badge-danger">Panne</span>
+                        {% else %}
+                            <span class="badge-secondary">Inactif</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Document généré automatiquement - Agglo34</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Attendre que la page soit chargée pour imprimer
+            window.print();
+        };
+    </script>
+</body>
+</html>

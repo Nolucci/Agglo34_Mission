@@ -11,6 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/equipment')]
@@ -778,5 +780,159 @@ class EquipmentController extends AbstractController
             'incidentCount' => $incidentCount,
             'equipmentVersions' => $versions,
         ]);
+    }
+
+    /**
+     * Exporte les données des équipements au format CSV
+     */
+    #[Route('/export/csv', name: 'equipment_export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request): Response
+    {
+        // Récupérer les filtres depuis la requête
+        $filters = $this->getFiltersFromRequest($request);
+
+        // Récupérer les équipements en fonction des filtres
+        $equipments = $this->getFilteredEquipments($filters);
+
+        $response = new StreamedResponse(function() use ($equipments) {
+            $handle = fopen('php://output', 'w+');
+
+            // Écrire l'en-tête UTF-8 BOM pour Excel
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Écrire les en-têtes des colonnes
+            fputcsv($handle, [
+                'ID',
+                'Commune',
+                'Étiquetage',
+                'Modèle',
+                'Numéro de série',
+                'Service',
+                'Utilisateur',
+                'Date de garantie',
+                'OS',
+                'Version',
+                'Statut'
+            ], ';');
+
+            // Écrire les données
+            foreach ($equipments as $equipment) {
+                fputcsv($handle, [
+                    $equipment->getId(),
+                    $equipment->getCommune() ? $equipment->getCommune()->getName() : 'Non défini',
+                    $equipment->getEtiquetage() ?: 'Non défini',
+                    $equipment->getModele(),
+                    $equipment->getNumeroSerie() ?: 'Non défini',
+                    $equipment->getService(),
+                    $equipment->getUtilisateur() ?: 'Non défini',
+                    $equipment->getDateGarantie() ? $equipment->getDateGarantie()->format('Y-m-d') : 'Non défini',
+                    $equipment->getOs() ?: 'Non défini',
+                    $equipment->getVersion() ?: 'Non défini',
+                    $equipment->getStatut() ?: 'Non défini'
+                ], ';');
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $disposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            'equipments_export_' . date('Y-m-d_His') . '.csv'
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
+    }
+
+    /**
+     * Prépare les données pour l'export PDF (rendu HTML qui sera converti en PDF côté client)
+     */
+    #[Route('/export/pdf', name: 'equipment_export_pdf', methods: ['GET'])]
+    public function exportPdf(Request $request): Response
+    {
+        // Récupérer les filtres depuis la requête
+        $filters = $this->getFiltersFromRequest($request);
+
+        // Récupérer les équipements en fonction des filtres
+        $equipments = $this->getFilteredEquipments($filters);
+
+        // Rendre la vue HTML qui sera convertie en PDF côté client
+        return $this->render('exports/equipments_pdf.html.twig', [
+            'equipments' => $equipments,
+            'date_export' => new \DateTime(),
+            'titre' => 'Export du parc informatique'
+        ]);
+    }
+
+    /**
+     * Récupère les filtres depuis la requête
+     */
+    private function getFiltersFromRequest(Request $request): array
+    {
+        $filters = [];
+
+        // Récupérer les filtres depuis les paramètres de la requête
+        if ($request->query->has('commune')) {
+            $filters['commune'] = $request->query->get('commune');
+        }
+
+        if ($request->query->has('service')) {
+            $filters['service'] = $request->query->get('service');
+        }
+
+        if ($request->query->has('modele')) {
+            $filters['modele'] = $request->query->get('modele');
+        }
+
+        if ($request->query->has('statut')) {
+            $filters['statut'] = $request->query->get('statut');
+        }
+
+        if ($request->query->has('os')) {
+            $filters['os'] = $request->query->get('os');
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Récupère les équipements filtrés
+     */
+    private function getFilteredEquipments(array $filters): array
+    {
+        $criteria = [];
+
+        // Construire les critères de recherche en fonction des filtres
+        if (isset($filters['commune']) && !empty($filters['commune'])) {
+            $commune = $this->municipalityRepository->find($filters['commune']);
+            if ($commune) {
+                $criteria['commune'] = $commune;
+            }
+        }
+
+        if (isset($filters['service']) && !empty($filters['service'])) {
+            $criteria['service'] = $filters['service'];
+        }
+
+        if (isset($filters['modele']) && !empty($filters['modele'])) {
+            $criteria['modele'] = $filters['modele'];
+        }
+
+        if (isset($filters['statut']) && !empty($filters['statut'])) {
+            $criteria['statut'] = $filters['statut'];
+        }
+
+        if (isset($filters['os']) && !empty($filters['os'])) {
+            $criteria['os'] = $filters['os'];
+        }
+
+        // Si aucun filtre n'est appliqué, récupérer tous les équipements
+        if (empty($criteria)) {
+            return $this->equipmentRepository->findAll();
+        }
+
+        // Sinon, récupérer les équipements filtrés
+        return $this->equipmentRepository->findBy($criteria);
     }
 }

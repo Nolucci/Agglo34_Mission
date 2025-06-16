@@ -98,6 +98,19 @@
                                     <button class="btn btn-sm btn-danger float-right ml-2" id="delete-all-equipments-btn" data-toggle="modal" data-target="#deleteAllEquipmentsModal">
                                         <i class="fa fa-trash"></i> Supprimer tout
                                     </button>
+                                    <div class="btn-group float-right ml-2">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fa fa-download"></i> Exporter
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="exportDropdown">
+                                            <a class="dropdown-item" href="#" id="export-csv-btn">
+                                                <i class="fa fa-file-excel-o"></i> Export CSV
+                                            </a>
+                                            <a class="dropdown-item" href="#" id="export-pdf-btn">
+                                                <i class="fa fa-file-pdf-o"></i> Export PDF
+                                            </a>
+                                        </div>
+                                    </div>
                                     <button class="btn btn-sm btn-primary float-right ml-2" data-toggle="modal" data-target="#parkFiltersModal">
                                         <i class="fa fa-filter"></i> Filtres
                                     </button>
@@ -518,6 +531,86 @@
                 $('#parkFiltersModal').modal('hide');
             });
         }
+
+        // Gestion des exports
+        document.addEventListener('DOMContentLoaded', function() {
+            // Export CSV
+            const exportCsvBtn = document.getElementById('export-csv-btn');
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Récupérer les filtres actifs
+                    const filters = getActiveFilters();
+
+                    // Construire l'URL avec les filtres
+                    let url = '/equipment/export/csv';
+                    if (Object.keys(filters).length > 0) {
+                        url += '?' + new URLSearchParams(filters).toString();
+                    }
+
+                    // Rediriger vers l'URL d'export
+                    window.location.href = url;
+                });
+            }
+
+            // Export PDF
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Récupérer les filtres actifs
+                    const filters = getActiveFilters();
+
+                    // Construire l'URL avec les filtres
+                    let url = '/equipment/export/pdf';
+                    if (Object.keys(filters).length > 0) {
+                        url += '?' + new URLSearchParams(filters).toString();
+                    }
+
+                    // Ouvrir l'URL d'export dans une nouvelle fenêtre
+                    window.open(url, '_blank');
+                });
+            }
+
+            // Fonction pour récupérer les filtres actifs
+            function getActiveFilters() {
+                const filters = {};
+
+                // Récupérer les filtres depuis le formulaire de filtres
+                const filterForm = document.getElementById('park-filter-form');
+                if (filterForm) {
+                    const commune = document.getElementById('filter-commune');
+                    if (commune && commune.value) {
+                        filters.commune = commune.value;
+                    }
+
+                    const service = document.getElementById('filter-service');
+                    if (service && service.value) {
+                        filters.service = service.value;
+                    }
+
+                    const modele = document.getElementById('filter-modele');
+                    if (modele && modele.value) {
+                        filters.modele = modele.value;
+                    }
+
+                    const statut = document.getElementById('filter-statut');
+                    if (statut && statut.value) {
+                        filters.statut = statut.value;
+                    }
+
+                    const os = document.getElementById('filter-os');
+                    if (os && os.value) {
+                        filters.os = os.value;
+                    }
+                }
+
+                return filters;
+            }
+        });
+
     // Le code de gestion de la confirmation de suppression a été déplacé dans delete-confirmation.js
     </script>
 {% endblock %}

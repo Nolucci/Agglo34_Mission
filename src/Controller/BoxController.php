@@ -11,6 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
@@ -410,5 +412,145 @@ class BoxController extends AbstractController
         $this->entityManager->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Box supprimée et archivée avec succès.'], JsonResponse::HTTP_OK);
+    }
+
+    /**
+     * Exporte les données des boxs au format CSV
+     */
+    #[Route('/api/box/export/csv', name: 'api_box_export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request): Response
+    {
+        // Récupérer les filtres depuis la requête
+        $filters = $this->getFiltersFromRequest($request);
+
+        // Récupérer les boxs en fonction des filtres
+        $boxes = $this->getFilteredBoxes($filters);
+
+        $response = new StreamedResponse(function() use ($boxes) {
+            $handle = fopen('php://output', 'w+');
+
+            // Écrire l'en-tête UTF-8 BOM pour Excel
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Écrire les en-têtes des colonnes
+            fputcsv($handle, [
+                'ID',
+                'Commune',
+                'Service',
+                'Adresse',
+                'Ligne Support',
+                'Type',
+                'Attribué à',
+                'Statut'
+            ], ';');
+
+            // Écrire les données
+            foreach ($boxes as $box) {
+                fputcsv($handle, [
+                    $box->getId(),
+                    $box->getCommune() ? $box->getCommune()->getName() : 'Non défini',
+                    $box->getService(),
+                    $box->getAdresse(),
+                    $box->getLigneSupport() ?: 'Non défini',
+                    $box->getType() ?: 'Non défini',
+                    $box->getAttribueA() ?: 'Non défini',
+                    $box->getStatut() ?: 'Non défini'
+                ], ';');
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $disposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            'boxes_export_' . date('Y-m-d_His') . '.csv'
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
+    }
+
+    /**
+     * Prépare les données pour l'export PDF (rendu HTML qui sera converti en PDF côté client)
+     */
+    #[Route('/api/box/export/pdf', name: 'api_box_export_pdf', methods: ['GET'])]
+    public function exportPdf(Request $request): Response
+    {
+        // Récupérer les filtres depuis la requête
+        $filters = $this->getFiltersFromRequest($request);
+
+        // Récupérer les boxs en fonction des filtres
+        $boxes = $this->getFilteredBoxes($filters);
+
+        // Rendre la vue HTML qui sera convertie en PDF côté client
+        return $this->render('exports/boxes_pdf.html.twig', [
+            'boxes' => $boxes,
+            'date_export' => new \DateTime(),
+            'titre' => 'Export des boxs'
+        ]);
+    }
+
+    /**
+     * Récupère les filtres depuis la requête
+     */
+    private function getFiltersFromRequest(Request $request): array
+    {
+        $filters = [];
+
+        // Récupérer les filtres depuis les paramètres de la requête
+        if ($request->query->has('commune')) {
+            $filters['commune'] = $request->query->get('commune');
+        }
+
+        if ($request->query->has('service')) {
+            $filters['service'] = $request->query->get('service');
+        }
+
+        if ($request->query->has('type')) {
+            $filters['type'] = $request->query->get('type');
+        }
+
+        if ($request->query->has('statut')) {
+            $filters['statut'] = $request->query->get('statut');
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Récupère les boxs filtrées
+     */
+    private function getFilteredBoxes(array $filters): array
+    {
+        $criteria = [];
+
+        // Construire les critères de recherche en fonction des filtres
+        if (isset($filters['commune']) && !empty($filters['commune'])) {
+            $commune = $this->municipalityRepository->find($filters['commune']);
+            if ($commune) {
+                $criteria['commune'] = $commune;
+            }
+        }
+
+        if (isset($filters['service']) && !empty($filters['service'])) {
+            $criteria['service'] = $filters['service'];
+        }
+
+        if (isset($filters['type']) && !empty($filters['type'])) {
+            $criteria['type'] = $filters['type'];
+        }
+
+        if (isset($filters['statut']) && !empty($filters['statut'])) {
+            $criteria['statut'] = $filters['statut'];
+        }
+
+        // Si aucun filtre n'est appliqué, récupérer toutes les boxs
+        if (empty($criteria)) {
+            return $this->boxRepository->findAll();
+        }
+
+        // Sinon, récupérer les boxs filtrées
+        return $this->boxRepository->findBy($criteria);
     }
 }

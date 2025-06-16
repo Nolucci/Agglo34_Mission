@@ -99,6 +99,19 @@
                                     <button class="btn btn-sm btn-danger float-right ml-2" id="delete-all-lines-btn" data-toggle="modal" data-target="#deleteAllModal">
                                         <i class="fa fa-trash"></i> Supprimer tout
                                     </button>
+                                    <div class="btn-group float-right ml-2">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fa fa-download"></i> Exporter
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="exportDropdown">
+                                            <a class="dropdown-item" href="#" id="export-csv-btn">
+                                                <i class="fa fa-file-excel-o"></i> Export CSV
+                                            </a>
+                                            <a class="dropdown-item" href="#" id="export-pdf-btn">
+                                                <i class="fa fa-file-pdf-o"></i> Export PDF
+                                            </a>
+                                        </div>
+                                    </div>
                                     <button class="btn btn-sm btn-primary float-right ml-2" data-toggle="modal" data-target="#lignesFiltersModal">
                                         <i class="fa fa-filter"></i> Filtres
                                     </button>
@@ -498,6 +511,85 @@
         }
 
         // Initial render of the table
+
+        // Gestion des exports
+        document.addEventListener('DOMContentLoaded', function() {
+            // Export CSV
+            const exportCsvBtn = document.getElementById('export-csv-btn');
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Récupérer les filtres actifs
+                    const filters = getActiveFilters();
+
+                    // Construire l'URL avec les filtres
+                    let url = '/api/phone-line/export/csv';
+                    if (Object.keys(filters).length > 0) {
+                        url += '?' + new URLSearchParams(filters).toString();
+                    }
+
+                    // Rediriger vers l'URL d'export
+                    window.location.href = url;
+                });
+            }
+
+            // Export PDF
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Récupérer les filtres actifs
+                    const filters = getActiveFilters();
+
+                    // Construire l'URL avec les filtres
+                    let url = '/api/phone-line/export/pdf';
+                    if (Object.keys(filters).length > 0) {
+                        url += '?' + new URLSearchParams(filters).toString();
+                    }
+
+                    // Ouvrir l'URL d'export dans une nouvelle fenêtre
+                    window.open(url, '_blank');
+                });
+            }
+
+            // Fonction pour récupérer les filtres actifs
+            function getActiveFilters() {
+                const filters = {};
+
+                // Récupérer les filtres depuis le formulaire de filtres
+                const filterForm = document.getElementById('lines-filter-form');
+                if (filterForm) {
+                    const municipality = document.getElementById('filter-municipality');
+                    if (municipality && municipality.value) {
+                        filters.municipality = municipality.value;
+                    }
+
+                    const service = document.getElementById('filter-service');
+                    if (service && service.value) {
+                        filters.service = service.value;
+                    }
+
+                    const operator = document.getElementById('filter-operator');
+                    if (operator && operator.value) {
+                        filters.operator = operator.value;
+                    }
+
+                    const lineType = document.getElementById('filter-line-type');
+                    if (lineType && lineType.value) {
+                        filters.lineType = lineType.value;
+                    }
+
+                    const isWorking = document.getElementById('filter-is-working');
+                    if (isWorking && isWorking.value) {
+                        filters.isWorking = isWorking.value;
+                    }
+                }
+
+                return filters;
+            }
+        });
         document.addEventListener('DOMContentLoaded', function() {
             renderLinesTable(displayedPhoneLines);
 
