@@ -147,4 +147,12 @@ class Box
     {
         return $this->statut === 'Actif';
     }
+
+    /**
+     * Méthode pour identifier la classe dans les templates Twig
+     */
+    public function getClass(): string
+    {
+        return 'Box';
+    }
 }

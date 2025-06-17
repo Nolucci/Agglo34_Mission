@@ -14734,7 +14734,7 @@ section {
     .card h3 {
         font-size: 1.3rem !important;
     }
-    
+
     .card .card-title i {
         font-size: 1.5rem !important;
     }
@@ -14745,16 +14745,16 @@ section {
     .card h3 {
         font-size: 1.1rem !important;
     }
-    
+
     .card .card-title i {
         font-size: 1.3rem !important;
     }
-    
+
     .col-sm-6 {
         padding-left: 5px !important;
         padding-right: 5px !important;
     }
-    
+
     .col-sm-6 .card-body {
         padding: 0.5rem;
     }
@@ -14764,4 +14764,9 @@ section {
 canvas {
     max-width: 100% !important;
     height: auto !important;
+.lines-content .card,
+.park-content .card,
+.box-list-content .card {
+    pointer-events: none;
+}
 }

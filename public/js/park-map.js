@@ -94,64 +94,10 @@ function setupFeatureInteraction(feature, layer) {
         });
     }
 
-    // Popup et actions au clic
-    layer.on('click', () => handleFeatureClick(props, layer));
+    // Pas de popup au clic
 }
 
-// Fonction pour gérer le clic sur une entité de la carte
-function handleFeatureClick(props, layer) {
-    console.log('Clic sur la commune:', props.nom);
-
-    // Afficher le popup avec les informations de la commune
-    let rows = "";
-    for (const [key, value] of Object.entries(props)) {
-        rows += `<tr><th>${key}</th><td>${value}</td></tr>`;
-    }
-
-    const popupContent = `
-    <div>
-        <h5>${props.nom}</h5>
-        <table class="table table-bordered table-sm">
-            <tbody>${rows}</tbody>
-        </table>
-    </div>
-    `;
-
-    layer.bindPopup(popupContent, {
-        offset: [0, -5],
-        autoPan: true,
-        closeButton: true
-    }).openPopup();
-
-    // Mettre à jour le titre de la carte "Statistiques du Parc"
-    const parkStatsTitle = document.getElementById('park-stats-title');
-    if (parkStatsTitle && props && props.nom) {
-        parkStatsTitle.textContent = `Équipement de ${props.nom}`;
-    }
-
-    // Afficher un indicateur de chargement
-    const statsCard = document.getElementById('equipment-stats-body');
-    if (statsCard) {
-        statsCard.innerHTML = `
-            <div class="text-center mb-3">
-                <h5>Chargement des données...</h5>
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">Chargement...</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // Si les données ne sont pas encore chargées, stocker le nom de la commune pour plus tard
-    if (!dataLoaded) {
-        console.log('Les données ne sont pas encore complètement chargées, stockage de la commune pour plus tard');
-        pendingMunicipalityName = props.nom;
-        return;
-    }
-
-    // Récupérer et afficher les statistiques de la commune
-    fetchMunicipalityStatistics(props.nom);
-}
+// Fonction pour récupérer et afficher les statistiques d'une commune
 
 // Fonction pour récupérer et afficher les statistiques d'une commune
 function fetchMunicipalityStatistics(municipalityName) {

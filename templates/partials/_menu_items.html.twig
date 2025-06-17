@@ -12,6 +12,11 @@
     <a href="{{ path('park') }}">
         <i class="fas fa-wrench"></i>Parc Informatique</a>
 </li>
+<li class="{{ app.request.attributes.get('_route') == 'box_list' ? 'active' : '' }}">
+    <a href="{{ path('box_list') }}">
+        <i class="fas fa-boxes"></i>Boxs
+    </a>
+</li>
 <li class="{{ app.request.attributes.get('_route') == 'agents' ? 'active' : '' }}">
     <a href="{{ path('agents') }}">
         <i class="fas fa-users"></i>Agents
@@ -20,11 +25,6 @@
 <li class="{{ app.request.attributes.get('_route') == 'documents' ? 'active' : '' }}">
     <a href="{{ path('documents') }}">
         <i class="far fa-folder"></i>Documents et données
-    </a>
-</li>
-<li class="{{ app.request.attributes.get('_route') == 'box_list' ? 'active' : '' }}">
-    <a href="{{ path('box_list') }}">
-        <i class="fas fa-boxes"></i>Boxs
     </a>
 </li>
 <li class="{{ app.request.attributes.get('_route') == 'app_archive' ? 'active' : '' }}">

@@ -19,10 +19,13 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard', name: 'dashboard')]
-    public function index(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository, \App\Repository\BoxRepository $boxRepository, UserRepository $userRepository): Response
+    public function index(PhoneLineRepository $phoneLineRepository, MunicipalityRepository $municipalityRepository, \App\Repository\BoxRepository $boxRepository, \App\Repository\EquipmentRepository $equipmentRepository, UserRepository $userRepository): Response
     {
         // Récupérer les données de la base de données
         $lines = $phoneLineRepository->findAll();
+
+        // Récupérer tous les agents
+        $agents = $userRepository->findAll();
 
         // Récupérer toutes les communes
         $allMunicipalities = $municipalityRepository->findAll();
@@ -42,7 +45,14 @@ class DashboardController extends AbstractController
             return strcasecmp($a->getName(), $b->getName());
         });
 
-        $equipments = $boxRepository->findAll();
+        // Récupérer les équipements des boîtes
+        $boxEquipments = $boxRepository->findAll();
+
+        // Récupérer les équipements informatiques
+        $parkEquipments = $equipmentRepository->findAll();
+
+        // Combiner tous les équipements pour les statistiques
+        $equipments = array_merge($boxEquipments, $parkEquipments);
 
         // Calculer les statistiques des lignes téléphoniques
         $uniqueOperators = [];
@@ -133,6 +143,7 @@ class DashboardController extends AbstractController
             'phoneLineStats' => $phoneLineStats,
             'equipments' => $equipments,
             'parkStats' => $parkStats,
+            'agents' => $agents,
         ]);
     }
 

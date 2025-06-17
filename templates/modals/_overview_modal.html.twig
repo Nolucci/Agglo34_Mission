@@ -7,8 +7,8 @@
                 <div class="overview-box clearfix">
                     <div class="icon"><i class="zmdi zmdi-account-o"></i></div>
                     <div class="text">
-                        <h2>{{ members_online|default(3) }}/{{ members_online|default(10) }}</h2>
-                        <span>Agents en intervention</span>
+                        <h2>{{ agents is defined ? agents|length : 0 }}</h2>
+                        <span>Nombre d'agents</span>
                     </div>
                 </div>
                 <div class="overview-chart">
@@ -23,10 +23,22 @@
         <div class="overview-item overview-item--c3">
             <div class="overview__inner">
                 <div class="overview-box clearfix">
-                    <div class="icon"><i class="zmdi zmdi-check"></i></div>
+                    <div class="icon"><i class="zmdi zmdi-archive"></i></div>
                     <div class="text">
-                        <h2>{{ this_week|default('1,086') }}</h2>
-                        <span>Interventions réalisées</span>
+                        {% set boxCount = 0 %}
+                        {% set activeBoxCount = 0 %}
+                        {% if equipments is defined %}
+                            {% for e in equipments %}
+                                {% if e.getClass is defined and e.getClass == 'Box' %}
+                                    {% set boxCount = boxCount + 1 %}
+                                    {% if e.statut is defined and e.statut == 'Actif' %}
+                                        {% set activeBoxCount = activeBoxCount + 1 %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <h2>{{ activeBoxCount }} / {{ boxCount }}</h2>
+                        <span>Boxs actifs / total</span>
                     </div>
                 </div>
                 <div class="overview-chart">
@@ -41,10 +53,10 @@
         <div class="overview-item overview-item--c2">
             <div class="overview__inner">
                 <div class="overview-box clearfix">
-                    <div class="icon"><i class="zmdi zmdi-shopping-cart"></i></div>
+                    <div class="icon"><i class="zmdi zmdi-desktop-mac"></i></div>
                     <div class="text">
-                        <h2>{{ items_sold|default('30') }}/{{ items_sold|default('450') }}</h2>
-                        <span>Matériel</span>
+                        <h2>{{ parkStats.active_equipments|default(0) }} / {{ parkStats.total_equipments|default(0) }}</h2>
+                        <span>Matériel actif / total</span>
                     </div>
                 </div>
                 <div class="overview-chart">
@@ -59,10 +71,10 @@
         <div class="overview-item overview-item--c4">
             <div class="overview__inner">
                 <div class="overview-box clearfix">
-                    <div class="icon"><i class="fa fa-phone" style="font-size: 44px"></i></div>
+                    <div class="icon"><i class="zmdi zmdi-phone"></i></div>
                     <div class="text">
-                        <h2>{{ total_lendings|default('36/40') }}</h2>
-                        <span>Lignes en fonctionnement</span>
+                        <h2>{{ phoneLineStats.working_lines|default(0) }} / {{ phoneLineStats.total_lines|default(0) }}</h2>
+                        <span>Lignes actives / total</span>
                     </div>
                 </div>
                 <div class="overview-chart">

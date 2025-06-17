@@ -169,4 +169,36 @@ class Equipment
 
         return $this;
     }
+
+    /**
+     * Méthode d'adaptation pour la compatibilité avec le DashboardController
+     */
+    public function getLocation(): ?string
+    {
+        return $this->service;
+    }
+
+    /**
+     * Méthode d'adaptation pour la compatibilité avec le DashboardController
+     */
+    public function getMunicipality(): ?Municipality
+    {
+        return $this->commune;
+    }
+
+    /**
+     * Méthode d'adaptation pour la compatibilité avec le DashboardController
+     */
+    public function isActive(): bool
+    {
+        return $this->statut === 'Actif';
+    }
+
+    /**
+     * Méthode pour identifier la classe dans les templates Twig
+     */
+    public function getClass(): string
+    {
+        return 'Equipment';
+    }
 }

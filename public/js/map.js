@@ -32,28 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         });
                     }
 
-                    // Popup (clic)
-                    layer.on('click', () => {
-                        let rows = "";
-                        for (const [key, value] of Object.entries(props)) {
-                            rows += `<tr><th>${key}</th><td>${value}</td></tr>`;
-                        }
-
-                        const popupContent = `
-                        <div>
-                            <h5>${props.nom}</h5>
-                            <table class="table table-bordered table-sm">
-                                <tbody>${rows}</tbody>
-                            </table>
-                        </div>
-                    `;
-
-                        layer.bindPopup(popupContent, {
-                            offset: [0, -5],
-                            autoPan: true,
-                            closeButton: true
-                        }).openPopup();
-                    });
+                    // Pas de popup au clic
                 }
             }).addTo(map);
 
