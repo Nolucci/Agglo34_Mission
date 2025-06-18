@@ -9,7 +9,7 @@
             <div class="section__content section__content--p30 park-content">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-lg-6">
+                        <div class="col-lg-3">
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title" id="park-stats-title">Statistiques du Parc</strong>
@@ -57,16 +57,38 @@
                             </div>
                         </div>
 
-                         <div class="col-lg-6">
-                             <div class="card">
+                        <div class="col-lg-6">
+                            <div class="card">
                                 <div class="card-header">
-                                    <strong class="card-title">Carte des Équipements</strong>
+                                    <strong class="card-title">Graphiques du Parc</strong>
                                 </div>
-                                <div class="card-body text-center" style="height: 300px;">
-                                    <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
+                                <div class="card-body" style="height: 300px;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div style="height: 250px;">
+                                                <canvas id="equipment-os-chart"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div style="height: 250px;">
+                                                <canvas id="equipment-model-chart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-lg-3">
+                            <div class="card">
+                               <div class="card-header">
+                                   <strong class="card-title">Carte des Équipements</strong>
+                               </div>
+                               <div class="card-body text-center" style="height: 300px;">
+                                   <div id="map-agglomeration" style="height: 300px; width: 100%; border: 1px solid #ccc;"></div>
+                               </div>
+                           </div>
+                       </div>
                     </div>
 
                     <div class="row">
@@ -177,6 +199,7 @@
     <script src="{{ asset('js/park-map.js') }}"></script>
     <script src="{{ asset('js/equipment.js') }}"></script>
     <script src="{{ asset('js/search-filter.js') }}"></script>
+    <script src="{{ asset('js/charts.js') }}"></script>
     <!-- Charger delete-confirmation.js après les autres scripts pour s'assurer que les fonctions sont définies -->
     <script src="{{ asset('js/delete-confirmation.js') }}" defer></script>
     <script>

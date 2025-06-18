@@ -35,6 +35,47 @@ class EquipmentController extends AbstractController
         $this->uploadsDirectory = $uploadsDirectory;
     }
 
+    #[Route('/stats', name: 'equipment_stats', methods: ['GET'])]
+    public function getStats(): JsonResponse
+    {
+        $equipments = $this->equipmentRepository->findAll();
+
+        // Statistiques par OS
+        $statsByOs = [];
+        // Statistiques par modèle
+        $statsByModel = [];
+
+        foreach ($equipments as $equipment) {
+            // Compter par OS
+            $os = $equipment->getOs() ?: 'Non défini';
+            if (!isset($statsByOs[$os])) {
+                $statsByOs[$os] = 0;
+            }
+            $statsByOs[$os]++;
+
+            // Compter par modèle
+            $model = $equipment->getModele() ?: 'Non défini';
+            if (!isset($statsByModel[$model])) {
+                $statsByModel[$model] = 0;
+            }
+            $statsByModel[$model]++;
+        }
+
+        // Trier les données par ordre décroissant
+        arsort($statsByOs);
+        arsort($statsByModel);
+
+        // Limiter le nombre de modèles pour l'histogramme (top 10)
+        if (count($statsByModel) > 10) {
+            $statsByModel = array_slice($statsByModel, 0, 10, true);
+        }
+
+        return new JsonResponse([
+            'byOs' => $statsByOs,
+            'byModel' => $statsByModel
+        ]);
+    }
+
     #[Route('/delete-all', name: 'equipment_delete_all', methods: ['DELETE'])]
     public function deleteAll(): JsonResponse
     {

@@ -31,6 +31,47 @@ class BoxController extends AbstractController
         $this->municipalityRepository = $municipalityRepository;
     }
 
+    #[Route('/api/box/stats', name: 'api_box_stats', methods: ['GET'])]
+    public function getStats(): JsonResponse
+    {
+        $boxes = $this->boxRepository->findAll();
+
+        // Statistiques par type
+        $statsByType = [];
+        // Statistiques par commune
+        $statsByCommune = [];
+
+        foreach ($boxes as $box) {
+            // Compter par type
+            $type = $box->getType() ?: 'Non défini';
+            if (!isset($statsByType[$type])) {
+                $statsByType[$type] = 0;
+            }
+            $statsByType[$type]++;
+
+            // Compter par commune
+            $commune = $box->getCommune() ? $box->getCommune()->getName() : 'Non défini';
+            if (!isset($statsByCommune[$commune])) {
+                $statsByCommune[$commune] = 0;
+            }
+            $statsByCommune[$commune]++;
+        }
+
+        // Trier les données par ordre décroissant
+        arsort($statsByType);
+        arsort($statsByCommune);
+
+        // Limiter le nombre de communes pour l'histogramme (top 10)
+        if (count($statsByCommune) > 10) {
+            $statsByCommune = array_slice($statsByCommune, 0, 10, true);
+        }
+
+        return new JsonResponse([
+            'byType' => $statsByType,
+            'byCommune' => $statsByCommune
+        ]);
+    }
+
     #[Route('/api/box/delete-all', name: 'api_box_delete_all', methods: ['DELETE'])]
     public function deleteAll(): JsonResponse
     {

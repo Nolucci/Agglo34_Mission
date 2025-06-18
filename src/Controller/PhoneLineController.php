@@ -35,6 +35,42 @@ class PhoneLineController extends AbstractController
         $this->archiveRepository = $archiveRepository;
     }
 
+    #[Route('/api/phone-line/stats', name: 'phone_line_stats', methods: ['GET'])]
+    public function getStats(): JsonResponse
+    {
+        $phoneLines = $this->phoneLineRepository->findAll();
+
+        // Statistiques par type de ligne
+        $statsByLineType = [];
+        // Statistiques par opérateur
+        $statsByOperator = [];
+
+        foreach ($phoneLines as $phoneLine) {
+            // Compter par type de ligne
+            $lineType = $phoneLine->getLineType() ?: 'Non défini';
+            if (!isset($statsByLineType[$lineType])) {
+                $statsByLineType[$lineType] = 0;
+            }
+            $statsByLineType[$lineType]++;
+
+            // Compter par opérateur
+            $operator = $phoneLine->getOperator() ?: 'Non défini';
+            if (!isset($statsByOperator[$operator])) {
+                $statsByOperator[$operator] = 0;
+            }
+            $statsByOperator[$operator]++;
+        }
+
+        // Trier les données par ordre décroissant
+        arsort($statsByLineType);
+        arsort($statsByOperator);
+
+        return new JsonResponse([
+            'byLineType' => $statsByLineType,
+            'byOperator' => $statsByOperator
+        ]);
+    }
+
     #[Route('/api/phone-line/delete-all', name: 'phone_line_delete_all', methods: ['DELETE'])]
     public function deleteAll(): JsonResponse
     {
