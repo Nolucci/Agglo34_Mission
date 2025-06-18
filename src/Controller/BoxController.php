@@ -49,7 +49,7 @@ class BoxController extends AbstractController
                 'adresse' => $box->getAdresse(),
                 'ligneSupport' => $box->getLigneSupport(),
                 'type' => $box->getType(),
-                'attribueA' => $box->getAttribueA(),
+                //                 'attribueA' => $box->getAttribueA(),
                 'statut' => $box->getStatut(),
             ]);
 
@@ -95,7 +95,7 @@ class BoxController extends AbstractController
                 'adresse' => $box->getAdresse(),
                 'ligne_support' => $box->getLigneSupport() ? ($box->getLigneSupport()) : 'Non défini',
                 'type' => $box->getType(),
-                'attribueA' => $box->getAttribueA(),
+                //                 'attribueA' => $box->getAttribueA(),
                 'statut' => $box->getStatut(),
             ];
         }
@@ -224,7 +224,7 @@ class BoxController extends AbstractController
                 'adresse' => $box->getAdresse(),
                 'ligne_support' => $box->getLigneSupport() ? ($box->getLigneSupport()) : 'Non défini',
                 'type' => $box->getType(),
-                'attribueA' => $box->getAttribueA(),
+                //                 'attribueA' => $box->getAttribueA(),
                 'statut' => $box->getStatut(),
             ];
         }
@@ -309,7 +309,7 @@ class BoxController extends AbstractController
             'adresse' => $box->getAdresse(),
             'ligne_support' => $box->getLigneSupport(),
             'type' => $box->getType(),
-            'attribueA' => $box->getAttribueA(),
+            //            'attribueA' => $box->getAttribueA(),
             'statut' => $box->getStatut(),
         ];
 
@@ -364,7 +364,7 @@ class BoxController extends AbstractController
         $box->setAdresse($data['adresse']);
         $box->setLigneSupport($data['ligne_support'] ?? $box->getLigneSupport());
         $box->setType($data['type'] ?? $box->getType());
-        $box->setAttribueA($data['attribueA'] ?? $box->getAttribueA());
+        //        $box->setAttribueA($data['attribueA'] ?? $box->getAttribueA());
         $box->setStatut($data['statut'] ?? $box->getStatut());
 
         $this->entityManager->flush();
@@ -392,7 +392,7 @@ class BoxController extends AbstractController
             'adresse' => $box->getAdresse(),
             'ligneSupport' => $box->getLigneSupport(),
             'type' => $box->getType(),
-            'attribueA' => $box->getAttribueA(),
+            //            'attribueA' => $box->getAttribueA(),
             'statut' => $box->getStatut(),
         ]);
 
@@ -453,7 +453,7 @@ class BoxController extends AbstractController
                     $box->getAdresse(),
                     $box->getLigneSupport() ?: 'Non défini',
                     $box->getType() ?: 'Non défini',
-                    $box->getAttribueA() ?: 'Non défini',
+                    //                    $box->getAttribueA() ?: 'Non défini',
                     $box->getStatut() ?: 'Non défini'
                 ], ';');
             }

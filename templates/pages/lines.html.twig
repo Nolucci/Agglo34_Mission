@@ -29,7 +29,7 @@
                                             <div class="card text-center">
                                                 <div class="card-body">
                                                     <h5 class="card-title"><i class="fa fa-building fa-2x"></i></h5>
-                                                    <p class="card-text">Services uniques</p>
+                                                    <p class="card-text">Bâtiments</p>
                                                     <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_services }}</h3>
                                                 </div>
                                             </div>
@@ -57,29 +57,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <strong class="card-title">Nombre de Lignes par Commune</strong>
-                                </div>
-                                <div class="card-body text-center" style="height: 300px;">
-                                    <canvas id="sales-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <strong class="card-title">Lignes par Opérateur</strong>
-                                </div>
-                                <div class="card-body text-center" style="height: 300px;">
-                                    <canvas id="operator-bar-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3">
+                        <div class="col-lg-9">
                              <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Carte de l'Agglomération</strong>
@@ -136,7 +114,6 @@
                                                     <th>Attribué à</th>
                                                     <th>Opérateur</th>
                                                     <th>Type de Ligne</th>
-                                                    <th>Statut</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -256,7 +233,7 @@
 
       // Charger les données des lignes téléphoniques avec pagination
       function loadPhoneLines(page = 1) {
-          fetch(`/api/phone-line/list?page=${page}&limit=${itemsPerPage}`)
+          fetch(`/api/phone-line/list?page=${page}&limit=${itemsPerPage}&sort=municipality.name,id&order=asc`)
               .then(response => response.json())
               .then(data => {
                   allPhoneLines = data.data;
@@ -279,6 +256,22 @@
           if (!paginationElement) return;
 
           paginationElement.innerHTML = '';
+
+          // Bouton début
+          const firstLi = document.createElement('li');
+          firstLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+          const firstLink = document.createElement('a');
+          firstLink.className = 'page-link';
+          firstLink.href = '#';
+          firstLink.textContent = 'Début';
+          firstLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              if (currentPage > 1) {
+                  loadPhoneLines(1);
+              }
+          });
+          firstLi.appendChild(firstLink);
+          paginationElement.appendChild(firstLi);
 
           // Bouton précédent
           const prevLi = document.createElement('li');
@@ -335,119 +328,23 @@
           });
           nextLi.appendChild(nextLink);
           paginationElement.appendChild(nextLi);
+
+          // Bouton fin
+          const lastLi = document.createElement('li');
+          lastLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+          const lastLink = document.createElement('a');
+          lastLink.className = 'page-link';
+          lastLink.href = '#';
+          lastLink.textContent = 'Fin';
+          lastLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              if (currentPage < totalPages) {
+                  loadPhoneLines(totalPages);
+              }
+          });
+          lastLi.appendChild(lastLink);
+          paginationElement.appendChild(lastLi);
       }
-
-        // Sales Chart
-        var ctxSales = document.getElementById("sales-chart");
-        if (ctxSales) {
-            ctxSales.height = 150;
-            var myChartSales = new Chart(ctxSales, {
-                type: 'bar',
-                data: {
-                    labels: {{ salesChartData.labels | json_encode | raw }},
-                    datasets: [{
-                        label: "Nombre de Lignes",
-                        data: {{ salesChartData.data | json_encode | raw }},
-                        backgroundColor: 'rgba(220,53,69,0.75)',
-                        borderColor: 'rgba(220,53,69,0.75)',
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    tooltips: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        titleFontSize: 12,
-                        titleFontColor: '#000',
-                        bodyFontColor: '#000',
-                        backgroundColor: '#fff',
-                        titleFontFamily: 'Poppins',
-                        bodyFontFamily: 'Poppins',
-                        cornerRadius: 3,
-                        intersect: false,
-                    },
-                    legend: {
-                        display: false,
-                        labels: {
-                            fontFamily: 'Poppins',
-                        },
-                    },
-                    scales: {
-                        xAxes: [{
-                            display: true,
-                            gridLines: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                fontFamily: "Poppins"
-                            }
-                        }],
-                        yAxes: [{
-                            display: true,
-                            gridLines: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            ticks: {
-                                beginAtZero: true,
-                                fontFamily: "Poppins"
-                            }
-                        }]
-                    },
-                    title: {
-                        display: false,
-                        text: 'Normal Legend'
-                    }
-                }
-            });
-        }
-
-        // Operator Bar Chart
-        var ctxOperator = document.getElementById("operator-bar-chart");
-        if (ctxOperator) {
-            ctxOperator.height = 200; // Ajustez la hauteur si nécessaire
-            var myChartOperator = new Chart(ctxOperator, {
-                type: 'bar',
-                defaultFontFamily: 'Poppins',
-                data: {
-                    labels: {{ operatorChartData.labels | json_encode | raw }},
-                    datasets: [
-                        {
-                            label: "Nombre de Lignes", // Adapter le label
-                            data: {{ operatorChartData.data | json_encode | raw }},
-                            borderColor: "rgba(0, 123, 255, 0.9)",
-                            borderWidth: "0",
-                            backgroundColor: "rgba(0, 123, 255, 0.5)",
-                            fontFamily: "Poppins"
-                        }
-                    ]
-                },
-                options: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            fontFamily: 'Poppins'
-                        }
-                    },
-                    scales: {
-                        xAxes: [{
-                            ticks: {
-                                fontFamily: "Poppins"
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                fontFamily: "Poppins"
-                            }
-                        }]
-                    }
-                }
-            });
-        }
-
 
         // Fonction pour rendre la table des lignes
         window.renderLinesTable = function(linesToDisplay) {
@@ -465,9 +362,6 @@
                         <td>${line.assignedTo && line.assignedTo !== '' ? line.assignedTo : 'Non défini'}</td>
                         <td>${line.operator && line.operator !== '' ? line.operator : 'Non défini'}</td>
                         <td>${line.lineType && line.lineType !== '' ? line.lineType : 'Non défini'}</td>
-                        <td>
-                            ${line.isWorking ? '<span class="badge badge-success">Fonctionne</span>' : '<span class="badge badge-danger">Ne fonctionne pas</span>'}
-                        </td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-primary edit-btn mr-1" onclick="editLine(${line.id})">

@@ -9,7 +9,7 @@
             <div class="section__content section__content--p30 park-content">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-lg-3">
+                        <div class="col-lg-6">
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title" id="park-stats-title">Statistiques du Parc</strong>
@@ -29,7 +29,7 @@
                                             <div class="card text-center">
                                                 <div class="card-body">
                                                     <h5 class="card-title"><i class="fas fa-building fa-2x"></i></h5>
-                                                    <p class="card-text">Services uniques</p>
+                                                    <p class="card-text">Bâtiments</p>
                                                     <h3 style="font-size: 1.5rem;">{{ parkStats.unique_services }}</h3>{# Reduced font size #}
                                                 </div>
                                             </div>
@@ -38,7 +38,7 @@
                                             <div class="card text-center">
                                                 <div class="card-body">
                                                     <h5 class="card-title"><i class="fas fa-building fa-2x"></i></h5>
-                                                    <p class="card-text">Communes uniques</p>
+                                                    <p class="card-text">Entités</p>
                                                     <h3 style="font-size: 1.5rem;">{{ parkStats.unique_municipalities }}</h3>{# Reduced font size #}
                                                 </div>
                                             </div>
@@ -57,28 +57,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <strong class="card-title">Équipements par Statut</strong>
-                                </div>
-                                <div class="card-body text-center" style="height: 300px;">
-                                    <canvas id="status-doughnut-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3">
-                            <div class="card" id="equipment-stats-card">
-                                <div class="card-header">
-                                    <strong class="card-title">Statistiques des Équipements</strong>
-                                </div>
-                                <div class="card-body text-center" style="height: 300px;" id="equipment-stats-body">
-                                </div>
-                            </div>
-                        </div>
-
-                         <div class="col-lg-3">
+                         <div class="col-lg-6">
                              <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Carte des Équipements</strong>
@@ -128,6 +107,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>Commune</th>
+                                                    <th>Lieu</th>
                                                     <th>Étiquetage</th>
                                                     <th>Modèle</th>
                                                     <th>Numéro de série</th>
@@ -209,7 +189,7 @@
 
         // Charger les données des équipements avec pagination
         function loadEquipments(page = 1) {
-            fetch(`/equipment/list?page=${page}&limit=${itemsPerPage}`)
+            fetch(`/equipment/list?page=${page}&limit=${itemsPerPage}&sort=commune.name,id&order=asc`)
                 .then(response => response.json())
                 .then(data => {
                     allEquipments = data.equipments;
@@ -232,6 +212,22 @@
             if (!paginationElement) return;
 
             paginationElement.innerHTML = '';
+
+            // Bouton début
+            const firstLi = document.createElement('li');
+            firstLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            const firstLink = document.createElement('a');
+            firstLink.className = 'page-link';
+            firstLink.href = '#';
+            firstLink.textContent = 'Début';
+            firstLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    loadEquipments(1);
+                }
+            });
+            firstLi.appendChild(firstLink);
+            paginationElement.appendChild(firstLi);
 
             // Bouton précédent
             const prevLi = document.createElement('li');
@@ -288,121 +284,23 @@
             });
             nextLi.appendChild(nextLink);
             paginationElement.appendChild(nextLi);
-        }
 
-        // Team Commits Chart
-        var ctxTeam = document.getElementById("team-chart");
-        if (ctxTeam) {
-            ctxTeam.height = 150;
-            var myChartTeam = new Chart(ctxTeam, {
-                type: 'bar',
-                data: {
-                    labels: {{ teamChartData.labels | json_encode | raw }},
-                    type: 'bar',
-                    defaultFontFamily: 'Poppins',
-                    datasets: [{
-                        data: {{ teamChartData.data | json_encode | raw }},
-                        label: "Équipements par Type",
-                        backgroundColor: 'rgba(0,103,255,.15)',
-                        borderColor: 'rgba(0,103,255,0.5)',
-                        borderWidth: 3.5,
-                        pointStyle: 'circle',
-                        pointRadius: 5,
-                        pointBorderColor: 'transparent',
-                        pointBackgroundColor: 'rgba(0,103,255,0.5)',
-                    },]
-                },
-                options: {
-                    responsive: true,
-                    tooltips: {
-                        mode: 'index',
-                        titleFontSize: 12,
-                        titleFontColor: '#000',
-                        bodyFontColor: '#000',
-                        backgroundColor: '#fff',
-                        titleFontFamily: 'Poppins',
-                        bodyFontFamily: 'Poppins',
-                        cornerRadius: 3,
-                        intersect: false,
-                    },
-                    legend: {
-                        display: false,
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            fontFamily: 'Poppins',
-                        },
-                    },
-                    scales: {
-                        xAxes: [{
-                            display: true,
-                            gridLines: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Month'
-                            },
-                            ticks: {
-                                fontFamily: "Poppins"
-                            }
-                        }],
-                        yAxes: [{
-                            display: true,
-                            gridLines: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Value',
-                                fontFamily: "Poppins"
-                            },
-                            ticks: {
-                                fontFamily: "Poppins"
-                            }
-                        }]
-                    },
-                    title: {
-                        display: false,
-                    }
+            // Bouton fin
+            const lastLi = document.createElement('li');
+            lastLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            const lastLink = document.createElement('a');
+            lastLink.className = 'page-link';
+            lastLink.href = '#';
+            lastLink.textContent = 'Fin';
+            lastLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    loadEquipments(totalPages);
                 }
             });
+            lastLi.appendChild(lastLink);
+            paginationElement.appendChild(lastLi);
         }
-
-        // Status Doughnut Chart
-        var ctxStatus = document.getElementById("status-doughnut-chart");
-        if (ctxStatus) {
-            ctxStatus.height = 150; // Ajustez la hauteur si nécessaire
-            var myChartStatus = new Chart(ctxStatus, {
-                type: 'bar',
-                data: {
-                    datasets: [{
-                        data: {{ statusChartData.data | json_encode | raw }},
-                        backgroundColor: [
-                            "rgba(40, 167, 69, 0.9)", // Vert pour Actif
-                            "rgba(108, 117, 125, 0.7)" // Gris pour Inactif
-                        ],
-                        hoverBackgroundColor: [
-                            "rgba(40, 167, 69, 1)",
-                            "rgba(108, 117, 125, 0.9)"
-                        ],
-                    }],
-                    labels: {{ statusChartData.labels | json_encode | raw }}
-                },
-                options: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            fontFamily: 'Poppins'
-                        }
-                    },
-                    responsive: true
-                }
-            });
-        }
-
 
         // Fonction pour rendre la table des équipements
         window.renderEquipmentsTable = function(equipmentsToDisplay) {
@@ -413,6 +311,7 @@
                 const row = `
                     <tr>
                         <td>${equipment.commune && typeof equipment.commune === 'object' && equipment.commune.name ? equipment.commune.name : 'Non défini'}</td>
+                        <td>${equipment.localisation || 'Non défini'}</td>
                         <td>${equipment.etiquetage || 'Non défini'}</td>
                         <td>${equipment.modele || 'Non défini'}</td>
                         <td>${equipment.numeroSerie || 'Non défini'}</td>

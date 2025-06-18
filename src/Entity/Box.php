@@ -30,9 +30,6 @@ class Box
     private ?string $type = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $attribueA = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
     private ?string $statut = null; // Actif, Inactif
 
     public function getId(): ?int
@@ -96,18 +93,6 @@ class Box
     public function setType(?string $type): static
     {
         $this->type = $type;
-
-        return $this;
-    }
-
-    public function getAttribueA(): ?string
-    {
-        return $this->attribueA;
-    }
-
-    public function setAttribueA(?string $attribueA): static
-    {
-        $this->attribueA = $attribueA;
 
         return $this;
     }

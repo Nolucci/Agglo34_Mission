@@ -9,7 +9,7 @@
             <div class="section__content section__content--p30 box-list-content">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-lg-3">
+                        <div class="col-lg-6">
                             <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Boxs</strong>
@@ -29,7 +29,7 @@
                                             <div class="card text-center">
                                                 <div class="card-body">
                                                     <h5 class="card-title"><i class="fas fa-building fa-2x"></i></h5>
-                                                    <p class="card-text">Services uniques</p>
+                                                    <p class="card-text">Bâtiments</p>
                                                     <h3 style="font-size: 1.5rem;">{{ boxStats.unique_services }}</h3>{# Reduced font size #}
                                                 </div>
                                             </div>
@@ -38,7 +38,7 @@
                                             <div class="card text-center">
                                                 <div class="card-body">
                                                     <h5 class="card-title"><i class="fas fa-building fa-2x"></i></h5>
-                                                    <p class="card-text">Communes uniques</p>
+                                                    <p class="card-text">Entités</p>
                                                     <h3 style="font-size: 1.5rem;">{{ boxStats.unique_municipalities }}</h3>{# Reduced font size #}
                                                 </div>
                                             </div>
@@ -57,29 +57,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <strong class="card-title">Statistiques des Boxs</strong>
-                                </div>
-                                <div class="card-body text-center" style="height: 300px;">
-                                    <canvas id="team-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <strong class="card-title">Box par Statut</strong>
-                                </div>
-                                <div class="card-body text-center" style="height: 300px;">
-                                    <canvas id="status-doughnut-chart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                         <div class="col-lg-3">
+                         <div class="col-lg-6">
                              <div class="card">
                                 <div class="card-header">
                                     <strong class="card-title">Carte des Box</strong>
@@ -133,7 +111,6 @@
                                                     <th>Adresse</th>
                                                     <th>Ligne Support</th>
                                                     <th>Type</th>
-                                                    <th>Attribué à</th>
                                                     <th>Statut</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -260,7 +237,7 @@
 
         // Charger les données des boxs avec pagination
         function loadBoxes(page = 1) {
-            fetch(`/api/box/list?page=${page}&limit=${itemsPerPage}`)
+            fetch(`/api/box/list?page=${page}&limit=${itemsPerPage}&sort=commune,id&order=asc`)
                 .then(response => response.json())
                 .then(data => {
                     allBoxes = data.boxes;
@@ -283,6 +260,22 @@
             if (!paginationElement) return;
 
             paginationElement.innerHTML = '';
+
+            // Bouton début
+            const firstLi = document.createElement('li');
+            firstLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            const firstLink = document.createElement('a');
+            firstLink.className = 'page-link';
+            firstLink.href = '#';
+            firstLink.textContent = 'Début';
+            firstLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    loadBoxes(1);
+                }
+            });
+            firstLi.appendChild(firstLink);
+            paginationElement.appendChild(firstLi);
 
             // Bouton précédent
             const prevLi = document.createElement('li');
@@ -339,121 +332,23 @@
             });
             nextLi.appendChild(nextLink);
             paginationElement.appendChild(nextLi);
-        }
 
-        // Team Commits Chart
-        var ctxTeam = document.getElementById("team-chart");
-        if (ctxTeam) {
-            ctxTeam.height = 150;
-            var myChartTeam = new Chart(ctxTeam, {
-                type: 'bar',
-                data: {
-                    labels: {{ boxTypeChartData.labels | json_encode | raw }},
-                    type: 'bar',
-                    defaultFontFamily: 'Poppins',
-                    datasets: [{
-                        data: {{ boxTypeChartData.data | json_encode | raw }},
-                        label: "Box par Type",
-                        backgroundColor: 'rgba(0,103,255,.15)',
-                        borderColor: 'rgba(0,103,255,0.5)',
-                        borderWidth: 3.5,
-                        pointStyle: 'circle',
-                        pointRadius: 5,
-                        pointBorderColor: 'transparent',
-                        pointBackgroundColor: 'rgba(0,103,255,0.5)',
-                    },]
-                },
-                options: {
-                    responsive: true,
-                    tooltips: {
-                        mode: 'index',
-                        titleFontSize: 12,
-                        titleFontColor: '#000',
-                        bodyFontColor: '#000',
-                        backgroundColor: '#fff',
-                        titleFontFamily: 'Poppins',
-                        bodyFontFamily: 'Poppins',
-                        cornerRadius: 3,
-                        intersect: false,
-                    },
-                    legend: {
-                        display: false,
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            fontFamily: 'Poppins',
-                        },
-                    },
-                    scales: {
-                        xAxes: [{
-                            display: true,
-                            gridLines: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            scaleLabel: {
-                                display: false,
-                                labelString: 'Month'
-                            },
-                            ticks: {
-                                fontFamily: "Poppins"
-                            }
-                        }],
-                        yAxes: [{
-                            display: true,
-                            gridLines: {
-                                display: false,
-                                drawBorder: false
-                            },
-                            scaleLabel: {
-                                display: true,
-                                labelString: 'Value',
-                                fontFamily: "Poppins"
-                            },
-                            ticks: {
-                                fontFamily: "Poppins"
-                            }
-                        }]
-                    },
-                    title: {
-                        display: false,
-                    }
+            // Bouton fin
+            const lastLi = document.createElement('li');
+            lastLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            const lastLink = document.createElement('a');
+            lastLink.className = 'page-link';
+            lastLink.href = '#';
+            lastLink.textContent = 'Fin';
+            lastLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    loadBoxes(totalPages);
                 }
             });
+            lastLi.appendChild(lastLink);
+            paginationElement.appendChild(lastLi);
         }
-
-        // Status Doughnut Chart
-        var ctxStatus = document.getElementById("status-doughnut-chart");
-        if (ctxStatus) {
-            ctxStatus.height = 150; // Ajustez la hauteur si nécessaire
-            var myChartStatus = new Chart(ctxStatus, {
-                type: 'bar',
-                data: {
-                    datasets: [{
-                        data: {{ boxStatusChartData.data | json_encode | raw }},
-                        backgroundColor: [
-                            "rgba(40, 167, 69, 0.9)", // Vert pour Actif
-                            "rgba(108, 117, 125, 0.7)" // Gris pour Inactif
-                        ],
-                        hoverBackgroundColor: [
-                            "rgba(40, 167, 69, 1)",
-                            "rgba(108, 117, 125, 0.9)"
-                        ],
-                    }],
-                    labels: {{ boxStatusChartData.labels | json_encode | raw }}
-                },
-                options: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            fontFamily: 'Poppins'
-                        }
-                    },
-                    responsive: true
-                }
-            });
-        }
-
 
         // Fonction pour rendre la table des box
         window.renderBoxesTable = function(boxesToDisplay) {
@@ -468,7 +363,6 @@
                         <td>${box.adresse || 'Non défini'}</td>
                         <td>${box.ligne_support || 'Non défini'}</td>
                         <td>${box.type || 'Non défini'}</td>
-                        <td>${box.attribueA || 'Non assigné'}</td>
                         <td>
                             ${box.statut === 'Actif' ? '<span class="badge badge-success">Actif</span>' : '<span class="badge badge-secondary">Inactif</span>'}
                         </td>
@@ -492,80 +386,6 @@
         function initMap() {
             // Logique de la carte à implémenter
         }
-
-        // Gestion des exports
-        document.addEventListener('DOMContentLoaded', function() {
-            // Export CSV
-            const exportCsvBtn = document.getElementById('export-csv-btn');
-            if (exportCsvBtn) {
-                exportCsvBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    // Récupérer les filtres actifs
-                    const filters = getActiveFilters();
-
-                    // Construire l'URL avec les filtres
-                    let url = '/api/box/export/csv';
-                    if (Object.keys(filters).length > 0) {
-                        url += '?' + new URLSearchParams(filters).toString();
-                    }
-
-                    // Rediriger vers l'URL d'export
-                    window.location.href = url;
-                });
-            }
-
-            // Export PDF
-            const exportPdfBtn = document.getElementById('export-pdf-btn');
-            if (exportPdfBtn) {
-                exportPdfBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    // Récupérer les filtres actifs
-                    const filters = getActiveFilters();
-
-                    // Construire l'URL avec les filtres
-                    let url = '/api/box/export/pdf';
-                    if (Object.keys(filters).length > 0) {
-                        url += '?' + new URLSearchParams(filters).toString();
-                    }
-
-                    // Ouvrir l'URL d'export dans une nouvelle fenêtre
-                    window.open(url, '_blank');
-                });
-            }
-
-            // Fonction pour récupérer les filtres actifs
-            function getActiveFilters() {
-                const filters = {};
-
-                // Récupérer les filtres depuis le formulaire de filtres
-                const filterForm = document.getElementById('box-filter-form');
-                if (filterForm) {
-                    const commune = document.getElementById('filter-commune');
-                    if (commune && commune.value) {
-                        filters.commune = commune.value;
-                    }
-
-                    const service = document.getElementById('filter-service');
-                    if (service && service.value) {
-                        filters.service = service.value;
-                    }
-
-                    const type = document.getElementById('filter-type');
-                    if (type && type.value) {
-                        filters.type = type.value;
-                    }
-
-                    const statut = document.getElementById('filter-statut');
-                    if (statut && statut.value) {
-                        filters.statut = statut.value;
-                    }
-                }
-
-                return filters;
-            }
-        });
 
         // Initial render of the table
         document.addEventListener('DOMContentLoaded', function() {
@@ -651,6 +471,80 @@
                 $('#boxFiltersModal').modal('hide');
             });
         }
+
+        // Gestion des exports
+        document.addEventListener('DOMContentLoaded', function() {
+            // Export CSV
+            const exportCsvBtn = document.getElementById('export-csv-btn');
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Récupérer les filtres actifs
+                    const filters = getActiveFilters();
+
+                    // Construire l'URL avec les filtres
+                    let url = '/api/box/export/csv';
+                    if (Object.keys(filters).length > 0) {
+                        url += '?' + new URLSearchParams(filters).toString();
+                    }
+
+                    // Rediriger vers l'URL d'export
+                    window.location.href = url;
+                });
+            }
+
+            // Export PDF
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Récupérer les filtres actifs
+                    const filters = getActiveFilters();
+
+                    // Construire l'URL avec les filtres
+                    let url = '/api/box/export/pdf';
+                    if (Object.keys(filters).length > 0) {
+                        url += '?' + new URLSearchParams(filters).toString();
+                    }
+
+                    // Ouvrir l'URL d'export dans une nouvelle fenêtre
+                    window.open(url, '_blank');
+                });
+            }
+
+            // Fonction pour récupérer les filtres actifs
+            function getActiveFilters() {
+                const filters = {};
+
+                // Récupérer les filtres depuis le formulaire de filtres
+                const filterForm = document.getElementById('box-filter-form');
+                if (filterForm) {
+                    const commune = document.getElementById('filter-commune');
+                    if (commune && commune.value) {
+                        filters.commune = commune.value;
+                    }
+
+                    const service = document.getElementById('filter-service');
+                    if (service && service.value) {
+                        filters.service = service.value;
+                    }
+
+                    const type = document.getElementById('filter-type');
+                    if (type && type.value) {
+                        filters.type = type.value;
+                    }
+
+                    const statut = document.getElementById('filter-statut');
+                    if (statut && statut.value) {
+                        filters.statut = statut.value;
+                    }
+                }
+
+                return filters;
+            }
+        });
     // Le code de gestion de la confirmation de suppression a été déplacé dans delete-confirmation.js
     </script>
 {% endblock %}

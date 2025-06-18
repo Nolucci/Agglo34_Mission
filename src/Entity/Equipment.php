@@ -18,6 +18,9 @@ class Equipment
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $commune = null;
 
+    // #[ORM\Column(length: 255, nullable: true)]
+    // private ?string $localisation = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $etiquetage = null;
 
@@ -58,6 +61,18 @@ class Equipment
     public function setCommune(?Municipality $commune): static
     {
         $this->commune = $commune;
+
+        return $this;
+    }
+
+    public function getLocalisation(): ?string
+    {
+        return $this->localisation ?? $this->service;
+    }
+
+    public function setLocalisation(?string $localisation): static
+    {
+        $this->localisation = $localisation;
 
         return $this;
     }
@@ -175,7 +190,7 @@ class Equipment
      */
     public function getLocation(): ?string
     {
-        return $this->service;
+        return $this->localisation ?? $this->service;
     }
 
     /**
