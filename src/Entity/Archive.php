@@ -26,6 +26,9 @@ class Archive
     #[ORM\Column(type: Types::JSON)]
     private array $data = [];
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $deletedBy = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -75,6 +78,18 @@ class Archive
     public function setData(array $data): self
     {
         $this->data = $data;
+
+        return $this;
+    }
+
+    public function getDeletedBy(): ?string
+    {
+        return $this->deletedBy;
+    }
+
+    public function setDeletedBy(?string $deletedBy): self
+    {
+        $this->deletedBy = $deletedBy;
 
         return $this;
     }

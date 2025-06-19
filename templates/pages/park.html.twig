@@ -211,8 +211,10 @@
         let totalItems = 0;
 
         // Charger les données des équipements avec pagination
-        function loadEquipments(page = 1) {
-            fetch(`/equipment/list?page=${page}&limit=${itemsPerPage}&sort=commune.name,id&order=asc`)
+        function loadEquipments(page = 1, isSearch = false) {
+            // Si c'est une recherche, charger toutes les données sans pagination
+            const limit = isSearch ? 1000 : itemsPerPage;
+            fetch(`/equipment/list?page=${page}&limit=${limit}&sort=commune.name,service&order=asc`)
                 .then(response => response.json())
                 .then(data => {
                     allEquipments = data.equipments;
@@ -404,6 +406,13 @@
             if (searchInput) {
                 searchInput.addEventListener('input', function(event) {
                     const searchTerm = event.target.value.toLowerCase();
+
+                    // Si le terme de recherche n'est pas vide, charger toutes les données
+                    if (searchTerm.length > 0 && allEquipments.length <= itemsPerPage) {
+                        loadEquipments(1, true);
+                        return;
+                    }
+
                     displayedEquipments = allEquipments.filter(equipment => {
                         for (const key in equipment) {
                             const value = equipment[key];

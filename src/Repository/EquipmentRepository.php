@@ -79,4 +79,20 @@ class EquipmentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return Equipment[] Returns an array of Equipment objects with their associated Commune, ordered by commune name
+     */
+    public function findAllWithCommuneOrdered(int $limit = null, int $offset = null): array
+    {
+        return $this->createQueryBuilder('e')
+            ->leftJoin('e.commune', 'm')
+            ->addSelect('m')
+            ->orderBy('m.name', 'ASC')
+            ->addOrderBy('e.service', 'ASC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -84,6 +84,7 @@ class PhoneLineController extends AbstractController
 
             $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
             $archive->setArchivedAt($now);
+            $archive->setDeletedBy($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
 
             $archiveData = [
                 'location' => $this->ensureUtf8($phoneLine->getLocation()),
@@ -322,6 +323,7 @@ class PhoneLineController extends AbstractController
 
         $now = new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris'));
         $archive->setArchivedAt($now);
+        $archive->setDeletedBy($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
 
         $archiveData = [
             'location' => $this->ensureUtf8($phoneLine->getLocation()),
@@ -362,7 +364,18 @@ class PhoneLineController extends AbstractController
         $offset = ($page - 1) * $limit;
 
         $totalPhoneLines = $this->phoneLineRepository->count([]);
-        $phoneLines = $this->phoneLineRepository->findBy([], null, $limit, $offset);
+
+        // Récupérer les paramètres de tri
+        $sort = $request->query->get('sort', 'municipality.name');
+        $order = strtoupper($request->query->get('order', 'asc'));
+
+        // Utiliser la méthode appropriée selon les paramètres de tri
+        if ($sort === 'municipality.name') {
+            $phoneLines = $this->phoneLineRepository->findAllOrderedByMunicipality($limit, $offset);
+        } else {
+            // Pour d'autres critères de tri, utiliser la méthode standard
+            $phoneLines = $this->phoneLineRepository->findBy([], null, $limit, $offset);
+        }
 
         $data = [];
         foreach ($phoneLines as $phoneLine) {

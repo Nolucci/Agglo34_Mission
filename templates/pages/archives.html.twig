@@ -69,10 +69,11 @@
                                         <table class="table table-striped table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th width="15%">Type d'Entité</th>
-                                                    <th width="10%">ID Entité</th>
-                                                    <th width="15%">Date d'Archivage</th>
-                                                    <th width="45%">Données Archivées</th>
+                                                    <th width="12%">Type d'Entité</th>
+                                                    <th width="8%">ID Entité</th>
+                                                    <th width="12%">Date d'Archivage</th>
+                                                    <th width="12%">Supprimé par</th>
+                                                    <th width="41%">Données Archivées</th>
                                                     <th width="15%">Actions</th>
                                                 </tr>
                                             </thead>
@@ -201,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (archives.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center">
+                    <td colspan="6" class="text-center">
                         <i class="fa fa-info-circle"></i> Aucune archive ne correspond à votre recherche.
                     </td>
                 </tr>
@@ -217,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${archive.entityType}</td>
                 <td>${archive.entityId}</td>
                 <td>${archive.archivedAt}</td>
+                <td>${archive.deletedBy || 'Non spécifié'}</td>
                 <td class="json-data">${JSON.stringify(archive.data)}</td>
                 <td class="action-buttons">
                     <div class="btn-group">
@@ -297,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!append) {
                     document.getElementById('archives-table-body').innerHTML = `
                         <tr>
-                            <td colspan="5" class="text-center text-danger">
+                            <td colspan="6" class="text-center text-danger">
                                 <i class="fa fa-exclamation-triangle"></i> Une erreur est survenue lors du chargement des archives.
                             </td>
                         </tr>

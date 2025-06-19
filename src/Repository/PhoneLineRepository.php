@@ -66,7 +66,7 @@ class PhoneLineRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
 
         $sql = '
-            SELECT 
+            SELECT
                 COUNT(*) as total_lines,
                 AVG(debit_max) as avg_speed,
                 COUNT(DISTINCT operateur) as unique_operators,
@@ -78,5 +78,22 @@ class PhoneLineRepository extends ServiceEntityRepository
         $result = $stmt->executeQuery();
 
         return $result->fetchAssociative();
+    }
+
+    /**
+     * Récupère toutes les lignes téléphoniques triées par commune
+     * @return PhoneLine[]
+     */
+    public function findAllOrderedByMunicipality(int $limit = null, int $offset = null): array
+    {
+        return $this->createQueryBuilder('pl')
+            ->leftJoin('pl.municipality', 'm')
+            ->addSelect('m')
+            ->orderBy('m.name', 'ASC')
+            ->addOrderBy('pl.service', 'ASC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
     }
 }

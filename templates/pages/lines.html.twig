@@ -255,8 +255,10 @@
       let totalItems = 0;
 
       // Charger les données des lignes téléphoniques avec pagination
-      function loadPhoneLines(page = 1) {
-          fetch(`/api/phone-line/list?page=${page}&limit=${itemsPerPage}&sort=municipality.name,id&order=asc`)
+      function loadPhoneLines(page = 1, isSearch = false) {
+          // Si c'est une recherche, charger toutes les données sans pagination
+          const limit = isSearch ? 1000 : itemsPerPage;
+          fetch(`/api/phone-line/list?page=${page}&limit=${limit}`)
               .then(response => response.json())
               .then(data => {
                   allPhoneLines = data.data;
@@ -493,6 +495,13 @@
             if (searchInput) {
                 searchInput.addEventListener('input', function(event) {
                     const searchTerm = event.target.value.toLowerCase();
+
+                    // Si le terme de recherche n'est pas vide, charger toutes les données
+                    if (searchTerm.length > 0 && allPhoneLines.length <= itemsPerPage) {
+                        loadPhoneLines(1, true);
+                        return;
+                    }
+
                     displayedPhoneLines = allPhoneLines.filter(line => {
                         // Filter based on specific attributes containing the search term
                         const municipalityName = line.municipality && line.municipality.name ? line.municipality.name.toLowerCase() : '';

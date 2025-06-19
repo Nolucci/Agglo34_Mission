@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert("Box créée avec succès !");
                     // Fermer le modal après l'enregistrement réussi
                     $('#boxModal').modal('hide');
-                    // Recharger la page ou mettre à jour la table si nécessaire
-                    window.location.reload(); // Option simple pour recharger la page
+                    // Rediriger vers la première page pour voir la nouvelle box triée
+                    window.location.href = window.location.pathname + '?page=1';
                 } else {
                     alert("Erreur lors de la création de la box : " + data.error);
                 }
@@ -192,8 +192,8 @@ window.deleteBox = function(boxId) {
         if (data.success) {
             // Fermer la modal de confirmation si elle est ouverte
             $('#staticModal').modal('hide');
-            // Recharger la page ou mettre à jour la table si nécessaire
-            window.location.reload(); // Option simple pour recharger la page
+            // Rediriger vers la première page
+            window.location.href = window.location.pathname + '?page=1';
         } else {
             alert("Erreur lors de la suppression de la box : " + data.error);
         }

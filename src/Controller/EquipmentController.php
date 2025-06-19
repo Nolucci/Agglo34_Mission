@@ -112,6 +112,7 @@ class EquipmentController extends AbstractController
             $archive->setEntityType('Equipment');
             $archive->setEntityId($equipment->getId());
             $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
+            $archive->setDeletedBy($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
             $archive->setData($equipmentInfo);
 
             $this->entityManager->persist($archive);
@@ -367,6 +368,7 @@ class EquipmentController extends AbstractController
         $archive->setEntityType('Equipment');
         $archive->setEntityId($equipment->getId());
         $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
+        $archive->setDeletedBy($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
         $archive->setData($equipmentInfo);
 
         $this->entityManager->persist($archive);
@@ -388,7 +390,18 @@ class EquipmentController extends AbstractController
         $offset = ($page - 1) * $limit;
 
         $totalEquipments = $this->equipmentRepository->count([]);
-        $equipments = $this->equipmentRepository->findAllWithCommune($limit, $offset);
+
+        // Récupérer les paramètres de tri
+        $sort = $request->query->get('sort', 'commune.name');
+        $order = strtoupper($request->query->get('order', 'asc'));
+
+        // Utiliser la méthode appropriée selon les paramètres de tri
+        if ($sort === 'commune.name') {
+            $equipments = $this->equipmentRepository->findAllWithCommuneOrdered($limit, $offset);
+        } else {
+            // Pour d'autres critères de tri, utiliser la méthode standard
+            $equipments = $this->equipmentRepository->findAllWithCommune($limit, $offset);
+        }
 
         $result = [];
         foreach ($equipments as $equipment) {

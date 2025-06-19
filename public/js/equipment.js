@@ -116,8 +116,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fermer le modal
                 $('#parkModal').modal('hide');
 
-                // Recharger la page pour afficher les changements
-                window.location.reload();
+                // Rediriger vers la première page pour voir le nouvel équipement trié
+                window.location.href = window.location.pathname + '?page=1';
             } else {
                 alert('Erreur: ' + data.message);
             }
@@ -156,8 +156,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fermer le modal
                 $('#staticModal').modal('hide');
 
-                // Recharger la page pour afficher les changements
-                window.location.reload();
+                // Rediriger vers la première page
+                window.location.href = window.location.pathname + '?page=1';
             } else {
                 alert('Erreur: ' + data.message);
             }

@@ -259,8 +259,10 @@
         let totalItems = 0;
 
         // Charger les données des boxs avec pagination
-        function loadBoxes(page = 1) {
-            fetch(`/api/box/list?page=${page}&limit=${itemsPerPage}&sort=commune,id&order=asc`)
+        function loadBoxes(page = 1, isSearch = false) {
+            // Si c'est une recherche, charger toutes les données sans pagination
+            const limit = isSearch ? 1000 : itemsPerPage;
+            fetch(`/api/box/list?page=${page}&limit=${limit}&sort=commune,service&order=asc`)
                 .then(response => response.json())
                 .then(data => {
                     allBoxes = data.boxes;
@@ -445,6 +447,13 @@
             if (searchBoxInput) {
                 searchBoxInput.addEventListener('input', function(event) {
                     const searchTerm = event.target.value.toLowerCase();
+
+                    // Si le terme de recherche n'est pas vide, charger toutes les données
+                    if (searchTerm.length > 0 && allBoxes.length <= itemsPerPage) {
+                        loadBoxes(1, true);
+                        return;
+                    }
+
                     displayedBoxes = allBoxes.filter(box => {
                         for (const key in box) {
                             const value = box[key];

@@ -154,8 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fermer la modal
                 $('#linesModal').modal('hide');
                 setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                    // Rediriger vers la première page pour voir le nouvel objet trié
+                    window.location.href = window.location.pathname + '?page=1';
+                }, 500);
             } else {
                 alert(data.error || 'Une erreur est survenue lors de l\'enregistrement.');
             }
@@ -199,8 +200,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fermer la modal de confirmation
                 $('#staticModal').modal('hide');
 
-                // Recharger la page immédiatement sans afficher de popup
-                window.location.reload();
+                // Rediriger vers la première page
+                window.location.href = window.location.pathname + '?page=1';
             } else {
                 console.error('Erreur retournée par le serveur:', data.error);
                 alert(data.error || 'Une erreur est survenue lors de la suppression.');

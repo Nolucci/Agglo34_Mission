@@ -74,6 +74,7 @@ class ArchiveController extends AbstractController
                 'entityType' => $archive->getEntityType(),
                 'entityId' => $archive->getEntityId(),
                 'archivedAt' => $archive->getArchivedAt()->format('c'),
+                'deletedBy' => $archive->getDeletedBy(),
                 'data' => $archive->getData(),
             ];
         }
@@ -113,6 +114,16 @@ class ArchiveController extends AbstractController
             // Créer une nouvelle instance de l'entité
             $entity = new $entityClass();
 
+            // Traiter d'abord les relations avec d'autres entités
+            $relationProperties = [];
+
+            // Identifier les propriétés qui sont des relations
+            if ($entityType === 'Box' || $entityType === 'Equipment') {
+                $relationProperties['commune'] = 'Municipality';
+            } elseif ($entityType === 'PhoneLine') {
+                $relationProperties['municipality'] = 'Municipality';
+            }
+
             // Remplir l'entité avec les données archivées
             foreach ($data as $property => $value) {
                 // Ignorer l'ID car il sera généré automatiquement
@@ -122,6 +133,20 @@ class ArchiveController extends AbstractController
 
                 // Construire le nom de la méthode setter
                 $setter = 'set' . ucfirst($property);
+
+                // Vérifier si la propriété est une relation
+                if (array_key_exists($property, $relationProperties)) {
+                    if ($value !== null) {
+                        // Récupérer l'entité liée depuis la base de données
+                        $relatedEntityClass = 'App\\Entity\\' . $relationProperties[$property];
+                        $relatedEntity = $entityManager->getRepository($relatedEntityClass)->find($value);
+
+                        if ($relatedEntity) {
+                            $entity->$setter($relatedEntity);
+                        }
+                    }
+                    continue;
+                }
 
                 // Vérifier si la méthode setter existe
                 if (method_exists($entity, $setter)) {

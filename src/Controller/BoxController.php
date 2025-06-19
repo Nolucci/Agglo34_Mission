@@ -83,6 +83,7 @@ class BoxController extends AbstractController
             $archive->setEntityType('Box');
             $archive->setEntityId($box->getId());
             $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
+            $archive->setDeletedBy($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
             $archive->setData([
                 'commune_id' => $box->getCommune() ? $box->getCommune()->getId() : null,
                 'commune_name' => $box->getCommune() ? $box->getCommune()->getName() : null,
@@ -125,7 +126,21 @@ class BoxController extends AbstractController
         $offset = ($page - 1) * $limit;
 
         $totalBoxes = $this->boxRepository->count([]);
-        $boxes = $this->boxRepository->findBy([], null, $limit, $offset);
+
+        // Récupérer les paramètres de tri
+        $sort = $request->query->get('sort', 'commune');
+        $order = strtoupper($request->query->get('order', 'asc'));
+
+        // Convertir le paramètre de tri en nom de propriété
+        $sortField = $sort === 'commune' ? 'commune' : $sort;
+        $orderDirection = $order === 'DESC' ? 'DESC' : 'ASC';
+
+        // Récupérer les boxs triées avec un tri secondaire par service
+        if ($sortField === 'commune') {
+            $boxes = $this->boxRepository->findBy([], ['commune' => $orderDirection, 'service' => 'ASC'], $limit, $offset);
+        } else {
+            $boxes = $this->boxRepository->findBy([], [$sortField => $orderDirection], $limit, $offset);
+        }
 
         $boxData = [];
         foreach ($boxes as $box) {
@@ -186,7 +201,7 @@ class BoxController extends AbstractController
         $offset = ($page - 1) * $limit;
 
         $totalBoxes = $this->boxRepository->count([]);
-        $boxes = $this->boxRepository->findBy([], null, $limit, $offset);
+        $boxes = $this->boxRepository->findBy([], ['commune' => 'ASC'], $limit, $offset);
 
         // Récupérer toutes les communes
         $allMunicipalities = $municipalityRepository->findAll();
@@ -426,6 +441,7 @@ class BoxController extends AbstractController
         $archive->setEntityType('Box');
         $archive->setEntityId($box->getId());
         $archive->setArchivedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')));
+        $archive->setDeletedBy($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
         $archive->setData([
             'commune_id' => $box->getCommune() ? $box->getCommune()->getId() : null,
             'commune_name' => $box->getCommune() ? $box->getCommune()->getName() : null,
