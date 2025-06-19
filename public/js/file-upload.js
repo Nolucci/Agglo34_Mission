@@ -202,17 +202,50 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadButton.addEventListener('click', uploadFiles);
 
     function uploadFiles() {
-        debugger; // Ajout d'un point de débogage ici
-            if (selectedFiles.length === 0) {
-                showModal("Erreur", "Aucun fichier sélectionné pour le téléchargement.");
-                return;
-            }
+        if (selectedFiles.length === 0) {
+            showModal("Erreur", "Aucun fichier sélectionné pour le téléchargement.");
+            return;
+        }
 
         // Variable pour suivre les requêtes en cours
         let pendingRequests = 0;
         let successCount = 0;
         let errorCount = 0;
         let allMessages = [];
+        let currentSessionId = null;
+
+        // Créer et afficher la barre de progression
+        const progressContainer = createProgressBar();
+        document.body.appendChild(progressContainer);
+
+        // Fonction pour mettre à jour la barre de progression
+        function updateProgress(sessionId) {
+            if (!sessionId) return;
+
+            fetch(`/equipment/import-progress?sessionId=${sessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const progressBar = document.getElementById('import-progress-bar');
+                    const progressText = document.getElementById('import-progress-text');
+
+                    if (progressBar && progressText) {
+                        const percentage = data.total > 0 ? Math.round((data.current / data.total) * 100) : 0;
+                        progressBar.style.width = percentage + '%';
+                        progressText.textContent = `${data.message} (${data.current}/${data.total})`;
+
+                        if (data.status === 'completed' || data.status === 'error') {
+                            setTimeout(() => {
+                                document.body.removeChild(progressContainer);
+                            }, 2000);
+                        } else {
+                            setTimeout(() => updateProgress(sessionId), 500);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération de la progression:', error);
+                });
+        }
 
         // Fonction pour finaliser après toutes les requêtes
         function finalize() {
@@ -233,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (finalMessage) {
-                    showModal(successCount > 0 ? "Traitement terminé" : "Erreur", finalMessage);
+                    showModalWithoutConfirm(successCount > 0 ? "Traitement terminé" : "Erreur", finalMessage);
                 }
 
                 // Réinitialiser la liste des fichiers
@@ -271,9 +304,26 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 console.log(`Données reçues du serveur pour ${file.name}:`, data);
+
+                // Démarrer le suivi de progression si on a un sessionId
+                if (data.sessionId && !currentSessionId) {
+                    currentSessionId = data.sessionId;
+                    updateProgress(currentSessionId);
+                }
+
                 if (data.status === 'success') {
                     successCount++;
-                    allMessages.push(`Fichier ${file.name} traité avec succès.`);
+                    let message = `Fichier ${file.name} traité avec succès.`;
+                    if (data.totalImported) {
+                        message += ` ${data.totalImported} équipements importés.`;
+                    }
+                    if (data.totalSkipped) {
+                        message += ` ${data.totalSkipped} lignes ignorées (doublons).`;
+                    }
+                    if (data.skippedLines && data.skippedLines.length > 0) {
+                        message += `\nLignes non importées:\n${data.skippedLines.join('\n')}`;
+                    }
+                    allMessages.push(message);
                     console.log(`Succès: ${file.name} traité`);
                 } else {
                     errorCount++;
@@ -291,6 +341,61 @@ document.addEventListener('DOMContentLoaded', function() {
                 finalize();
             });
         });
+    }
+
+    // Fonction pour créer la barre de progression
+    function createProgressBar() {
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            min-width: 400px;
+        `;
+
+        container.innerHTML = `
+            <h4>Import en cours...</h4>
+            <div style="background: #f0f0f0; border-radius: 4px; overflow: hidden; margin: 10px 0;">
+                <div id="import-progress-bar" style="background: #007bff; height: 20px; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <div id="import-progress-text">Initialisation...</div>
+        `;
+
+        return container;
+    }
+
+    // Fonction pour afficher le modal sans bouton confirmer
+    function showModalWithoutConfirm(title, message) {
+        if(modal && modalTitle && modalBody) {
+            modalTitle.textContent = title;
+            modalBody.textContent = message;
+
+            // Cacher le bouton confirmer
+            const confirmButton = modal.querySelector('.btn-primary');
+            if (confirmButton) {
+                confirmButton.style.display = 'none';
+            }
+
+            //Show Modal use jQuery if bootstrap version is < 5.0
+            $(modal).modal('show');
+
+            // Auto-fermer le modal après 3 secondes
+            setTimeout(() => {
+                $(modal).modal('hide');
+                // Remettre le bouton confirmer visible pour les autres usages
+                if (confirmButton) {
+                    confirmButton.style.display = 'block';
+                }
+            }, 3000);
+        }
+        else
+            console.error("Modal with id staticModal wasn't found");
     }
 
     // Formater la taille des fichiers

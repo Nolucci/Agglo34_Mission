@@ -95,6 +95,7 @@ class EquipmentController extends AbstractController
                 'os' => $equipment->getOs(),
                 'version' => $equipment->getVersion(),
                 'statut' => $equipment->getStatut(),
+                'localisation' => $equipment->getLocalisation(),
             ];
 
             $log = new Log();
@@ -161,6 +162,7 @@ class EquipmentController extends AbstractController
         $equipment->setNumeroSerie($data['numeroSerie'] ?? null);
         $equipment->setService($data['service'] ?? null);
         $equipment->setUtilisateur($data['utilisateur'] ?? null);
+        $equipment->setLocalisation($data['localisation'] ?? null);
 
         if (isset($data['dateGarantie']) && $data['dateGarantie'] !== null) {
             try {
@@ -211,6 +213,7 @@ class EquipmentController extends AbstractController
                 'os' => $equipment->getOs(),
                 'version' => $equipment->getVersion(),
                 'statut' => $equipment->getStatut(),
+                'localisation' => $equipment->getLocalisation(),
             ]
         ]);
     }
@@ -249,6 +252,7 @@ class EquipmentController extends AbstractController
             'os' => $equipment->getOs(),
             'version' => $equipment->getVersion(),
             'statut' => $equipment->getStatut(),
+            'localisation' => $equipment->getLocalisation(),
         ];
 
         $municipality = null;
@@ -265,6 +269,7 @@ class EquipmentController extends AbstractController
         $equipment->setNumeroSerie($data['numeroSerie'] ?? $equipment->getNumeroSerie());
         $equipment->setService($data['service'] ?? $equipment->getService());
         $equipment->setUtilisateur($data['utilisateur'] ?? $equipment->getUtilisateur());
+        $equipment->setLocalisation($data['localisation'] ?? $equipment->getLocalisation());
 
         if (isset($data['dateGarantie'])) {
              if ($data['dateGarantie'] !== null) {
@@ -301,6 +306,7 @@ class EquipmentController extends AbstractController
                             'os' => $equipment->getOs(),
                             'version' => $equipment->getVersion(),
                             'statut' => $equipment->getStatut(),
+                            'localisation' => $equipment->getLocalisation(),
                         ], JSON_UNESCAPED_UNICODE));
         $log->setUsername($data['username'] ?? 'Système');
         $log->setCreatedAt(new \DateTimeImmutable());
@@ -326,6 +332,7 @@ class EquipmentController extends AbstractController
                 'os' => $equipment->getOs(),
                 'version' => $equipment->getVersion(),
                 'statut' => $equipment->getStatut(),
+                'localisation' => $equipment->getLocalisation(),
             ]
         ]);
     }
@@ -351,6 +358,7 @@ class EquipmentController extends AbstractController
             'os' => $equipment->getOs(),
             'version' => $equipment->getVersion(),
             'statut' => $equipment->getStatut(),
+            'localisation' => $equipment->getLocalisation(),
         ];
 
         $log = new Log();
@@ -420,6 +428,7 @@ class EquipmentController extends AbstractController
                 'os' => $equipment->getOs(),
                 'version' => $equipment->getVersion(),
                 'statut' => $equipment->getStatut(),
+                'localisation' => $equipment->getLocalisation(),
             ];
         }
 
@@ -433,11 +442,43 @@ class EquipmentController extends AbstractController
         ]);
     }
 
+    #[Route('/import-progress', name: 'equipment_import_progress', methods: ['GET'])]
+    public function getImportProgress(Request $request): JsonResponse
+    {
+        $sessionId = $request->query->get('sessionId');
+        if (!$sessionId) {
+            return new JsonResponse(['error' => 'Session ID requis'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Récupérer les données de progression depuis la session ou un cache
+        $session = $request->getSession();
+        $progressData = $session->get("import_progress_{$sessionId}", [
+            'current' => 0,
+            'total' => 0,
+            'status' => 'idle',
+            'message' => ''
+        ]);
+
+        return new JsonResponse($progressData);
+    }
+
     #[Route('/import-csv', name: 'equipment_import_csv', methods: ['POST'])]
     public function importCsv(Request $request): JsonResponse
     {
         // Log pour déboguer
         error_log('Début de l\'importation CSV');
+
+        // Générer un ID de session unique pour le suivi de progression
+        $sessionId = uniqid('import_', true);
+        $session = $request->getSession();
+
+        // Initialiser les données de progression
+        $session->set("import_progress_{$sessionId}", [
+            'current' => 0,
+            'total' => 0,
+            'status' => 'starting',
+            'message' => 'Initialisation de l\'import...'
+        ]);
 
         // Récupérer le fichier ou les fichiers
         $files = $request->files->get('file');
@@ -465,12 +506,45 @@ class EquipmentController extends AbstractController
 
         if (!$files || count($files) === 0) {
             error_log('Aucun fichier fourni');
-            return new JsonResponse(['status' => 'error', 'message' => 'Aucun fichier fourni'], Response::HTTP_BAD_REQUEST);
+            $session->set("import_progress_{$sessionId}", [
+                'current' => 0,
+                'total' => 0,
+                'status' => 'error',
+                'message' => 'Aucun fichier fourni'
+            ]);
+            return new JsonResponse(['status' => 'error', 'message' => 'Aucun fichier fourni', 'sessionId' => $sessionId], Response::HTTP_BAD_REQUEST);
         }
 
         $totalImportedCount = 0;
+        $totalSkippedCount = 0;
         $allErrors = [];
         $processedFiles = [];
+        $skippedLines = [];
+
+        // Compter le nombre total de lignes pour la progression
+        $totalLines = 0;
+        foreach ($files as $file) {
+            $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+            if ($extension === 'csv') {
+                $tempHandle = fopen($file->getPathname(), 'r');
+                if ($tempHandle) {
+                    while (fgetcsv($tempHandle) !== FALSE) {
+                        $totalLines++;
+                    }
+                    fclose($tempHandle);
+                    $totalLines--; // Soustraire la ligne d'en-tête
+                }
+            }
+        }
+
+        $session->set("import_progress_{$sessionId}", [
+            'current' => 0,
+            'total' => $totalLines,
+            'status' => 'processing',
+            'message' => 'Traitement en cours...'
+        ]);
+
+        $currentLine = 0;
 
         foreach ($files as $file) {
             // Vérifier que c'est un fichier CSV en utilisant l'extension du fichier
@@ -539,16 +613,29 @@ class EquipmentController extends AbstractController
                 'date de garantie' => 'dateGarantie',
                 'os' => 'os',
                 'version' => 'version',
-                'commune' => 'commune'
+                'commune' => 'commune',
+                'lieu' => 'localisation',
+                'localisation' => 'localisation',
+                'emplacement' => 'localisation'
             ];
 
             $importedCount = 0;
+            $skippedCount = 0;
             $errors = [];
             $rowNumber = 1; // Commencer à 1 car la ligne 0 est l'en-tête
 
             // Lire les données ligne par ligne
             while (($data = fgetcsv($handle, 0, ',')) !== FALSE) {
                 $rowNumber++;
+                $currentLine++;
+
+                // Mettre à jour la progression
+                $session->set("import_progress_{$sessionId}", [
+                    'current' => $currentLine,
+                    'total' => $totalLines,
+                    'status' => 'processing',
+                    'message' => "Traitement ligne {$currentLine} sur {$totalLines}..."
+                ]);
 
                 // Ignorer les lignes vides
                 if (count($data) <= 1 && empty($data[0])) {
@@ -557,6 +644,26 @@ class EquipmentController extends AbstractController
                 }
 
                 error_log("Traitement de la ligne {$rowNumber}: " . implode(', ', $data));
+
+                // Extraire l'étiquetage pour vérifier les doublons
+                $etiquetage = null;
+                foreach ($headers as $index => $header) {
+                    if (isset($data[$index]) && $mapping[strtolower($header)] === 'etiquetage') {
+                        $etiquetage = trim($data[$index]);
+                        break;
+                    }
+                }
+
+                // Vérifier si l'équipement existe déjà par étiquetage
+                if ($etiquetage && $etiquetage !== 'Non défini') {
+                    $existingEquipment = $this->equipmentRepository->findOneBy(['etiquetage' => $etiquetage]);
+                    if ($existingEquipment) {
+                        $skippedCount++;
+                        $skippedLines[] = "Ligne {$rowNumber}: Équipement avec étiquetage '{$etiquetage}' déjà existant";
+                        error_log("Ligne {$rowNumber}: Équipement avec étiquetage '{$etiquetage}' déjà existant - ignoré");
+                        continue;
+                    }
+                }
 
                 // Créer un nouvel équipement
                 $equipment = new Equipment();
@@ -670,36 +777,42 @@ class EquipmentController extends AbstractController
             }
 
             fclose($handle);
-            error_log("Fichier {$fileName} traité: {$importedCount} équipements importés, " . count($errors) . " erreurs");
+            error_log("Fichier {$fileName} traité: {$importedCount} équipements importés, {$skippedCount} ignorés, " . count($errors) . " erreurs");
 
             $totalImportedCount += $importedCount;
+            $totalSkippedCount += $skippedCount;
             $allErrors = array_merge($allErrors, $errors);
+            $skippedLines = array_merge($skippedLines, array_slice($skippedLines, -$skippedCount));
             $processedFiles[] = [
                 'name' => $fileName,
                 'imported' => $importedCount,
+                'skipped' => $skippedCount,
                 'errors' => count($errors)
             ];
         }
+
+        // Mettre à jour la progression - finalisation
+        $session->set("import_progress_{$sessionId}", [
+            'current' => $totalLines,
+            'total' => $totalLines,
+            'status' => 'saving',
+            'message' => 'Enregistrement en base de données...'
+        ]);
 
         // Enregistrer les modifications en base de données
         error_log("Enregistrement en base de données de {$totalImportedCount} équipements");
         $this->entityManager->flush();
         error_log("Enregistrement terminé avec succès");
 
-        // Préparer la réponse
-        $response = [
-            'status' => 'success',
-            'message' => "{$totalImportedCount} équipements importés avec succès",
-            'destination' => $this->uploadsDirectory,
-            'processedFiles' => $processedFiles,
-            'errors' => $allErrors
-        ];
+        // Finaliser la progression
+        $session->set("import_progress_{$sessionId}", [
+            'current' => $totalLines,
+            'total' => $totalLines,
+            'status' => 'completed',
+            'message' => 'Import terminé avec succès'
+        ]);
 
-        // Log de la réponse pour déboguer
-        error_log("Réponse JSON: " . json_encode($response));
-
-        // Renvoyer une réponse JSON avec les informations sur l'importation
-        return new JsonResponse($response);
+        // Créer le log
         $log = new Log();
         $log->setAction('IMPORT_CSV');
         $log->setEntityType('Equipment');
@@ -711,13 +824,25 @@ class EquipmentController extends AbstractController
         $this->entityManager->persist($log);
         $this->entityManager->flush();
 
-        return new JsonResponse([
+        // Préparer la réponse
+        $response = [
             'status' => 'success',
-            'message' => "$totalImportedCount équipements importés avec succès depuis " . count($processedFiles) . " fichier(s)",
-            'files' => $processedFiles,
+            'message' => "{$totalImportedCount} équipements importés avec succès" .
+                        ($totalSkippedCount > 0 ? ", {$totalSkippedCount} lignes ignorées (doublons)" : ""),
+            'destination' => $this->uploadsDirectory,
+            'processedFiles' => $processedFiles,
             'errors' => $allErrors,
-            'destination' => $this->uploadsDirectory
-        ]);
+            'skippedLines' => $skippedLines,
+            'totalImported' => $totalImportedCount,
+            'totalSkipped' => $totalSkippedCount,
+            'sessionId' => $sessionId
+        ];
+
+        // Log de la réponse pour déboguer
+        error_log("Réponse JSON: " . json_encode($response));
+
+        // Renvoyer une réponse JSON avec les informations sur l'importation
+        return new JsonResponse($response);
     }
 
     /**

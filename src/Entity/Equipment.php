@@ -18,8 +18,8 @@ class Equipment
     #[ORM\JoinColumn(nullable: false)]
     private ?Municipality $commune = null;
 
-    // #[ORM\Column(length: 255, nullable: true)]
-    // private ?string $localisation = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $localisation = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $etiquetage = null;
