@@ -395,20 +395,28 @@ class EquipmentController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 50);
+        $search = $request->query->get('search', '');
         $offset = ($page - 1) * $limit;
 
-        $totalEquipments = $this->equipmentRepository->count([]);
-
-        // Récupérer les paramètres de tri
-        $sort = $request->query->get('sort', 'commune.name');
-        $order = strtoupper($request->query->get('order', 'asc'));
-
-        // Utiliser la méthode appropriée selon les paramètres de tri
-        if ($sort === 'commune.name') {
-            $equipments = $this->equipmentRepository->findAllWithCommuneOrdered($limit, $offset);
+        // Si une recherche est effectuée, utiliser la nouvelle méthode de recherche
+        if (!empty($search)) {
+            $result = $this->equipmentRepository->searchWithPagination($search, $page, $limit);
+            $equipments = $result['data'];
+            $totalEquipments = $result['total'];
         } else {
-            // Pour d'autres critères de tri, utiliser la méthode standard
-            $equipments = $this->equipmentRepository->findAllWithCommune($limit, $offset);
+            $totalEquipments = $this->equipmentRepository->count([]);
+
+            // Récupérer les paramètres de tri
+            $sort = $request->query->get('sort', 'commune.name');
+            $order = strtoupper($request->query->get('order', 'asc'));
+
+            // Utiliser la méthode appropriée selon les paramètres de tri
+            if ($sort === 'commune.name') {
+                $equipments = $this->equipmentRepository->findAllWithCommuneOrdered($limit, $offset);
+            } else {
+                // Pour d'autres critères de tri, utiliser la méthode standard
+                $equipments = $this->equipmentRepository->findAllWithCommune($limit, $offset);
+            }
         }
 
         $result = [];
@@ -438,7 +446,8 @@ class EquipmentController extends AbstractController
             'total' => $totalEquipments,
             'page' => $page,
             'limit' => $limit,
-            'totalPages' => ceil($totalEquipments / $limit)
+            'totalPages' => ceil($totalEquipments / $limit),
+            'search' => $search
         ]);
     }
 

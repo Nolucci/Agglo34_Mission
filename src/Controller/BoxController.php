@@ -123,23 +123,18 @@ class BoxController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 50);
-        $offset = ($page - 1) * $limit;
+        $search = $request->query->get('search', '');
+        $sort = $request->query->get('sort');
+        $order = $request->query->get('order');
 
-        $totalBoxes = $this->boxRepository->count([]);
-
-        // Récupérer les paramètres de tri
-        $sort = $request->query->get('sort', 'commune');
-        $order = strtoupper($request->query->get('order', 'asc'));
-
-        // Convertir le paramètre de tri en nom de propriété
-        $sortField = $sort === 'commune' ? 'commune' : $sort;
-        $orderDirection = $order === 'DESC' ? 'DESC' : 'ASC';
-
-        // Récupérer les boxs triées avec un tri secondaire par service
-        if ($sortField === 'commune') {
-            $boxes = $this->boxRepository->findBy([], ['commune' => $orderDirection, 'service' => 'ASC'], $limit, $offset);
+        // Si une recherche est effectuée, utiliser la nouvelle méthode de recherche
+        if (!empty($search)) {
+            $result = $this->boxRepository->searchWithPagination($search, $page, $limit);
+            $boxes = $result['data'];
+            $totalBoxes = $result['total'];
         } else {
-            $boxes = $this->boxRepository->findBy([], [$sortField => $orderDirection], $limit, $offset);
+            $boxes = $this->boxRepository->getPaginatedBoxes($page, $limit, $sort, $order);
+            $totalBoxes = $this->boxRepository->countAll();
         }
 
         $boxData = [];
@@ -151,7 +146,6 @@ class BoxController extends AbstractController
                 'adresse' => $box->getAdresse(),
                 'ligne_support' => $box->getLigneSupport() ? ($box->getLigneSupport()) : 'Non défini',
                 'type' => $box->getType(),
-                //                 'attribueA' => $box->getAttribueA(),
                 'statut' => $box->getStatut(),
             ];
         }
@@ -161,7 +155,8 @@ class BoxController extends AbstractController
             'total' => $totalBoxes,
             'page' => $page,
             'limit' => $limit,
-            'totalPages' => ceil($totalBoxes / $limit)
+            'totalPages' => ceil($totalBoxes / $limit),
+            'search' => $search
         ]);
     }
 

@@ -1,0 +1,61 @@
+# Commandes Utiles pour la Mise en Place de l'Application
+
+## 1. Installation des Dépendances PHP (Composer)
+
+```bash
+composer install
+```
+
+## 2. Installation des Dépendances JavaScript (Node.js/NPM)
+
+```bash
+npm install
+```
+
+## 3. Construction des Assets
+
+### Pour la production (une seule fois)
+
+```bash
+npm run build
+```
+
+### Pour le développement (surveille les changements)
+
+```bash
+npm run watch
+```
+
+## 4. Gestion de la Base de Données
+
+### Création de la base de données
+
+```bash
+php bin/console doctrine:database:create
+```
+
+### Exécution des migrations
+
+```bash
+php bin/console make:migration
+php bin/console doctrine:migrations:migrate
+```
+
+### Chargement des données de test (Fixtures - si applicable)
+
+```bash
+php bin/console doctrine:fixtures:load
+```
+
+## 5. Démarrage du Serveur de Développement
+
+### Avec le serveur web Symfony CLI (recommandé)
+
+```bash
+symfony server:start
+```
+
+### Avec le serveur PHP intégré (moins recommandé pour le développement)
+
+```bash
+php -S 127.0.0.1:8000 -t public

@@ -249,26 +249,33 @@
       });
       window.allPhoneLines = [];
       window.displayedPhoneLines = [];
-      let currentPage = 1;
-      let totalPages = 1;
-      let itemsPerPage = 50;
-      let totalItems = 0;
+      window.currentPage = 1;
+      window.totalPages = 1;
+      window.itemsPerPage = 50;
+      window.totalItems = 0;
+      window.currentSearchTerm = '';
 
       // Charger les données des lignes téléphoniques avec pagination
-      function loadPhoneLines(page = 1, isSearch = false) {
-          // Si c'est une recherche, charger toutes les données sans pagination
-          const limit = isSearch ? 1000 : itemsPerPage;
-          fetch(`/api/phone-line/list?page=${page}&limit=${limit}`)
+      window.loadPhoneLines = function(page = 1, searchTerm = '') {
+          const url = new URL('/api/phone-line/list', window.location.origin);
+          url.searchParams.set('page', page);
+          url.searchParams.set('limit', window.itemsPerPage);
+          if (searchTerm) {
+              url.searchParams.set('search', searchTerm);
+          }
+
+          fetch(url)
               .then(response => response.json())
               .then(data => {
-                  allPhoneLines = data.data;
-                  displayedPhoneLines = [...allPhoneLines];
-                  totalItems = data.total;
-                  totalPages = data.totalPages;
-                  currentPage = data.page;
+                  window.allPhoneLines = data.data;
+                  window.displayedPhoneLines = [...window.allPhoneLines];
+                  window.totalItems = data.total;
+                  window.totalPages = data.totalPages;
+                  window.currentPage = data.page;
+                  window.currentSearchTerm = searchTerm;
 
-                  renderLinesTable(displayedPhoneLines);
-                  renderPagination();
+                  window.renderLinesTable(window.displayedPhoneLines);
+                  window.renderPagination();
               })
               .catch(error => {
                   console.error('Erreur lors du chargement des lignes téléphoniques:', error);
@@ -276,7 +283,7 @@
       }
 
       // Générer la pagination
-      function renderPagination() {
+      window.renderPagination = function() {
           const paginationElement = document.getElementById('phone-lines-pagination');
           if (!paginationElement) return;
 
@@ -284,15 +291,15 @@
 
           // Bouton début
           const firstLi = document.createElement('li');
-          firstLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+          firstLi.className = `page-item ${window.currentPage === 1 ? 'disabled' : ''}`;
           const firstLink = document.createElement('a');
           firstLink.className = 'page-link';
           firstLink.href = '#';
           firstLink.textContent = 'Début';
           firstLink.addEventListener('click', (e) => {
               e.preventDefault();
-              if (currentPage > 1) {
-                  loadPhoneLines(1);
+              if (window.currentPage > 1) {
+                  window.loadPhoneLines(1, window.currentSearchTerm || '');
               }
           });
           firstLi.appendChild(firstLink);
@@ -300,15 +307,15 @@
 
           // Bouton précédent
           const prevLi = document.createElement('li');
-          prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+          prevLi.className = `page-item ${window.currentPage === 1 ? 'disabled' : ''}`;
           const prevLink = document.createElement('a');
           prevLink.className = 'page-link';
           prevLink.href = '#';
           prevLink.textContent = 'Précédent';
           prevLink.addEventListener('click', (e) => {
               e.preventDefault();
-              if (currentPage > 1) {
-                  loadPhoneLines(currentPage - 1);
+              if (window.currentPage > 1) {
+                  window.loadPhoneLines(window.currentPage - 1, window.currentSearchTerm || '');
               }
           });
           prevLi.appendChild(prevLink);
@@ -316,8 +323,8 @@
 
           // Pages numérotées
           const maxPagesToShow = 5;
-          let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-          let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+          let startPage = Math.max(1, window.currentPage - Math.floor(maxPagesToShow / 2));
+          let endPage = Math.min(window.totalPages, startPage + maxPagesToShow - 1);
 
           if (endPage - startPage + 1 < maxPagesToShow) {
               startPage = Math.max(1, endPage - maxPagesToShow + 1);
@@ -325,14 +332,14 @@
 
           for (let i = startPage; i <= endPage; i++) {
               const pageLi = document.createElement('li');
-              pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+              pageLi.className = `page-item ${i === window.currentPage ? 'active' : ''}`;
               const pageLink = document.createElement('a');
               pageLink.className = 'page-link';
               pageLink.href = '#';
               pageLink.textContent = i;
               pageLink.addEventListener('click', (e) => {
                   e.preventDefault();
-                  loadPhoneLines(i);
+                  window.loadPhoneLines(i, window.currentSearchTerm || '');
               });
               pageLi.appendChild(pageLink);
               paginationElement.appendChild(pageLi);
@@ -340,15 +347,15 @@
 
           // Bouton suivant
           const nextLi = document.createElement('li');
-          nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+          nextLi.className = `page-item ${window.currentPage === window.totalPages ? 'disabled' : ''}`;
           const nextLink = document.createElement('a');
           nextLink.className = 'page-link';
           nextLink.href = '#';
           nextLink.textContent = 'Suivant';
           nextLink.addEventListener('click', (e) => {
               e.preventDefault();
-              if (currentPage < totalPages) {
-                  loadPhoneLines(currentPage + 1);
+              if (window.currentPage < window.totalPages) {
+                  window.loadPhoneLines(window.currentPage + 1, window.currentSearchTerm || '');
               }
           });
           nextLi.appendChild(nextLink);
@@ -356,15 +363,15 @@
 
           // Bouton fin
           const lastLi = document.createElement('li');
-          lastLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+          lastLi.className = `page-item ${window.currentPage === window.totalPages ? 'disabled' : ''}`;
           const lastLink = document.createElement('a');
           lastLink.className = 'page-link';
           lastLink.href = '#';
           lastLink.textContent = 'Fin';
           lastLink.addEventListener('click', (e) => {
               e.preventDefault();
-              if (currentPage < totalPages) {
-                  loadPhoneLines(totalPages);
+              if (window.currentPage < window.totalPages) {
+                  window.loadPhoneLines(window.totalPages, window.currentSearchTerm || '');
               }
           });
           lastLi.appendChild(lastLink);
@@ -491,38 +498,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             renderLinesTable(displayedPhoneLines);
 
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function(event) {
-                    const searchTerm = event.target.value.toLowerCase();
-
-                    // Si le terme de recherche n'est pas vide, charger toutes les données
-                    if (searchTerm.length > 0 && allPhoneLines.length <= itemsPerPage) {
-                        loadPhoneLines(1, true);
-                        return;
-                    }
-
-                    displayedPhoneLines = allPhoneLines.filter(line => {
-                        // Filter based on specific attributes containing the search term
-                        const municipalityName = line.municipality && line.municipality.name ? line.municipality.name.toLowerCase() : '';
-                        const location = line.location ? line.location.toLowerCase() : '';
-                        const service = line.service ? line.service.toLowerCase() : '';
-                        const assignedTo = line.assignedTo ? line.assignedTo.toLowerCase() : '';
-                        const operator = line.operator ? line.operator.toLowerCase() : '';
-                        const lineType = line.lineType ? line.lineType.toLowerCase() : '';
-                        const isWorking = line.isWorking ? 'fonctionne' : 'ne fonctionne pas'; // Convert boolean to string for searching
-
-                        return municipalityName.includes(searchTerm) ||
-                               location.includes(searchTerm) ||
-                               service.includes(searchTerm) ||
-                               assignedTo.includes(searchTerm) ||
-                               operator.includes(searchTerm) ||
-                               lineType.includes(searchTerm) ||
-                               isWorking.includes(searchTerm);
-                    });
-                    renderLinesTable(displayedPhoneLines);
-                });
-            }
         });
     // Filter logic for Phone Lines
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
@@ -589,7 +564,7 @@
     <script>
         // Charger les lignes téléphoniques au chargement de la page
         document.addEventListener('DOMContentLoaded', function() {
-            loadPhoneLines();
+            window.loadPhoneLines();
 
             // Gestionnaire pour le bouton de suppression de toutes les lignes
             const deleteAllBtn = document.getElementById('confirm-delete-all-lines-btn');

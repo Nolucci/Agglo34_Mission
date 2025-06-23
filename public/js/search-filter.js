@@ -1,86 +1,111 @@
 /**
- * Fonctionnalité de recherche globale pour les listes
- * Permet de filtrer les données sur tous les attributs
+ * Fonctionnalité de recherche globale pour les listes avec pagination dynamique
+ * Permet de filtrer les données sur tous les attributs avec mise à jour de la pagination
  */
 
-// Fonction pour rechercher dans un objet, y compris les objets imbriqués
-function searchInObject(obj, searchTerm) {
-    if (!obj || typeof obj !== 'object') return false;
+// Variables globales pour la gestion de la recherche
+let searchTimeouts = {};
 
-    // Parcourir toutes les propriétés de l'objet
-    return Object.keys(obj).some(key => {
-        const value = obj[key];
+// Fonction pour effectuer une recherche avec pagination côté serveur
+function performServerSearch(searchTerm, page = 1, entityType) {
+    const endpoints = {
+        'phone-lines': '/api/phone-line/list',
+        'equipment': '/equipment/list',
+        'boxes': '/api/box/list'
+    };
 
-        // Ignorer les propriétés null ou undefined
-        if (value === null || value === undefined) return false;
+    const renderFunctions = {
+        'phone-lines': window.renderLinesTable,
+        'equipment': window.renderEquipmentsTable,
+        'boxes': window.renderBoxesTable
+    };
 
-        // Si la valeur est un objet (mais pas un tableau), rechercher récursivement
-        if (typeof value === 'object' && !Array.isArray(value)) {
-            return searchInObject(value, searchTerm);
-        }
+    const paginationFunctions = {
+        'phone-lines': window.renderPagination,
+        'equipment': window.renderEquipmentPagination,
+        'boxes': window.renderBoxPagination
+    };
 
-        // Pour les valeurs simples, convertir en chaîne et vérifier
-        try {
-            const stringValue = String(value).toLowerCase();
-            return stringValue.includes(searchTerm);
-        } catch (e) {
-            console.error("Erreur lors de la conversion en chaîne:", e);
-            return false;
-        }
-    });
+    const endpoint = endpoints[entityType];
+    const renderFunction = renderFunctions[entityType];
+    const paginationFunction = paginationFunctions[entityType];
+
+    if (!endpoint || !renderFunction) {
+        console.error(`Configuration manquante pour le type d'entité: ${entityType}`);
+        return;
+    }
+
+    const url = new URL(endpoint, window.location.origin);
+    url.searchParams.set('page', page);
+    url.searchParams.set('limit', 50);
+    if (searchTerm) {
+        url.searchParams.set('search', searchTerm);
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            // Mettre à jour les variables globales selon le type d'entité
+            if (entityType === 'phone-lines') {
+                window.allPhoneLines = data.data || [];
+                window.displayedPhoneLines = [...window.allPhoneLines];
+                window.currentPage = data.page;
+                window.totalPages = data.totalPages;
+                window.totalItems = data.total;
+                renderFunction(window.displayedPhoneLines);
+            } else if (entityType === 'equipment') {
+                window.allEquipments = data.equipments || [];
+                window.displayedEquipments = [...window.allEquipments];
+                window.currentPage = data.page;
+                window.totalPages = data.totalPages;
+                window.totalItems = data.total;
+                renderFunction(window.displayedEquipments);
+            } else if (entityType === 'boxes') {
+                window.allBoxes = data.boxes || [];
+                window.displayedBoxes = [...window.allBoxes];
+                window.currentPage = data.page;
+                window.totalPages = data.totalPages;
+                window.totalItems = data.total;
+                renderFunction(window.displayedBoxes);
+            }
+
+            // Mettre à jour la pagination si la fonction existe
+            if (paginationFunction && typeof paginationFunction === 'function') {
+                paginationFunction();
+            }
+
+            console.log(`Recherche ${entityType} terminée:`, {
+                terme: searchTerm,
+                résultats: data.total,
+                page: data.page,
+                totalPages: data.totalPages
+            });
+        })
+        .catch(error => {
+            console.error(`Erreur lors de la recherche ${entityType}:`, error);
+        });
 }
 
 // Fonction pour configurer la recherche sur une page spécifique
 function setupPageSearch() {
-    console.log("Configuration de la recherche...");
+    console.log("Configuration de la recherche avec pagination dynamique...");
 
     // Lignes téléphoniques
     if (document.getElementById('searchInput')) {
         const searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            console.log("Recherche de:", searchTerm);
+            const searchTerm = this.value.trim();
+            console.log("Recherche lignes téléphoniques:", searchTerm);
 
-            if (typeof window.allPhoneLines !== 'undefined' && typeof window.renderLinesTable === 'function') {
-                if (searchTerm === '') {
-                    window.renderLinesTable(window.allPhoneLines);
-                    return;
-                }
-
-                const filteredLines = window.allPhoneLines.filter(line => {
-                    return searchInObject(line, searchTerm);
-                });
-
-                console.log("Résultats filtrés:", filteredLines.length);
-                window.renderLinesTable(filteredLines);
-            } else {
-                console.error("Variables ou fonctions nécessaires non disponibles pour les lignes téléphoniques");
+            // Annuler la recherche précédente si elle existe
+            if (searchTimeouts['phone-lines']) {
+                clearTimeout(searchTimeouts['phone-lines']);
             }
-        });
-    }
 
-    // Box
-    if (document.getElementById('searchBoxInput')) {
-        const searchInput = document.getElementById('searchBoxInput');
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            console.log("Recherche de:", searchTerm);
-
-            if (typeof window.allBoxes !== 'undefined' && typeof window.renderBoxesTable === 'function') {
-                if (searchTerm === '') {
-                    window.renderBoxesTable(window.allBoxes);
-                    return;
-                }
-
-                const filteredBoxes = window.allBoxes.filter(box => {
-                    return searchInObject(box, searchTerm);
-                });
-
-                console.log("Résultats filtrés:", filteredBoxes.length);
-                window.renderBoxesTable(filteredBoxes);
-            } else {
-                console.error("Variables ou fonctions nécessaires non disponibles pour les box");
-            }
+            // Délai pour éviter trop de requêtes
+            searchTimeouts['phone-lines'] = setTimeout(() => {
+                performServerSearch(searchTerm, 1, 'phone-lines');
+            }, 300);
         });
     }
 
@@ -88,36 +113,54 @@ function setupPageSearch() {
     if (document.getElementById('searchEquipmentInput')) {
         const searchInput = document.getElementById('searchEquipmentInput');
         searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            console.log("Recherche de:", searchTerm);
+            const searchTerm = this.value.trim();
+            console.log("Recherche équipements:", searchTerm);
 
-            if (typeof window.allEquipments !== 'undefined' && typeof window.renderEquipmentsTable === 'function') {
-                if (searchTerm === '') {
-                    window.renderEquipmentsTable(window.allEquipments);
-                    return;
-                }
-
-                const filteredEquipments = window.allEquipments.filter(equipment => {
-                    return searchInObject(equipment, searchTerm);
-                });
-
-                console.log("Résultats filtrés:", filteredEquipments.length);
-                window.renderEquipmentsTable(filteredEquipments);
-            } else {
-                console.error("Variables ou fonctions nécessaires non disponibles pour le parc informatique");
+            // Annuler la recherche précédente si elle existe
+            if (searchTimeouts['equipment']) {
+                clearTimeout(searchTimeouts['equipment']);
             }
+
+            // Délai pour éviter trop de requêtes
+            searchTimeouts['equipment'] = setTimeout(() => {
+                performServerSearch(searchTerm, 1, 'equipment');
+            }, 300);
+        });
+    }
+
+    // Box
+    if (document.getElementById('searchBoxInput')) {
+        const searchInput = document.getElementById('searchBoxInput');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+            console.log("Recherche boxes:", searchTerm);
+
+            // Annuler la recherche précédente si elle existe
+            if (searchTimeouts['boxes']) {
+                clearTimeout(searchTimeouts['boxes']);
+            }
+
+            // Délai pour éviter trop de requêtes
+            searchTimeouts['boxes'] = setTimeout(() => {
+                performServerSearch(searchTerm, 1, 'boxes');
+            }, 300);
         });
     }
 }
 
+// Fonction pour effectuer une recherche avec pagination (utilisée par les boutons de pagination)
+window.searchWithPagination = function(searchTerm, page, entityType) {
+    performServerSearch(searchTerm, page, entityType);
+};
+
 // Attendre que le DOM soit chargé
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM chargé, configuration de la recherche...");
+    console.log("DOM chargé, configuration de la recherche avec pagination...");
     setupPageSearch();
 });
 
 // Configurer également après le chargement complet de la page
 window.addEventListener('load', function() {
-    console.log("Page entièrement chargée, configuration de la recherche...");
+    console.log("Page entièrement chargée, configuration de la recherche avec pagination...");
     setupPageSearch();
 });

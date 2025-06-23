@@ -205,26 +205,35 @@
     <script>
         window.allEquipments = [];
         window.displayedEquipments = [];
-        let currentPage = 1;
-        let totalPages = 1;
-        let itemsPerPage = 50;
-        let totalItems = 0;
+        window.currentPage = 1;
+        window.totalPages = 1;
+        window.itemsPerPage = 50;
+        window.totalItems = 0;
+        window.currentSearchTerm = '';
 
         // Charger les données des équipements avec pagination
-        function loadEquipments(page = 1, isSearch = false) {
-            // Si c'est une recherche, charger toutes les données sans pagination
-            const limit = isSearch ? 1000 : itemsPerPage;
-            fetch(`/equipment/list?page=${page}&limit=${limit}&sort=commune.name,service&order=asc`)
+        window.loadEquipments = function(page = 1, searchTerm = '') {
+            const url = new URL('/equipment/list', window.location.origin);
+            url.searchParams.set('page', page);
+            url.searchParams.set('limit', window.itemsPerPage);
+            url.searchParams.set('sort', 'commune.name,service');
+            url.searchParams.set('order', 'asc');
+            if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
+            }
+
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    allEquipments = data.equipments;
-                    displayedEquipments = [...allEquipments];
-                    totalItems = data.total;
-                    totalPages = data.totalPages;
-                    currentPage = data.page;
+                    window.allEquipments = data.equipments;
+                    window.displayedEquipments = [...window.allEquipments];
+                    window.totalItems = data.total;
+                    window.totalPages = data.totalPages;
+                    window.currentPage = data.page;
+                    window.currentSearchTerm = searchTerm;
 
-                    renderEquipmentsTable(displayedEquipments);
-                    renderPagination();
+                    window.renderEquipmentsTable(window.displayedEquipments);
+                    window.renderEquipmentPagination();
                 })
                 .catch(error => {
                     console.error('Erreur lors du chargement des équipements:', error);
@@ -232,7 +241,7 @@
         }
 
         // Générer la pagination
-        function renderPagination() {
+        window.renderEquipmentPagination = function() {
             const paginationElement = document.getElementById('equipments-pagination');
             if (!paginationElement) return;
 
@@ -240,15 +249,15 @@
 
             // Bouton début
             const firstLi = document.createElement('li');
-            firstLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            firstLi.className = `page-item ${window.currentPage === 1 ? 'disabled' : ''}`;
             const firstLink = document.createElement('a');
             firstLink.className = 'page-link';
             firstLink.href = '#';
             firstLink.textContent = 'Début';
             firstLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (currentPage > 1) {
-                    loadEquipments(1);
+                if (window.currentPage > 1) {
+                    window.loadEquipments(1, window.currentSearchTerm || '');
                 }
             });
             firstLi.appendChild(firstLink);
@@ -256,15 +265,15 @@
 
             // Bouton précédent
             const prevLi = document.createElement('li');
-            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.className = `page-item ${window.currentPage === 1 ? 'disabled' : ''}`;
             const prevLink = document.createElement('a');
             prevLink.className = 'page-link';
             prevLink.href = '#';
             prevLink.textContent = 'Précédent';
             prevLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (currentPage > 1) {
-                    loadEquipments(currentPage - 1);
+                if (window.currentPage > 1) {
+                    window.loadEquipments(window.currentPage - 1, window.currentSearchTerm || '');
                 }
             });
             prevLi.appendChild(prevLink);
@@ -272,8 +281,8 @@
 
             // Pages numérotées
             const maxPagesToShow = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+            let startPage = Math.max(1, window.currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(window.totalPages, startPage + maxPagesToShow - 1);
 
             if (endPage - startPage + 1 < maxPagesToShow) {
                 startPage = Math.max(1, endPage - maxPagesToShow + 1);
@@ -281,14 +290,14 @@
 
             for (let i = startPage; i <= endPage; i++) {
                 const pageLi = document.createElement('li');
-                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.className = `page-item ${i === window.currentPage ? 'active' : ''}`;
                 const pageLink = document.createElement('a');
                 pageLink.className = 'page-link';
                 pageLink.href = '#';
                 pageLink.textContent = i;
                 pageLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    loadEquipments(i);
+                    window.loadEquipments(i, window.currentSearchTerm || '');
                 });
                 pageLi.appendChild(pageLink);
                 paginationElement.appendChild(pageLi);
@@ -296,15 +305,15 @@
 
             // Bouton suivant
             const nextLi = document.createElement('li');
-            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.className = `page-item ${window.currentPage === window.totalPages ? 'disabled' : ''}`;
             const nextLink = document.createElement('a');
             nextLink.className = 'page-link';
             nextLink.href = '#';
             nextLink.textContent = 'Suivant';
             nextLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (currentPage < totalPages) {
-                    loadEquipments(currentPage + 1);
+                if (window.currentPage < window.totalPages) {
+                    window.loadEquipments(window.currentPage + 1, window.currentSearchTerm || '');
                 }
             });
             nextLi.appendChild(nextLink);
@@ -312,15 +321,15 @@
 
             // Bouton fin
             const lastLi = document.createElement('li');
-            lastLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            lastLi.className = `page-item ${window.currentPage === window.totalPages ? 'disabled' : ''}`;
             const lastLink = document.createElement('a');
             lastLink.className = 'page-link';
             lastLink.href = '#';
             lastLink.textContent = 'Fin';
             lastLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (currentPage < totalPages) {
-                    loadEquipments(totalPages);
+                if (window.currentPage < window.totalPages) {
+                    window.loadEquipments(window.totalPages, window.currentSearchTerm || '');
                 }
             });
             lastLi.appendChild(lastLink);
@@ -373,7 +382,7 @@
 
         // Initial render of the table
         document.addEventListener('DOMContentLoaded', function() {
-            loadEquipments();
+            window.loadEquipments();
 
             // Gestionnaire pour le bouton de suppression de tous les équipements
             const deleteAllBtn = document.getElementById('confirm-delete-all-equipments-btn');
@@ -408,10 +417,7 @@
                     const searchTerm = event.target.value.toLowerCase();
 
                     // Si le terme de recherche n'est pas vide, charger toutes les données
-                    if (searchTerm.length > 0 && allEquipments.length <= itemsPerPage) {
-                        loadEquipments(1, true);
-                        return;
-                    }
+                    // La recherche est maintenant gérée par search-filter.js
 
                     displayedEquipments = allEquipments.filter(equipment => {
                         for (const key in equipment) {
@@ -426,7 +432,7 @@
                         }
                         return false;
                     });
-                    renderEquipmentsTable(displayedEquipments);
+                    window.renderEquipmentsTable(window.displayedEquipments);
                 });
             }
         });
@@ -456,7 +462,7 @@
                     return matchesModele && matchesService && matchesCommune && matchesStatut;
                 });
 
-                renderEquipmentsTable(displayedEquipments);
+                window.renderEquipmentsTable(window.displayedEquipments);
 
                 // Close the modal after applying filters
                 $('#parkFiltersModal').modal('hide');
