@@ -46,28 +46,37 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
     {
         try {
             // Recherche de l'utilisateur dans la base de données locale
-            $user = $this->userRepository->findOneBy(['email' => $identifier]);
-            
+            $user = $this->userRepository->findOneBy(['ldapUsername' => $identifier]);
+
             if (!$user) {
                 // Si l'utilisateur n'existe pas en local, on le crée à partir des informations LDAP
                 $ldapUser = $this->findLdapUser($identifier);
-                
+
                 if (!$ldapUser) {
                     throw new UserNotFoundException(sprintf('User "%s" not found in LDAP.', $identifier));
                 }
-                
+
                 $user = new User();
-                $user->setEmail($identifier);
                 $user->setLdapUsername($identifier);
+
+                // Récupération des attributs LDAP
                 $user->setName($this->getLdapUserAttribute($ldapUser, 'displayname') ?? $identifier);
+                $user->setEmail($this->getLdapUserAttribute($ldapUser, 'mail') ?? $identifier);
                 $user->setRoles($this->defaultRoles);
-                
+
                 // Le mot de passe est géré par LDAP, on met une valeur aléatoire
                 $user->setPassword(bin2hex(random_bytes(20)));
-                
+
+                // Log des informations récupérées
+                error_log(sprintf('Création utilisateur LDAP: %s', $identifier));
+                error_log(sprintf('Attributs: %s', json_encode([
+                    'name' => $user->getName(),
+                    'email' => $user->getEmail()
+                ])));
+
                 $this->userRepository->save($user, true);
             }
-            
+
             return $user;
         } catch (ConnectionException $e) {
             throw new UserNotFoundException(sprintf('User "%s" not found in LDAP: %s', $identifier, $e->getMessage()));
@@ -76,25 +85,33 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
 
     private function findLdapUser(string $identifier): ?Entry
     {
+        error_log("Tentative de connexion LDAP avec DN: " . $this->searchDn);
         $this->ldap->bind($this->searchDn, $this->searchPassword);
-        
+        error_log("Connexion LDAP réussie");
+
         $username = $this->ldap->escape($identifier, '', LdapInterface::ESCAPE_FILTER);
-        $query = sprintf('(&(objectClass=person)(%s=%s))', $this->uidKey, $username);
-        
+        error_log("Valeur de uidKey dans LdapUserProvider (forcée): agglo34");
+        $query = sprintf('(&(objectClass=user)(objectCategory=person)(%s=%s))', $this->uidKey, $username);
+
+        error_log("Recherche LDAP - Base DN: " . $this->baseDn);
+        error_log("Recherche LDAP - Filtre: " . $query);
+
         $search = $this->ldap->query($this->baseDn, $query);
         $results = $search->execute();
-        
+
+        error_log(sprintf("Nombre de résultats trouvés: %d", count($results)));
+
         return $results[0] ?? null;
     }
 
     private function getLdapUserAttribute(Entry $entry, string $attribute): ?string
     {
         $attributes = $entry->getAttributes();
-        
+
         if (isset($attributes[$attribute]) && isset($attributes[$attribute][0])) {
             return $attributes[$attribute][0];
         }
-        
+
         return null;
     }
 
@@ -105,7 +122,7 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
         }
 
         $identifier = $user->getUserIdentifier();
-        
+
         return $this->loadUserByIdentifier($identifier);
     }
 

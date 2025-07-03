@@ -12,56 +12,147 @@
                         <div class="row">
                             <div class="col-lg-12">
                                 <h3 class="title-5 m-b-35">Paramètres administrateur</h3>
-                                <div class="card">
-                                    <div class="card-header">Configuration générale</div>
-                                    <div class="card-body">
-                                        <form method="post" action="{{ path('settings_save') }}">
-                                            <div class="form-group">
-                                                <label for="crud_enabled">Activer les fonctionnalités CRUD</label>
-                                                <select class="form-control" id="crud_enabled" name="crud_enabled">
-                                                    <option value="1" {% if settings.isCrudEnabled %}selected{% endif %}>Oui</option>
-                                                    <option value="0" {% if not settings.isCrudEnabled %}selected{% endif %}>Non</option>
-                                                </select>
-                                            </div>
 
-                                            <div class="form-group">
-                                                <label for="display_mode">Mode d'affichage des infos</label>
-                                                <select class="form-control" id="display_mode" name="display_mode">
-                                                    <option value="liste" {% if settings.getDisplayMode == 'liste' %}selected{% endif %}>Liste</option>
-                                                    <option value="grille" {% if settings.getDisplayMode == 'grille' %}selected{% endif %}>Grille</option>
-                                                    <option value="carte" {% if settings.getDisplayMode == 'carte' %}selected{% endif %}>Carte</option>
-                                                </select>
-                                            </div>
+                                <form method="post" action="{{ path('settings_save') }}">
+                                    <!-- Section Configuration LDAP -->
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <i class="fas fa-users mr-2"></i>Configuration LDAP
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="ldap_enabled">Activer l'authentification LDAP</label>
+                                                        <select class="form-control" id="ldap_enabled" name="ldap_enabled">
+                                                            <option value="1" {% if settings is defined and settings.isLdapEnabled is defined and settings.isLdapEnabled %}selected{% endif %}>Activé</option>
+                                                            <option value="0" {% if settings is not defined or settings.isLdapEnabled is not defined or not settings.isLdapEnabled %}selected{% endif %}>Désactivé</option>
+                                                        </select>
+                                                    </div>
 
-                                            <div class="form-group">
-                                                <label for="app_name">Nom de l'application</label>
-                                                <input type="text" class="form-control" id="app_name" name="app_name" value="{{ settings.getAppName | default('') }}">
-                                            </div>
+                                                    <div class="form-group">
+                                                        <label for="ldap_host">Serveur LDAP</label>
+                                                        <input type="text" class="form-control" id="ldap_host" name="ldap_host"
+                                                               value="{{ settings.getLdapHost is defined ? settings.getLdapHost : '' }}"
+                                                               placeholder="ex: 10.3.12.55">
+                                                    </div>
 
-                                            <div class="form-group">
-                                                <label for="items_per_page">Nombre d'infos par page</label>
-                                                <input type="number" class="form-control" id="items_per_page" name="items_per_page" min="1" max="100" value="{{ settings.getItemsPerPage }}">
-                                            </div>
+                                                    <div class="form-group">
+                                                        <label for="ldap_port">Port LDAP</label>
+                                                        <input type="number" class="form-control" id="ldap_port" name="ldap_port"
+                                                               value="{{ settings.getLdapPort is defined ? settings.getLdapPort : 389 }}"
+                                                               min="1" max="65535">
+                                                    </div>
 
-                                            <div class="form-group">
-                                                <label for="welcome_message">Message de bienvenue</label>
-                                                <input type="text" class="form-control" id="welcome_message" name="welcome_message" value="{{ settings.getWelcomeMessage | default('') }}">
-                                            </div>
+                                                    <div class="form-group">
+                                                        <label for="ldap_encryption">Chiffrement</label>
+                                                        <select class="form-control" id="ldap_encryption" name="ldap_encryption">
+                                                            <option value="none" {% if settings is defined and settings.getLdapEncryption is defined and settings.getLdapEncryption == 'none' %}selected{% endif %}>Aucun</option>
+                                                            <option value="ssl" {% if settings is defined and settings.getLdapEncryption is defined and settings.getLdapEncryption == 'ssl' %}selected{% endif %}>SSL</option>
+                                                            <option value="tls" {% if settings is defined and settings.getLdapEncryption is defined and settings.getLdapEncryption == 'tls' %}selected{% endif %}>TLS</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
 
-                                            <div class="form-group">
-                                                <label for="alert_threshold">Seuil d'alertes</label>
-                                                <input type="number" class="form-control" id="alert_threshold" name="alert_threshold" min="0" value="{{ settings.getAlertThreshold | default(0) }}">
-                                            </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="ldap_base_dn">Base DN</label>
+                                                        <textarea class="form-control" id="ldap_base_dn" name="ldap_base_dn" rows="2"
+                                                                  placeholder="OU=_Listing Agents,OU=Agents,OU=Utilisateurs,OU=CABM,DC=beziers-agglo,DC=org">{{ settings.getLdapBaseDn is defined ? settings.getLdapBaseDn : '' }}</textarea>
+                                                    </div>
 
-                                            <div class="form-group form-check">
-                                                <input type="checkbox" class="form-check-input" id="feature_enabled" name="feature_enabled" value="1" {% if settings.isFeatureEnabled | default(false) %}checked{% endif %}>
-                                                <label class="form-check-label" for="feature_enabled">Activer la sauvegarde automatique</label>
-                                            </div>
+                                                    <div class="form-group">
+                                                        <label for="ldap_search_dn">Search DN</label>
+                                                        <textarea class="form-control" id="ldap_search_dn" name="ldap_search_dn" rows="2"
+                                                                  placeholder="CN=agglo34_ldap,OU=LDAP_SYNCRO,OU=Applicatifs,OU=Utilisateurs,OU=CABM,DC=beziers-agglo,DC=org">{{ settings.getLdapSearchDn is defined ? settings.getLdapSearchDn : '' }}</textarea>
+                                                    </div>
 
-                                            <button type="submit" class="btn btn-success">Enregistrer</button>
-                                        </form>
+                                                    <div class="form-group">
+                                                        <label for="ldap_search_password">Mot de passe de recherche</label>
+                                                        <input type="password" class="form-control" id="ldap_search_password" name="ldap_search_password"
+                                                               value="{{ settings.getLdapSearchPassword is defined ? settings.getLdapSearchPassword : '' }}">
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="ldap_uid_key">Clé UID</label>
+                                                        <input type="text" class="form-control" id="ldap_uid_key" name="ldap_uid_key"
+                                                               value="{{ settings.getLdapUidKey is defined ? settings.getLdapUidKey : 'nomcompte' }}"
+                                                               placeholder="nomcompte">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+
+                                    <!-- Section Configuration Base de Données -->
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <i class="fas fa-database mr-2"></i>Configuration Base de Données
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="database_url">URL de connexion à la base de données</label>
+                                                <input type="text" class="form-control" id="database_url" name="database_url"
+                                                       value="{{ settings is defined and settings.getDatabaseUrl is defined ? settings.getDatabaseUrl : '' }}"
+                                                       placeholder="postgresql://user:password@host:port/database">
+                                                <small class="form-text text-muted">
+                                                    Format: postgresql://utilisateur:motdepasse@serveur:port/base_de_donnees
+                                                </small>
+                                            </div>
+
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle mr-2"></i>
+                                                <strong>Information :</strong> Les modifications de la base de données nécessitent un redémarrage de l'application pour prendre effet.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Section Mode Maintenance -->
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <i class="fas fa-tools mr-2"></i>Mode Maintenance
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="maintenance_mode">Activer le mode maintenance</label>
+                                                <select class="form-control" id="maintenance_mode" name="maintenance_mode">
+                                                    <option value="1" {% if settings is defined and settings.isMaintenanceMode is defined and settings.isMaintenanceMode %}selected{% endif %}>Activé</option>
+                                                    <option value="0" {% if settings is not defined or settings.isMaintenanceMode is not defined or not settings.isMaintenanceMode %}selected{% endif %}>Désactivé</option>
+                                                </select>
+                                                <small class="form-text text-muted">
+                                                    En mode maintenance, seuls les administrateurs peuvent accéder à l'application.
+                                                </small>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="maintenance_message">Message de maintenance</label>
+                                                <textarea class="form-control" id="maintenance_message" name="maintenance_message" rows="3"
+                                                          placeholder="Message affiché aux utilisateurs pendant la maintenance">{{ settings is defined and settings.getMaintenanceMessage is defined ? settings.getMaintenanceMessage : 'Application en maintenance. Veuillez réessayer plus tard.' }}</textarea>
+                                            </div>
+
+                                            {% if settings is defined and settings.isMaintenanceMode is defined and settings.isMaintenanceMode %}
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                <strong>Attention :</strong> Le mode maintenance est actuellement activé.
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+
+
+                                    <!-- Boutons d'action -->
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <a href="{{ path('dashboard') }}" class="btn btn-secondary btn-lg">
+                                                <i class="fas fa-arrow-left mr-2"></i>Retour au tableau de bord
+                                            </a>
+                                            <button type="submit" class="btn btn-success btn-lg mr-3">
+                                                <i class="fas fa-save mr-2"></i>Enregistrer les paramètres
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
 

@@ -8,6 +8,7 @@ use App\Repository\SettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class DashboardController extends AbstractController
 {
@@ -120,20 +121,15 @@ class DashboardController extends AbstractController
 
         // Récupérer l'utilisateur connecté ou utiliser des données par défaut
         $currentUser = $this->getUser();
-
-        if ($currentUser) {
-            $user = [
-                'name' => $currentUser->getUsername(),
-                'email' => $currentUser->getEmail(),
-                'image_url' => '/images/img.png',
-            ];
-        } else {
-            $user = [
-                'name' => 'Frederic F',
-                'email' => 'fredericf@example.com',
-                'image_url' => '/images/img.png',
-            ];
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
         }
+
+        $user = [
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
+            'image_url' => '/images/img.png',
+        ];
 
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
@@ -197,9 +193,14 @@ class DashboardController extends AbstractController
             return strcasecmp($a->getName(), $b->getName());
         });
 
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
         ];
 
@@ -228,10 +229,19 @@ class DashboardController extends AbstractController
     #[Route('/account', name: 'account')]
     public function account(): Response
     {
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
+            'department' => $currentUser->getDepartment(),
+            'title' => $currentUser->getTitle(),
+            'phone' => $currentUser->getTelephoneNumber(),
+            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
         ];
 
         return $this->render('pages/account.html.twig', [
@@ -319,9 +329,14 @@ class DashboardController extends AbstractController
             'active_equipments' => $activeEquipments,
         ];
 
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
         ];
 
@@ -339,10 +354,19 @@ class DashboardController extends AbstractController
     #[Route('/calendar', name: 'calendar')]
     public function calendar(): Response
     {
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
+            'department' => $currentUser->getDepartment(),
+            'title' => $currentUser->getTitle(),
+            'phone' => $currentUser->getTelephoneNumber(),
+            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
         ];
 
         return $this->render('pages/calendar.html.twig', [
@@ -354,9 +378,14 @@ class DashboardController extends AbstractController
     #[Route('/documents', name: 'documents')]
     public function documents(): Response
     {
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
         ];
 
@@ -369,10 +398,19 @@ class DashboardController extends AbstractController
     #[Route('/map', name: 'map')]
     public function map(): Response
     {
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
+            'department' => $currentUser->getDepartment(),
+            'title' => $currentUser->getTitle(),
+            'phone' => $currentUser->getTelephoneNumber(),
+            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
         ];
 
         return $this->render('pages/map.html.twig', [
@@ -402,10 +440,19 @@ class DashboardController extends AbstractController
             $entityManager->flush();
         }
 
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
+            'name' => $currentUser->getName(),
+            'email' => $currentUser->getEmail(),
             'image_url' => '/images/img.png',
+            'department' => $currentUser->getDepartment(),
+            'title' => $currentUser->getTitle(),
+            'phone' => $currentUser->getTelephoneNumber(),
+            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
         ];
 
         return $this->render('pages/settings.html.twig', [

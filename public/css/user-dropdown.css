@@ -1,0 +1,44 @@
+.account-dropdown .user-details {
+    padding: 10px 15px;
+    border-top: 1px solid #f2f2f2;
+}
+
+.account-dropdown .user-details p {
+    margin-bottom: 8px;
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.account-dropdown .user-details i {
+    margin-right: 10px;
+    font-size: 16px;
+    width: 20px;
+    color: #4272d7;
+}
+
+.account-dropdown .user-details .department {
+    font-weight: 500;
+}
+
+.account-dropdown .user-details .title {
+    font-style: italic;
+}
+
+.account-dropdown .user-details .phone {
+    color: #4272d7;
+}
+
+.account-dropdown .user-details .office {
+    color: #666;
+}
+
+.account-dropdown .content .name {
+    margin-bottom: 5px;
+}
+
+.account-dropdown .content .email {
+    margin-bottom: 10px;
+    display: inline-block;
+}

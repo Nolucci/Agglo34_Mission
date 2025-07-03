@@ -2,27 +2,31 @@
 
 namespace App\Command;
 
-use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Ldap\Ldap;
-use Symfony\Component\Ldap\Exception\ConnectionException;
 
-#[AsCommand(
-    name: 'app:test-ldap',
-    description: 'Test la connexion au serveur LDAP',
-)]
 class TestLdapCommand extends Command
 {
-    private $host;
-    private $port;
-    private $encryption;
-    private $baseDn;
-    private $searchDn;
-    private $searchPassword;
-    private $uidKey;
+    public static function getDefaultName(): string
+    {
+        return 'app:test-ldap';
+    }
+
+    public static function getDefaultDescription(): string
+    {
+        return 'Test la connexion LDAP';
+    }
+
+    private string $ldapHost;
+    private int $ldapPort;
+    private string $ldapEncryption;
+    private string $ldapBaseDn;
+    private string $ldapSearchDn;
+    private string $ldapSearchPassword;
+    private string $ldapUidKey;
 
     public function __construct(
         string $ldapHost,
@@ -33,92 +37,85 @@ class TestLdapCommand extends Command
         string $ldapSearchPassword,
         string $ldapUidKey
     ) {
-        $this->host = $ldapHost;
-        $this->port = $ldapPort;
-        $this->encryption = $ldapEncryption;
-        $this->baseDn = $ldapBaseDn;
-        $this->searchDn = $ldapSearchDn;
-        $this->searchPassword = $ldapSearchPassword;
-        $this->uidKey = $ldapUidKey;
-
         parent::__construct();
-    }
-
-    protected function configure(): void
-    {
+        $this->ldapHost = $ldapHost;
+        $this->ldapPort = $ldapPort;
+        $this->ldapEncryption = $ldapEncryption;
+        $this->ldapBaseDn = $ldapBaseDn;
+        $this->ldapSearchDn = $ldapSearchDn;
+        $this->ldapSearchPassword = $ldapSearchPassword;
+        $this->ldapUidKey = $ldapUidKey;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
-        $io->title('Test de connexion LDAP');
-        
-        // Affichage des paramètres de connexion (sans le mot de passe)
-        $io->section('Paramètres de connexion');
-        $io->table(
-            ['Paramètre', 'Valeur'],
-            [
-                ['Host', $this->host],
-                ['Port', $this->port],
-                ['Encryption', $this->encryption],
-                ['Base DN', $this->baseDn],
-                ['Search DN', $this->searchDn],
-                ['UID Key', $this->uidKey],
-            ]
-        );
-        
+
         try {
-            // Création de l'adaptateur LDAP
             $ldap = Ldap::create('ext_ldap', [
-                'host' => $this->host,
-                'port' => $this->port,
-                'encryption' => $this->encryption,
+                'host' => $this->ldapHost,
+                'port' => $this->ldapPort,
+                'encryption' => $this->ldapEncryption,
                 'options' => [
                     'protocol_version' => 3,
-                    'referrals' => false,
-                ],
+                    'referrals' => false
+                ]
             ]);
-            
-            $io->info('Connexion au serveur LDAP...');
-            
-            // Test de connexion avec bind
-            try {
-                $ldap->bind($this->searchDn, $this->searchPassword);
-                $io->success('Connexion réussie au serveur LDAP avec les identifiants fournis.');
-                
-                // Test de recherche
-                $io->info('Test de recherche LDAP...');
-                
-                $query = sprintf('(objectClass=person)');
-                $search = $ldap->query($this->baseDn, $query, ['limit' => 5]);
-                $results = $search->execute();
-                
-                if (count($results) > 0) {
-                    $io->success(sprintf('Recherche réussie. %d utilisateurs trouvés.', count($results)));
-                    
-                    $tableData = [];
-                    foreach ($results as $entry) {
-                        $attrs = $entry->getAttributes();
-                        $uid = $attrs[$this->uidKey][0] ?? 'N/A';
-                        $cn = $attrs['cn'][0] ?? 'N/A';
-                        $dn = $entry->getDn();
-                        
-                        $tableData[] = [$uid, $cn, $dn];
+
+            $io->info('Tentative de connexion au serveur LDAP...');
+            $ldap->bind($this->ldapSearchDn, $this->ldapSearchPassword);
+            $io->success('Connexion LDAP réussie !');
+
+            $io->info('Test de recherche LDAP...');
+
+            // Test 1 : Recherche d'un utilisateur spécifique
+            $testUsername = 'nathanfranceskin';
+            $query = sprintf('(&(objectClass=person)(%s=%s))', $this->ldapUidKey, $testUsername);
+
+            $io->info(sprintf('Test 1 - Recherche utilisateur spécifique:'));
+            $io->info(sprintf('Base DN: %s', $this->ldapBaseDn));
+            $io->info(sprintf('Filtre: %s', $query));
+
+            $search = $ldap->query($this->ldapBaseDn, $query);
+            $results = $search->execute();
+
+            if ($results->count() > 0) {
+                $io->success(sprintf('Utilisateur "%s" trouvé!', $testUsername));
+                $user = $results[0];
+                $io->info('Détails de l\'utilisateur:');
+                foreach ($user->getAttributes() as $key => $value) {
+                    if (!in_array($key, ['thumbnailPhoto', 'jpegPhoto', 'userPassword'])) {
+                        $io->info(sprintf('- %s: %s', $key, implode(', ', $value)));
                     }
-                    
-                    $io->table(['UID', 'CN', 'DN'], $tableData);
-                } else {
-                    $io->warning('Aucun utilisateur trouvé avec la requête.');
                 }
-                
-                return Command::SUCCESS;
-            } catch (ConnectionException $e) {
-                $io->error(sprintf('Erreur lors de la connexion au serveur LDAP : %s', $e->getMessage()));
-                return Command::FAILURE;
+            } else {
+                $io->warning(sprintf('Utilisateur "%s" non trouvé', $testUsername));
             }
+
+            // Test 2 : Recherche globale
+            $io->info("\nTest 2 - Recherche globale:");
+            $query = '(objectClass=person)';
+            $io->info(sprintf('Filtre: %s', $query));
+
+            $search = $ldap->query($this->ldapBaseDn, $query);
+            $results = $search->execute();
+
+            if ($results->count() > 0) {
+                $io->success(sprintf('Recherche LDAP réussie ! %d utilisateurs trouvés.', $results->count()));
+                $firstUser = $results[0];
+                $io->info('Premier utilisateur trouvé :');
+                foreach ($firstUser->getAttributes() as $key => $value) {
+                    if ($key !== 'thumbnailPhoto' && $key !== 'jpegPhoto') {
+                        $io->info(sprintf('- %s: %s', $key, implode(', ', $value)));
+                    }
+                }
+            } else {
+                $io->warning('Aucun utilisateur trouvé. Vérifiez le Base DN et le filtre de recherche.');
+            }
+
+            return Command::SUCCESS;
         } catch (\Exception $e) {
-            $io->error(sprintf('Erreur lors de l\'initialisation du client LDAP : %s', $e->getMessage()));
+            $io->error(sprintf('Erreur LDAP : %s', $e->getMessage()));
             return Command::FAILURE;
         }
     }

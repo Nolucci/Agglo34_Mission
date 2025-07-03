@@ -20,19 +20,15 @@
                                 </div>
                                 <div class="content">
                                     <h5 class="name">
-                                        <a href="#">{{ user.name|default('Frederic')|lower }}</a>
+                                        <a href="#">{{ user.name }}</a>
                                     </h5>
-                                    <span class="email">{{ user.email|default('frederic@example.com') }}</span>
+                                    <span class="email">{{ user.email }}</span>
                                 </div>
                             </div>
                             <div class="account-dropdown__body">
                                 <div class="account-dropdown__item">
-                                    <a href="{{ path('account') }}">
-                                        <i class="zmdi zmdi-account"></i>Account</a>
-                                </div>
-                                <div class="account-dropdown__item">
                                     <a href="{{ path('settings') }}">
-                                        <i class="zmdi zmdi-settings"></i>Setting</a>
+                                        <i class="zmdi zmdi-settings"></i>Paramètres</a>
                                 </div>
                             </div>
                             <div class="account-dropdown__footer">
