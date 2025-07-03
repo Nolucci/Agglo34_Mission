@@ -18,17 +18,17 @@ class SecurityController extends AbstractController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
-            'image_url' => '/images/img.png',
-        ];
+        $currentUser = $this->getUser();
+        // Si l'utilisateur n'est pas connecté, il n'y a pas de données utilisateur à passer au template de login
+        // Le template de login ne devrait pas avoir besoin des informations de l'utilisateur connecté
+        // Cependant, si le template attend une variable 'user', nous pouvons la passer comme null ou un tableau vide.
+        // Pour l'instant, je vais la passer comme null si non connecté, ou l'objet User si connecté.
 
         return $this->render('users/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
             'page_title' => 'Connexion',
-            'user' => $user,
+            'user' => $currentUser,
         ]);
     }
 

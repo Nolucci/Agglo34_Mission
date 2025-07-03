@@ -34,17 +34,16 @@ class ArchiveController extends AbstractController
             return $item['entityType'];
         }, $entityTypes);
 
-        $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
-            'image_url' => '/images/img.png',
-        ];
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
 
         return $this->render('pages/archives.html.twig', [
             'page_title' => 'Archives',
             'entityTypes' => $entityTypesList,
             'filters' => $filters,
-            'user' => $user,
+            'user' => $currentUser,
         ]);
     }
 

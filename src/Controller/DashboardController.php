@@ -125,15 +125,11 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-        ];
+        // Passer l'objet User directement au template
 
         return $this->render('index.html.twig', [
             'page_title' => "Tableau de bord",
-            'user' => $user,
+            'user' => $currentUser,
             'municipalities' => $municipalities,
             'phoneLines' => $lines,
             'phoneLineStats' => $phoneLineStats,
@@ -198,15 +194,11 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-        ];
+        // Passer l'objet User directement au template
 
         return $this->render('pages/lines.html.twig', [
             'page_title' => "Lignes téléphoniques",
-            'user' => $user,
+            'user' => $currentUser,
             'municipalities' => $municipalities,
             'phoneLines' => $formattedPhoneLines,
             'phoneLineStats' => $phoneLineStats,
@@ -218,11 +210,17 @@ class DashboardController extends AbstractController
     #[Route('/agents', name: 'agents')]
     public function agents(): Response
     {
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $agents = $this->userRepository->findAll();
 
         return $this->render('pages/agents.html.twig', [
             'page_title' => "Liste des Agents",
             'agents' => $agents,
+            'user' => $currentUser,
         ]);
     }
 
@@ -234,19 +232,9 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-            'department' => $currentUser->getDepartment(),
-            'title' => $currentUser->getTitle(),
-            'phone' => $currentUser->getTelephoneNumber(),
-            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
-        ];
-
         return $this->render('pages/account.html.twig', [
             'page_title' => "Tableau de bord",
-            'user' => $user
+            'user' => $currentUser
         ]);
     }
 
@@ -334,11 +322,7 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-        ];
+        // Passer l'objet User directement au template
 
         return $this->render('pages/park.html.twig', [
             'page_title' => "Parc Informatique",
@@ -347,7 +331,7 @@ class DashboardController extends AbstractController
             'parkStats' => $parkStats,
             'teamChartData' => $this->generateParkStatsByModele($formattedEquipments),
             'statusChartData' => $this->generateParkStatsByStatut($formattedEquipments),
-            'user' => $user,
+            'user' => $currentUser,
         ]);
     }
 
@@ -359,19 +343,9 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-            'department' => $currentUser->getDepartment(),
-            'title' => $currentUser->getTitle(),
-            'phone' => $currentUser->getTelephoneNumber(),
-            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
-        ];
-
         return $this->render('pages/calendar.html.twig', [
             'page_title' => "Tableau de bord",
-            'user' => $user
+            'user' => $currentUser
         ]);
     }
 
@@ -383,15 +357,11 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-        ];
+        // Passer l'objet User directement au template
 
         return $this->render('pages/documents.html.twig', [
             'page_title' => "Importer des Fichiers",
-            'user' => $user
+            'user' => $currentUser
         ]);
     }
 
@@ -403,19 +373,9 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-            'department' => $currentUser->getDepartment(),
-            'title' => $currentUser->getTitle(),
-            'phone' => $currentUser->getTelephoneNumber(),
-            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
-        ];
-
         return $this->render('pages/map.html.twig', [
             'page_title' => "Tableau de bord",
-            'user' => $user
+            'user' => $currentUser
         ]);
     }
     #[Route('/settings', name: 'settings')]
@@ -445,20 +405,10 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $user = [
-            'name' => $currentUser->getName(),
-            'email' => $currentUser->getEmail(),
-            'image_url' => '/images/img.png',
-            'department' => $currentUser->getDepartment(),
-            'title' => $currentUser->getTitle(),
-            'phone' => $currentUser->getTelephoneNumber(),
-            'office' => $currentUser->getPhysicalDeliveryOfficeName(),
-        ];
-
         return $this->render('pages/settings.html.twig', [
             'page_title' => "Paramètres administrateur",
             'settings' => $settings,
-            'user' => $user
+            'user' => $currentUser
         ]);
     }
 

@@ -6,35 +6,43 @@
                 <div class="account-wrap">
                     <div class="account-item clearfix js-item-menu">
                         <div class="image">
-                            <img src="{{ user.image_url|default('/images/img.png') }}" alt="{{ user.name|default('User') }}" />
+                            <img src="{{ (user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ user ? user.name : 'User' }}" />
                         </div>
                         <div class="content">
-                            <a class="js-acc-btn" href="#">{{ user.name|default('Frederic F')|lower }}</a>
+                            <a class="js-acc-btn" href="#">{{ user ? user.name|lower : 'Compte' }}</a>
                         </div>
                         <div class="account-dropdown js-dropdown">
                             <div class="info clearfix">
                                 <div class="image">
                                     <a href="#">
-                                        <img src="{{ user.image_url|default('/images/img.png') }}" alt="{{ user.name|default('User') }}" />
+                                        <img src="{{ (user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ user ? user.name : 'User' }}" />
                                     </a>
                                 </div>
                                 <div class="content">
                                     <h5 class="name">
-                                        <a href="#">{{ user.name }}</a>
+                                        <a href="#">{{ user ? user.name : 'Compte' }}</a>
                                     </h5>
-                                    <span class="email">{{ user.email }}</span>
+                                    <span class="email">{{ user ? user.email : 'Compte@exemple.com' }}</span>
                                 </div>
                             </div>
                             <div class="account-dropdown__body">
+                                {% if user %}
                                 <div class="account-dropdown__item">
                                     <a href="{{ path('settings') }}">
                                         <i class="zmdi zmdi-settings"></i>Paramètres</a>
                                 </div>
+                                {% endif %}
                             </div>
                             <div class="account-dropdown__footer">
+                                {% if user %}
                                 <a href="{{ path('app_logout') }}">
                                     <i class="zmdi zmdi-power"></i>Logout</a>
                                 </a>
+                                {% else %}
+                                <a href="{{ path('app_login') }}">
+                                    <i class="zmdi zmdi-power"></i>Login</a>
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

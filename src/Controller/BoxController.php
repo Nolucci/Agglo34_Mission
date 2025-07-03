@@ -173,18 +173,17 @@ class BoxController extends AbstractController
 
         $parkItems = [];
 
-        $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
-            'image_url' => '/images/img.png',
-        ];
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
 
         return $this->render('pages/box.html.twig', [
             'page_title' => 'Détails de la box',
             'municipality' => $municipality,
             'phoneLines' => $phoneLines,
             'parkItems' => $parkItems,
-            'user' => $user,
+            'user' => $currentUser,
         ]);
     }
 
@@ -260,11 +259,10 @@ class BoxController extends AbstractController
             'data' => array_values($boxStatuses),
         ];
 
-        $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
-            'image_url' => '/images/img.png',
-        ];
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
 
         $boxData = [];
         foreach ($boxes as $box) {
@@ -283,7 +281,7 @@ class BoxController extends AbstractController
         return $this->render('pages/box_list.html.twig', [
             'boxes' => $boxData,
             'page_title' => 'Liste des boxs',
-            'user' => $user,
+            'user' => $currentUser,
             'boxStats' => $boxStats,
             'boxTypeChartData' => $boxTypeChartData,
             'boxStatusChartData' => $boxStatusChartData,

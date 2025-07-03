@@ -57,11 +57,10 @@ class LogController extends AbstractController
             return $item['username'];
         }, $usernames);
 
-        $user = [
-            'name' => 'Frederic F',
-            'email' => 'fredericf@example.com',
-            'image_url' => '/images/img.png',
-        ];
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
 
         return $this->render('log/index.html.twig', [
             'page_title' => 'Logs de l\'Application',
@@ -69,7 +68,7 @@ class LogController extends AbstractController
             'actions' => $actionsList,
             'usernames' => $usernamesList,
             'filters' => $filters,
-            'user' => $user,
+            'user' => $currentUser,
         ]);
     }
 
