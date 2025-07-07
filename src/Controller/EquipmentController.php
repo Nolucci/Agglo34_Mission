@@ -104,7 +104,7 @@ class EquipmentController extends AbstractController
             $log->setEntityId($equipment->getId());
             $log->setDetails('Suppression de l\'équipement (suppression en masse): ' . $equipment->getId() .
                             "\nValeurs: " . json_encode($equipmentInfo, JSON_UNESCAPED_UNICODE));
-            $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+            $log->setUsername($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
             $log->setCreatedAt(new \DateTimeImmutable());
 
             $this->entityManager->persist($log);
@@ -367,7 +367,7 @@ class EquipmentController extends AbstractController
         $log->setEntityId($equipment->getId());
         $log->setDetails('Suppression de l\'équipement: ' . $equipment->getId() .
                         "\nValeurs: " . json_encode($equipmentInfo, JSON_UNESCAPED_UNICODE));
-        $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+        $log->setUsername($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
         $log->setCreatedAt(new \DateTimeImmutable());
 
         $this->entityManager->persist($log);

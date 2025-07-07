@@ -102,7 +102,7 @@ class BoxController extends AbstractController
             $log->setEntityType('Box');
             $log->setEntityId($box->getId());
             $log->setDetails('Suppression de la box (suppression en masse): ' . $box->getId());
-            $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+            $log->setUsername($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
             $log->setCreatedAt(new \DateTimeImmutable());
 
             $this->entityManager->persist($log);
@@ -453,7 +453,7 @@ class BoxController extends AbstractController
         $log->setEntityType('Box');
         $log->setEntityId($box->getId());
         $log->setDetails('Suppression de la box: ' . $box->getId());
-        $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+        $log->setUsername($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
         $log->setCreatedAt(new \DateTimeImmutable());
 
         $this->entityManager->persist($log);

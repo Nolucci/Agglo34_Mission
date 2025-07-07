@@ -462,7 +462,7 @@ class PhoneLineController extends AbstractController
             // Définir tous les champs obligatoires
             $log->setEntityType('PhoneLine'); // Type d'entité
             $log->setEntityId($phoneLineId);  // ID de l'entité
-            $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+            $log->setUsername($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
             $log->setAction($action);
             $log->setCreatedAt(new \DateTimeImmutable());
 
