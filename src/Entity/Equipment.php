@@ -15,7 +15,7 @@ class Equipment
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Municipality::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Municipality $commune = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -24,13 +24,13 @@ class Equipment
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $etiquetage = null;
 
-    #[ORM\Column(length: 255, nullable: false)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $modele = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $numeroSerie = null;
 
-    #[ORM\Column(length: 255, nullable: false)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $service = null;
 
     #[ORM\Column(length: 255, nullable: true)]

@@ -537,7 +537,7 @@ class EquipmentController extends AbstractController
             if ($extension === 'csv') {
                 $tempHandle = fopen($file->getPathname(), 'r');
                 if ($tempHandle) {
-                    while (fgetcsv($tempHandle) !== FALSE) {
+                    while (fgetcsv($tempHandle, 0, ',', '"', '\\') !== FALSE) {
                         $totalLines++;
                     }
                     fclose($tempHandle);
@@ -595,7 +595,7 @@ class EquipmentController extends AbstractController
             }
 
             // Lire la première ligne pour obtenir les en-têtes
-            $headers = fgetcsv($handle, 0, ',');
+            $headers = fgetcsv($handle, 0, ',', '"', '\\');
             if (!$headers) {
                 fclose($handle);
                 error_log("Le fichier CSV {$fileName} est vide ou mal formaté");
@@ -634,7 +634,7 @@ class EquipmentController extends AbstractController
             $rowNumber = 1; // Commencer à 1 car la ligne 0 est l'en-tête
 
             // Lire les données ligne par ligne
-            while (($data = fgetcsv($handle, 0, ',')) !== FALSE) {
+            while (($data = fgetcsv($handle, 0, ',', '"', '\\')) !== FALSE) {
                 $rowNumber++;
                 $currentLine++;
 
@@ -657,14 +657,14 @@ class EquipmentController extends AbstractController
                 // Extraire l'étiquetage pour vérifier les doublons
                 $etiquetage = null;
                 foreach ($headers as $index => $header) {
-                    if (isset($data[$index]) && $mapping[strtolower($header)] === 'etiquetage') {
+                    if (isset($data[$index]) && isset($mapping[strtolower($header)]) && $mapping[strtolower($header)] === 'etiquetage') {
                         $etiquetage = trim($data[$index]);
                         break;
                     }
                 }
 
-                // Vérifier si l'équipement existe déjà par étiquetage
-                if ($etiquetage && $etiquetage !== 'Non défini') {
+                // Vérifier si l'équipement existe déjà par étiquetage (seulement si l'étiquetage n'est pas vide)
+                if ($etiquetage && !empty($etiquetage)) {
                     $existingEquipment = $this->equipmentRepository->findOneBy(['etiquetage' => $etiquetage]);
                     if ($existingEquipment) {
                         $skippedCount++;
@@ -686,69 +686,33 @@ class EquipmentController extends AbstractController
 
                     $value = trim($data[$index]);
                     if (empty($value)) {
-                        $value = 'Non défini';
+                        $value = null; // Utiliser null au lieu de 'Non défini'
                     }
 
                     // Trouver l'attribut correspondant dans le mapping
                     $attribute = $mapping[strtolower($header)] ?? null;
 
                     if ($attribute === 'commune') {
-                        // Rechercher la commune par nom
-                        $municipality = $this->municipalityRepository->findOneBy(['name' => $value]);
+                        // Rechercher la commune par nom seulement si la valeur n'est pas vide
+                        if ($value) {
+                            $municipality = $this->municipalityRepository->findOneBy(['name' => $value]);
 
-                        // Si la commune n'existe pas et que la valeur n'est pas 'Non défini', la créer
-                        if (!$municipality && $value !== 'Non défini') {
-                            $municipality = new \App\Entity\Municipality();
-                            $municipality->setName($value);
-                            $this->entityManager->persist($municipality);
-                            error_log("Nouvelle commune créée: " . $value);
+                            // Si la commune n'existe pas, la créer
+                            if (!$municipality) {
+                                $municipality = new \App\Entity\Municipality();
+                                $municipality->setName($value);
+                                $this->entityManager->persist($municipality);
+                                error_log("Nouvelle commune créée: " . $value);
+                            }
+
+                            $equipment->setCommune($municipality);
                         }
-
-                        $equipment->setCommune($municipality);
                     } elseif ($attribute) {
                         // Utiliser le setter approprié pour les autres attributs
                         $setterMethod = 'set' . ucfirst($attribute);
                         if (method_exists($equipment, $setterMethod)) {
                             // Gérer le cas spécifique de la date de garantie
-                            if ($attribute === 'dateGarantie' && !empty($value) && $value !== 'Non défini') {
-                                try {
-                                    $equipment->$setterMethod(new \DateTimeImmutable($value));
-                                } catch (\Exception $e) {
-                                    $errors[] = "Ligne {$rowNumber}: Format de date de garantie invalide pour la valeur '{$value}'.";
-                                    error_log("Ligne {$rowNumber}: Format de date de garantie invalide pour la valeur '{$value}'. Erreur: " . $e->getMessage());
-                                }
-                            } else if ($attribute !== 'dateGarantie') {
-                                $equipment->$setterMethod($value === 'Non défini' ? null : $value);
-                            }
-                        } else {
-                            $errors[] = "Ligne {$rowNumber}: Setter inconnu pour l'attribut '{$attribute}'.";
-                            error_log("Ligne {$rowNumber}: Setter inconnu pour l'attribut '{$attribute}'.");
-                        }
-                    } else {
-                        continue; // Ignorer les colonnes non reconnues
-                    }
-
-                    switch ($attribute) {
-                        case 'commune':
-                            if ($value !== 'Non défini') {
-                                // Utiliser la nouvelle méthode de recherche flexible
-                                $municipality = $this->municipalityRepository->findByNameFlexible($value);
-
-                                if ($municipality) {
-                                    $equipment->setCommune($municipality);
-                                    error_log("Commune trouvée et associée: " . $municipality->getName());
-                                } else {
-                                    // Si la commune n'existe pas, la créer
-                                    $municipality = new \App\Entity\Municipality();
-                                    $municipality->setName($value);
-                                    $this->entityManager->persist($municipality);
-                                    $equipment->setCommune($municipality);
-                                    error_log("Nouvelle commune créée: " . $value);
-                                }
-                            }
-                            break;
-                        case 'dateGarantie':
-                            if ($value !== 'Non défini') {
+                            if ($attribute === 'dateGarantie' && $value) {
                                 try {
                                     // Essayer de parser la date (format français JJ/MM/AAAA)
                                     $date = \DateTime::createFromFormat('d/m/Y', $value);
@@ -761,21 +725,19 @@ class EquipmentController extends AbstractController
                                         $equipment->setDateGarantie($date);
                                     } else {
                                         $equipment->setDateGarantie(null);
-                                        $errors[] = "Format de date invalide: $value";
+                                        $errors[] = "Ligne {$rowNumber}: Format de date invalide: $value";
                                     }
                                 } catch (\Exception $e) {
                                     $equipment->setDateGarantie(null);
-                                    $errors[] = "Erreur de date: " . $e->getMessage();
+                                    $errors[] = "Ligne {$rowNumber}: Erreur de date: " . $e->getMessage();
                                 }
+                            } else if ($attribute !== 'dateGarantie') {
+                                $equipment->$setterMethod($value);
                             }
-                            break;
-                        default:
-                            // Pour les autres attributs, utiliser les setters dynamiquement
-                            $setter = 'set' . ucfirst($attribute);
-                            if (method_exists($equipment, $setter)) {
-                                $equipment->$setter($value);
-                            }
-                            break;
+                        } else {
+                            $errors[] = "Ligne {$rowNumber}: Setter inconnu pour l'attribut '{$attribute}'.";
+                            error_log("Ligne {$rowNumber}: Setter inconnu pour l'attribut '{$attribute}'.");
+                        }
                     }
                 }
 

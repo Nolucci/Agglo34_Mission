@@ -7,6 +7,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let fileInfoTableBody = null;
     const uploadButton = document.getElementById("upload-button");
 
+    // Éléments pour la sélection du type d'import
+    const equipmentImportBtn = document.getElementById("equipment-import-btn");
+    const phoneLineImportBtn = document.getElementById("phone-line-import-btn");
+    const equipmentImportRadio = document.getElementById("equipment-import");
+    const phoneLineImportRadio = document.getElementById("phone-line-import");
+    const importDescription = document.getElementById("import-description");
+
     //Verify modal is valid
     const modal = document.getElementById("staticModal");
     let modalTitle = null;
@@ -26,6 +33,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Tableau pour stocker les fichiers sélectionnés
     let selectedFiles = [];
+
+    // Gestion des boutons de sélection du type d'import
+    function updateImportTypeSelection() {
+        if (equipmentImportRadio && equipmentImportRadio.checked) {
+            equipmentImportBtn.classList.add('active');
+            phoneLineImportBtn.classList.remove('active');
+            importDescription.textContent = 'Import des équipements informatiques (ordinateurs, imprimantes, etc.)';
+        } else if (phoneLineImportRadio && phoneLineImportRadio.checked) {
+            phoneLineImportBtn.classList.add('active');
+            equipmentImportBtn.classList.remove('active');
+            importDescription.textContent = 'Import des lignes téléphoniques (numéros, attributions, etc.)';
+        }
+    }
+
+    // Gestionnaires d'événements pour les boutons de sélection
+    if (equipmentImportBtn) {
+        equipmentImportBtn.addEventListener('click', function() {
+            equipmentImportRadio.checked = true;
+            updateImportTypeSelection();
+        });
+    }
+
+    if (phoneLineImportBtn) {
+        phoneLineImportBtn.addEventListener('click', function() {
+            phoneLineImportRadio.checked = true;
+            updateImportTypeSelection();
+        });
+    }
+
+    // Initialiser la sélection
+    updateImportTypeSelection();
+
+    // Fonction pour obtenir le type d'import sélectionné
+    function getSelectedImportType() {
+        if (equipmentImportRadio && equipmentImportRadio.checked) {
+            return 'equipment';
+        } else if (phoneLineImportRadio && phoneLineImportRadio.checked) {
+            return 'phone-line';
+        }
+        return 'equipment'; // Par défaut
+    }
 
     // Empêcher le comportement par défaut du navigateur pour le drag and drop
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -219,10 +267,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(progressContainer);
 
         // Fonction pour mettre à jour la barre de progression
-        function updateProgress(sessionId) {
+        function updateProgress(sessionId, importType) {
             if (!sessionId) return;
 
-            fetch(`/equipment/import-progress?sessionId=${sessionId}`)
+            const progressUrl = importType === 'phone-line'
+                ? `/phone-line/import-progress?sessionId=${sessionId}`
+                : `/equipment/import-progress?sessionId=${sessionId}`;
+
+            fetch(progressUrl)
                 .then(response => response.json())
                 .then(data => {
                     const progressBar = document.getElementById('import-progress-bar');
@@ -238,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.body.removeChild(progressContainer);
                             }, 2000);
                         } else {
-                            setTimeout(() => updateProgress(sessionId), 500);
+                            setTimeout(() => updateProgress(sessionId, importType), 500);
                         }
                     }
                 })
@@ -276,19 +328,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Obtenir le type d'import sélectionné
+        const importType = getSelectedImportType();
+
         // Traiter tous les fichiers sélectionnés
         selectedFiles.forEach(file => {
             pendingRequests++;
 
-            // Déterminer l'URL en fonction du type de fichier
+            // Déterminer l'URL en fonction du type d'import sélectionné
             let url = '/uploads';
             if (file.isCSV || file.isXLSX) {
-                url = '/equipment/import-csv';
+                if (importType === 'phone-line') {
+                    url = '/phone-line/import-csv';
+                } else {
+                    url = '/equipment/import-csv';
+                }
             }
 
             const formData = new FormData();
             formData.append('file', file);
-            console.log(`Ajout du fichier à la requête: ${file.name}, taille: ${file.size}, URL: ${url}`);
+            console.log(`Ajout du fichier à la requête: ${file.name}, taille: ${file.size}, URL: ${url}, Type: ${importType}`);
 
             console.log(`Envoi du fichier ${file.name} à ${url}`);
             fetch(url, {
@@ -308,14 +367,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Démarrer le suivi de progression si on a un sessionId
                 if (data.sessionId && !currentSessionId) {
                     currentSessionId = data.sessionId;
-                    updateProgress(currentSessionId);
+                    updateProgress(currentSessionId, importType);
                 }
 
                 if (data.status === 'success') {
                     successCount++;
                     let message = `Fichier ${file.name} traité avec succès.`;
                     if (data.totalImported) {
-                        message += ` ${data.totalImported} équipements importés.`;
+                        const entityType = importType === 'phone-line' ? 'lignes téléphoniques' : 'équipements';
+                        message += ` ${data.totalImported} ${entityType} importés.`;
                     }
                     if (data.totalSkipped) {
                         message += ` ${data.totalSkipped} lignes ignorées (doublons).`;

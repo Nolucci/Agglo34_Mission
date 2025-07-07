@@ -15,15 +15,15 @@ class PhoneLine
     private ?int $id = null;
 
     // LIEU (e.g. building or office location)
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
 
     // SERVICE (e.g. IT, HR, etc.)
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $service = null;
 
     // ATTRIBUTION (Full name)
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $assignedTo = null;
 
     // MARQUE DU TELEPHONE (Phone brand)
@@ -35,22 +35,24 @@ class PhoneLine
     private ?string $model = null;
 
     // Opérateur
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $operator = null;
 
     // Type de ligne (e.g. mobile, landline)
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $lineType = null;
 
     // Commune (relation vers entité Municipality)
     #[ORM\ManyToOne(inversedBy: 'phoneLines')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Municipality $municipality = null;
-    
-    // Numéro de téléphone
+
+    // Numéro de téléphone principal
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $number = null;
 
     // Ligne directe avec SDA (Sélection Directe à l'Arrivée)
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $directLine = null;
 
     // Numéro court
@@ -71,7 +73,7 @@ class PhoneLine
         return $this->location;
     }
 
-    public function setLocation(string $location): static
+    public function setLocation(?string $location): static
     {
         $this->location = $location;
         return $this;
@@ -82,7 +84,7 @@ class PhoneLine
         return $this->service;
     }
 
-    public function setService(string $service): static
+    public function setService(?string $service): static
     {
         $this->service = $service;
         return $this;
@@ -93,7 +95,7 @@ class PhoneLine
         return $this->assignedTo;
     }
 
-    public function setAssignedTo(string $assignedTo): static
+    public function setAssignedTo(?string $assignedTo): static
     {
         $this->assignedTo = $assignedTo;
         return $this;
@@ -126,7 +128,7 @@ class PhoneLine
         return $this->operator;
     }
 
-    public function setOperator(string $operator): static
+    public function setOperator(?string $operator): static
     {
         $this->operator = $operator;
         return $this;
@@ -153,7 +155,17 @@ class PhoneLine
         $this->municipality = $municipality;
         return $this;
     }
-    
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    public function setNumber(?string $number): static
+    {
+        $this->number = $number;
+        return $this;
+    }
 
     public function getDirectLine(): ?string
     {
@@ -181,7 +193,7 @@ class PhoneLine
     {
         return $this->isWorking;
     }
-    
+
     public function setIsWorking(bool $isWorking): static
     {
         $this->isWorking = $isWorking;

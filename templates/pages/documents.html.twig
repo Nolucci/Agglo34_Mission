@@ -43,6 +43,59 @@
         #file-info-table th {
             background-color: #f2f2f2;
         }
+
+        .import-type-selection {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-group-toggle .btn {
+            padding: 12px 20px;
+            font-weight: 500;
+            border-radius: 6px !important;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-group-toggle .btn:last-child {
+            margin-right: 0;
+        }
+
+        .btn-group-toggle .btn.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-outline-primary.active {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .btn-outline-success.active {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            color: white;
+        }
+
+        .btn-outline-success:hover {
+            background-color: #1e7e34;
+            border-color: #1e7e34;
+            color: white;
+        }
+
+        #import-description {
+            font-style: italic;
+            color: #6c757d;
+        }
     </style>
 {% endblock %}
 
@@ -56,7 +109,27 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-md-12">
-                                <h2 class="title-1">Téléchargement de Fichiers</h2>
+
+                                <!-- Sélection du type d'import -->
+                                <div class="import-type-selection mb-4">
+                                    <h4 class="mb-3">Type de données à importer :</h4>
+                                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                        <label class="btn btn-outline-primary active" id="equipment-import-btn">
+                                            <input type="radio" name="import-type" id="equipment-import" value="equipment" checked>
+                                            <i class="fas fa-desktop mr-2"></i>Parc Informatique
+                                        </label>
+                                        <label class="btn btn-outline-success" id="phone-line-import-btn">
+                                            <input type="radio" name="import-type" id="phone-line-import" value="phone-line">
+                                            <i class="fas fa-phone mr-2"></i>Lignes Téléphoniques
+                                        </label>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted" id="import-description">
+                                            Import des équipements informatiques (ordinateurs, imprimantes, etc.)
+                                        </small>
+                                    </div>
+                                </div>
+
                                 <div id="drop-area">
                                     <p>Glissez-déposez vos fichiers ici ou cliquez pour sélectionner</p>
                                     <input type="file" id="file-input" multiple style="display: none;">
@@ -107,5 +180,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    {# <script src="{{ asset('js/file-upload.js') }}"></script> #}
+    <script src="{{ asset('js/file-upload.js') }}"></script>
 {% endblock %}

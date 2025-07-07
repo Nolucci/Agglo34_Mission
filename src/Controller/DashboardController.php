@@ -360,7 +360,7 @@ class DashboardController extends AbstractController
         // Passer l'objet User directement au template
 
         return $this->render('pages/documents.html.twig', [
-            'page_title' => "Importer des Fichiers",
+            'page_title' => "Importer des Données",
             'user' => $currentUser
         ]);
     }

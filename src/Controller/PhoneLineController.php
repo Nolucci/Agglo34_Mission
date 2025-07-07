@@ -651,4 +651,287 @@ class PhoneLineController extends AbstractController
         // Sinon, récupérer les lignes téléphoniques filtrées
         return $this->phoneLineRepository->findBy($criteria);
     }
+
+    #[Route('/phone-line/import-progress', name: 'phone_line_import_progress', methods: ['GET'])]
+    public function getImportProgress(Request $request): JsonResponse
+    {
+        if (!$request->query->has('sessionId')) {
+            return new JsonResponse(['error' => 'Session ID manquant'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $sessionId = $request->query->get('sessionId');
+        $session = $request->getSession();
+        $progressData = $session->get("import_progress_{$sessionId}", [
+            'current' => 0,
+            'total' => 0,
+            'status' => 'not_found',
+            'message' => 'Session non trouvée'
+        ]);
+
+        return new JsonResponse($progressData);
+    }
+
+    #[Route('/phone-line/import-csv', name: 'phone_line_import_csv', methods: ['POST'])]
+    public function importCsv(Request $request): JsonResponse
+    {
+        error_log('Début de l\'importation CSV des lignes téléphoniques');
+
+        $sessionId = uniqid('import_', true);
+        $session = $request->getSession();
+
+        $session->set("import_progress_{$sessionId}", [
+            'current' => 0,
+            'total' => 0,
+            'status' => 'starting',
+            'message' => 'Initialisation de l\'import...'
+        ]);
+
+        $files = $request->files->all();
+        if (empty($files)) {
+            $files = $request->files->get('file');
+            if ($files) {
+                $files = [$files];
+            }
+        }
+
+        if (empty($files)) {
+            error_log('Aucun fichier fourni');
+            $session->set("import_progress_{$sessionId}", [
+                'current' => 0,
+                'total' => 0,
+                'status' => 'error',
+                'message' => 'Aucun fichier fourni'
+            ]);
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Aucun fichier fourni',
+                'sessionId' => $sessionId
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $totalImportedCount = 0;
+        $totalSkippedCount = 0;
+        $allErrors = [];
+        $skippedLines = [];
+        $fileResults = [];
+
+        $totalLines = 0;
+        foreach ($files as $file) {
+            $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+            if ($extension === 'csv') {
+                $tempHandle = fopen($file->getPathname(), 'r');
+                if ($tempHandle) {
+                    while (fgetcsv($tempHandle, 0, ',', '"', '\\') !== FALSE) {
+                        $totalLines++;
+                    }
+                    fclose($tempHandle);
+                }
+            }
+        }
+
+        $session->set("import_progress_{$sessionId}", [
+            'current' => 0,
+            'total' => $totalLines,
+            'status' => 'processing',
+            'message' => 'Traitement des fichiers...'
+        ]);
+
+        $currentLine = 0;
+
+        foreach ($files as $file) {
+            $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+            if ($extension !== 'csv') {
+                $allErrors[] = "Le fichier {$file->getClientOriginalName()} n'est pas au format CSV";
+                continue;
+            }
+
+            $fileName = $file->getClientOriginalName();
+            error_log("Traitement du fichier: {$fileName}");
+
+            $filePath = $file->getPathname();
+            if (!file_exists($filePath)) {
+                error_log("Le fichier {$fileName} n'existe pas à l'emplacement {$filePath}");
+                $allErrors[] = "Le fichier {$fileName} n'est pas accessible";
+                continue;
+            }
+
+            $handle = fopen($filePath, 'r');
+            if (!$handle) {
+                error_log("Impossible d'ouvrir le fichier {$fileName}");
+                $allErrors[] = "Impossible d'ouvrir le fichier {$fileName}";
+                continue;
+            }
+
+            $headers = fgetcsv($handle, 0, ',', '"', '\\');
+            if (!$headers) {
+                fclose($handle);
+                error_log("Le fichier CSV {$fileName} est vide ou mal formaté");
+                $allErrors[] = "Le fichier CSV {$fileName} est vide ou mal formaté";
+                continue;
+            }
+
+            error_log("En-têtes trouvés: " . implode(', ', $headers));
+
+            $mapping = [
+                'NUMERO' => 'directLine',
+                'NUMERO DIRECT' => 'shortNumber',
+                'LIEU' => 'location',
+                'SERVICE' => 'service',
+                'ATTRIBUTION (NOM & PRENOM)' => 'assignedTo',
+                'Marque du téléphone' => 'phoneBrand',
+                'Modèle' => 'model',
+                'OPERATEUR' => 'operator',
+                'Type de ligne' => 'lineType',
+                'COMMUNE' => 'municipality'
+            ];
+
+            $importedCount = 0;
+            $skippedCount = 0;
+            $errors = [];
+            $rowNumber = 1;
+
+            while (($data = fgetcsv($handle, 0, ',', '"', '\\')) !== FALSE) {
+                $rowNumber++;
+                $currentLine++;
+
+                $session->set("import_progress_{$sessionId}", [
+                    'current' => $currentLine,
+                    'total' => $totalLines,
+                    'status' => 'processing',
+                    'message' => "Traitement ligne {$currentLine}/{$totalLines}..."
+                ]);
+
+                if (count($data) < count($headers)) {
+                    $errors[] = "Ligne {$rowNumber}: Nombre de colonnes insuffisant";
+                    continue;
+                }
+
+                $lineData = [];
+                foreach ($headers as $index => $header) {
+                    $header = trim($header);
+                    if (isset($mapping[$header])) {
+                        $lineData[$mapping[$header]] = isset($data[$index]) ? trim($data[$index]) : '';
+                    }
+                }
+
+                // Nettoyer les données et gérer les valeurs vides
+                foreach ($lineData as $key => $value) {
+                    $lineData[$key] = empty($value) ? null : $value;
+                }
+
+                $municipalityName = $lineData['municipality'];
+                $municipality = null;
+
+                // Créer ou récupérer la municipalité seulement si elle est spécifiée
+                if ($municipalityName) {
+                    $municipality = $this->municipalityRepository->findOneBy(['name' => $municipalityName]);
+                    if (!$municipality) {
+                        $municipality = new \App\Entity\Municipality();
+                        $municipality->setName($municipalityName);
+                        $this->entityManager->persist($municipality);
+                        error_log("Nouvelle municipalité créée: {$municipalityName}");
+                    }
+                }
+
+                // Vérifier les doublons uniquement si le numéro est spécifié
+                if ($lineData['directLine']) {
+                    $existingLine = $this->phoneLineRepository->findOneBy(['number' => $lineData['directLine']]);
+
+                    if ($existingLine) {
+                        $skippedCount++;
+                        $skippedLines[] = "Ligne {$rowNumber}: Ligne téléphonique déjà existante (numéro: {$lineData['directLine']})";
+                        continue;
+                    }
+                }
+
+                $phoneLine = new PhoneLine();
+                $phoneLine->setNumber($lineData['directLine']); // Le numéro principal
+                $phoneLine->setLocation($lineData['location']);
+                $phoneLine->setService($lineData['service']);
+                $phoneLine->setAssignedTo($lineData['assignedTo']);
+                $phoneLine->setOperator($lineData['operator']);
+                $phoneLine->setMunicipality($municipality);
+
+                // Définir les champs optionnels seulement s'ils ont une valeur
+                if ($lineData['directLine']) {
+                    $phoneLine->setDirectLine($lineData['directLine']);
+                }
+                if ($lineData['shortNumber']) {
+                    $phoneLine->setShortNumber($lineData['shortNumber']);
+                }
+                if ($lineData['phoneBrand']) {
+                    $phoneLine->setPhoneBrand($lineData['phoneBrand']);
+                }
+                if ($lineData['model']) {
+                    $phoneLine->setModel($lineData['model']);
+                }
+                if ($lineData['lineType']) {
+                    $phoneLine->setLineType($lineData['lineType']);
+                }
+
+                $this->entityManager->persist($phoneLine);
+                $importedCount++;
+                error_log("Ligne téléphonique persistée: " . $phoneLine->getLocation() . " - " . $phoneLine->getService());
+            }
+
+            fclose($handle);
+            error_log("Fichier {$fileName} traité: {$importedCount} lignes importées, {$skippedCount} ignorées, " . count($errors) . " erreurs");
+
+            $totalImportedCount += $importedCount;
+            $totalSkippedCount += $skippedCount;
+            $allErrors = array_merge($allErrors, $errors);
+
+            $fileResults[] = [
+                'name' => $fileName,
+                'imported' => $importedCount,
+                'skipped' => $skippedCount,
+                'errors' => count($errors)
+            ];
+        }
+
+        $session->set("import_progress_{$sessionId}", [
+            'current' => $totalLines,
+            'total' => $totalLines,
+            'status' => 'saving',
+            'message' => 'Enregistrement en base de données...'
+        ]);
+
+        error_log("Enregistrement en base de données de {$totalImportedCount} lignes téléphoniques");
+        $this->entityManager->flush();
+
+        $session->set("import_progress_{$sessionId}", [
+            'current' => $totalLines,
+            'total' => $totalLines,
+            'status' => 'completed',
+            'message' => 'Import terminé avec succès'
+        ]);
+
+        $log = new Log();
+        $log->setAction('IMPORT_CSV');
+        $log->setEntityType('PhoneLine');
+        $log->setEntityId(0);
+        $log->setDetails("Importation CSV: $totalImportedCount lignes téléphoniques importées. " .
+                        (count($allErrors) > 0 ? "Erreurs: " . implode(', ', $allErrors) : ""));
+        $log->setUsername($this->getUser() ? $this->getUser()->getName() : 'Système');
+        $log->setCreatedAt(new \DateTimeImmutable());
+        $this->entityManager->persist($log);
+        $this->entityManager->flush();
+
+        $response = [
+            'status' => 'success',
+            'message' => "{$totalImportedCount} lignes téléphoniques importées avec succès" .
+                        ($totalSkippedCount > 0 ? ", {$totalSkippedCount} lignes ignorées (doublons)" : ""),
+            'sessionId' => $sessionId,
+            'fileResults' => $fileResults,
+            'errors' => $allErrors,
+            'skippedLines' => $skippedLines,
+            'totalImported' => $totalImportedCount,
+            'totalSkipped' => $totalSkippedCount,
+            'totalErrors' => count($allErrors)
+        ];
+
+        error_log("Réponse finale: " . json_encode($response));
+
+        return new JsonResponse($response);
+    }
 }
