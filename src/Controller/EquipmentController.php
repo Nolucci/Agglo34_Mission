@@ -828,7 +828,7 @@ class EquipmentController extends AbstractController
         $log->setEntityId(0);
         $log->setDetails("Importation CSV: $totalImportedCount équipements importés. " .
                         (count($allErrors) > 0 ? "Erreurs: " . implode(', ', $allErrors) : ""));
-        $log->setUsername($this->getUser() ? $this->getUser()->getUsername() : 'Système');
+        $log->setUsername($this->getUser() ? $this->getUser()->getUserIdentifier() : 'Système');
         $log->setCreatedAt(new \DateTimeImmutable());
         $this->entityManager->persist($log);
         $this->entityManager->flush();
