@@ -1,6 +1,6 @@
 {% extends './base.html.twig' %}
 
-{% block title %}Agents{% endblock %}
+{% block title %}Gestion des Utilisateurs{% endblock %}
 
 {% block body %}
     <div class="page-wrapper">
@@ -9,108 +9,343 @@
                 <div class="section__content section__content--p30">
                     <div class="container-fluid">
                         <div class="row">
-                            <div class="col-lg-3">
+                            <div class="col-lg-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <strong class="card-title">Statistiques des Agents</strong>
+                                        <strong class="card-title">Gestion des Utilisateurs</strong>
+                                        {% if isAdmin %}
+                                            <button class="btn btn-sm btn-info float-right ml-2" data-toggle="modal" data-target="#whitelistModal">
+                                                <i class="fa fa-list"></i> Gérer la Whitelist
+                                            </button>
+                                        {% endif %}
                                     </div>
-                                    <div class="card-body text-center">
-                                        <ul class="list-unstyled">
-                                            <li>
-                                                <i class="fas fa-users"></i> Total des agents :
-                                                <span class="badge badge-primary">{{ agents|length }}</span>
-                                            </li>
-                                            {# Ajoutez d'autres statistiques ici si nécessaire #}
-                                        </ul>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Nom</th>
+                                                        <th>Email</th>
+                                                        <th>Nom d'utilisateur LDAP</th>
+                                                        <th>Rôles</th>
+                                                        <th>Premier utilisateur</th>
+                                                        <th>Dernière connexion</th>
+                                                        {% if isAdmin %}
+                                                            <th>Actions</th>
+                                                        {% endif %}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for agent in agents %}
+                                                    <tr>
+                                                        <td>{{ agent.name }}</td>
+                                                        <td>{{ agent.email }}</td>
+                                                        <td>{{ agent.ldapUsername ?? 'N/A' }}</td>
+                                                        <td>
+                                                            {% for role in agent.roles %}
+                                                                {% if role == 'ROLE_ADMIN' %}
+                                                                    <span class="badge badge-danger">Administrateur</span>
+                                                                {% elseif role == 'ROLE_MODIFIEUR' %}
+                                                                    <span class="badge badge-warning">Modifieur</span>
+                                                                {% elseif role == 'ROLE_VISITEUR_TOUT' %}
+                                                                    <span class="badge badge-info">Visiteur - Tout</span>
+                                                                {% elseif role == 'ROLE_VISITEUR_LIGNES' %}
+                                                                    <span class="badge badge-secondary">Visiteur - Lignes</span>
+                                                                {% elseif role == 'ROLE_VISITEUR_PARC' %}
+                                                                    <span class="badge badge-secondary">Visiteur - Parc</span>
+                                                                {% elseif role == 'ROLE_VISITEUR_BOXS' %}
+                                                                    <span class="badge badge-secondary">Visiteur - Boxs</span>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </td>
+                                                        <td>
+                                                            {% if agent.isFirstUser %}
+                                                                <span class="badge badge-success">Oui</span>
+                                                            {% else %}
+                                                                <span class="badge badge-light">Non</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if agent.lastLoginAt %}
+                                                                {{ agent.lastLoginAt|date('d/m/Y H:i') }}
+                                                            {% else %}
+                                                                <span class="text-muted">Jamais</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        {% if isAdmin %}
+                                                            <td>
+                                                                {% if not agent.isFirstUser %}
+                                                                    <button class="btn btn-sm btn-primary edit-roles-btn"
+                                                                            data-id="{{ agent.id }}"
+                                                                            data-name="{{ agent.name }}"
+                                                                            data-roles="{{ agent.roles|json_encode }}"
+                                                                            data-toggle="modal"
+                                                                            data-target="#editRolesModal">
+                                                                        <i class="fa fa-edit"></i> Modifier les rôles
+                                                                    </button>
+                                                                {% else %}
+                                                                    <span class="text-muted">Premier admin</span>
+                                                                {% endif %}
+                                                            </td>
+                                                        {% endif %}
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
-                                  </div>
-                                  {# Ajoutez d'autres cartes ou graphiques ici si nécessaire #}
-                              </div>
-
-                              <div class="col-lg-9">
-                                  <div class="card">
-                                      <div class="card-header">
-                                          <strong class="card-title">Liste des Agents</strong>
-                                          <button class="btn btn-sm btn-success float-right" data-toggle="modal" data-target="#agentsModal">
-                                              <i class="fa fa-plus"></i> Ajouter
-                                          </button>
-                                          {# TODO: Add filters modal for agents #}
-                                          {#
-                                          <button class="btn btn-sm btn-primary float-right" data-toggle="modal" data-target="#agentsFiltersModal">
-                                              <i class="fa fa-filter"></i> Filtres
-                                          </button>
-                                          #}
-                                      </div>
-                                      <div class="card-body">
-                                          <div class="table-responsive">
-                                              <table class="table table-striped table-hover">
-                                                  <thead>
-                                                      <tr>
-                                                          <th>Nom</th>
-                                                          <th>Email</th>
-                                                          {# Ajoutez d'autres colonnes si nécessaire #}
-                                                          <th>Actions</th>
-                                                      </tr>
-                                                  </thead>
-                                                  <tbody>
-                                                      {% for agent in agents %}
-                                                      <tr>
-                                                          <td>{{ agent.name }}</td>
-                                                          <td>{{ agent.email }}</td>
-                                                          {# Affichez d'autres données de l'agent ici si nécessaire #}
-                                                          <td>
-                                                              <button class="btn btn-sm btn-danger delete-btn" data-id="{{ agent.id }}" data-type="agent" data-toggle="modal" data-target="#staticModal">
-                                                                  <i class="fa fa-trash"></i> Supprimer
-                                                              </button>
-                                                          </td>
-                                                      </tr>
-                                                      {% endfor %}
-                                                  </tbody>
-                                              </table>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-{% include './modals/_agent_modal.html.twig' %}
-{% import './infos/_macros.html.twig' as macros %}
-{{ macros.static_modal('Confirmer la suppression', 'Voulez-vous vraiment supprimer cet élément ?') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    {% if isAdmin %}
+        <!-- Modal pour modifier les rôles -->
+        <div class="modal fade" id="editRolesModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifier les rôles</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editRolesForm">
+                            <input type="hidden" id="userId" name="userId">
+                            <div class="form-group">
+                                <label>Utilisateur :</label>
+                                <span id="userName" class="font-weight-bold"></span>
+                            </div>
+                            <div class="form-group">
+                                <label>Rôles :</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_ADMIN" id="roleAdmin">
+                                    <label class="form-check-label" for="roleAdmin">Administrateur</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_MODIFIEUR" id="roleModifieur">
+                                    <label class="form-check-label" for="roleModifieur">Modifieur</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_VISITEUR_TOUT" id="roleVisiteurTout">
+                                    <label class="form-check-label" for="roleVisiteurTout">Visiteur - Tout</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_VISITEUR_LIGNES" id="roleVisiteurLignes">
+                                    <label class="form-check-label" for="roleVisiteurLignes">Visiteur - Lignes Téléphoniques</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_VISITEUR_PARC" id="roleVisiteurParc">
+                                    <label class="form-check-label" for="roleVisiteurParc">Visiteur - Parc Informatique</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_VISITEUR_BOXS" id="roleVisiteurBoxs">
+                                    <label class="form-check-label" for="roleVisiteurBoxs">Visiteur - Boxs</label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="saveRoles">Sauvegarder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour gérer la whitelist -->
+        <div class="modal fade" id="whitelistModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Gestion de la Whitelist</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Ajouter un utilisateur à la whitelist</h6>
+                                <form id="addToWhitelistForm">
+                                    <div class="form-group">
+                                        <label for="ldapUsername">Nom d'utilisateur LDAP :</label>
+                                        <input type="text" class="form-control" id="ldapUsername" name="ldapUsername" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email (optionnel) :</label>
+                                        <input type="email" class="form-control" id="email" name="email">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="name">Nom (optionnel) :</label>
+                                        <input type="text" class="form-control" id="name" name="name">
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Ajouter</button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Utilisateurs autorisés</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Utilisateur LDAP</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="whitelistTable">
+                                            {% for entry in whitelist %}
+                                            <tr data-id="{{ entry.id }}">
+                                                <td>{{ entry.ldapUsername }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger remove-from-whitelist" data-username="{{ entry.ldapUsername }}">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script>
         $(document).ready(function() {
-            $('#staticModal').on('show.bs.modal', function (event) {
-                const button = $(event.relatedTarget); // Button that triggered the modal
-                const itemId = button.data('id'); // Extract info from data-* attributes
-                const itemType = button.data('type');
+            // Gestion de l'édition des rôles
+            $('.edit-roles-btn').on('click', function() {
+                const userId = $(this).data('id');
+                const userName = $(this).data('name');
+                const roles = $(this).data('roles');
 
-                const modal = $(this);
-                modal.find('.modal-title').text('Confirmer la suppression d'un ' + itemType.charAt(0).toUpperCase() + itemType.slice(1));
-                modal.find('.modal-body p').text('Voulez-vous vraiment supprimer cet ' + (itemType === 'agent' ? 'agent' : 'élément') + ' ?');
+                $('#userId').val(userId);
+                $('#userName').text(userName);
 
-                // Set data attributes on the confirm button
-                const confirmButton = modal.find('.btn-primary');
-                confirmButton.data('id', itemId);
-                confirmButton.data('type', itemType);
+                // Décocher tous les rôles
+                $('input[name="role"]').prop('checked', false);
+
+                // Cocher le rôle principal (le plus élevé dans la hiérarchie)
+                if (roles.includes('ROLE_ADMIN')) {
+                    $('#roleAdmin').prop('checked', true);
+                } else if (roles.includes('ROLE_MODIFIEUR')) {
+                    $('#roleModifieur').prop('checked', true);
+                } else if (roles.includes('ROLE_VISITEUR_TOUT')) {
+                    $('#roleVisiteurTout').prop('checked', true);
+                } else if (roles.includes('ROLE_VISITEUR_LIGNES')) {
+                    $('#roleVisiteurLignes').prop('checked', true);
+                } else if (roles.includes('ROLE_VISITEUR_PARC')) {
+                    $('#roleVisiteurParc').prop('checked', true);
+                } else if (roles.includes('ROLE_VISITEUR_BOXS')) {
+                    $('#roleVisiteurBoxs').prop('checked', true);
+                }
             });
 
-            $('#staticModal .btn-primary').on('click', function() {
-                const button = $(this);
-                const itemId = button.data('id');
-                const itemType = button.data('type');
+            // Sauvegarder les rôles
+            $('#saveRoles').on('click', function() {
+                const userId = $('#userId').val();
+                const selectedRole = $('input[name="role"]:checked').val();
 
-                // TODO: Implement backend deletion request here
-                console.log('Delete confirmed for item ID: ' + itemId + ' of type: ' + itemType);
+                if (!selectedRole) {
+                    alert('Veuillez sélectionner un rôle');
+                    return;
+                }
 
-                // Close the modal
-                $('#staticModal').modal('hide');
+                $.ajax({
+                    url: '/user/update-role',
+                    method: 'POST',
+                    data: {
+                        userId: userId,
+                        role: selectedRole
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Erreur : ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Erreur lors de la mise à jour des rôles');
+                    }
+                });
+            });
+
+            // Ajouter à la whitelist
+            $('#addToWhitelistForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const formData = {
+                    ldapUsername: $('#ldapUsername').val(),
+                    email: $('#email').val(),
+                    name: $('#name').val()
+                };
+
+                $.ajax({
+                    url: '/whitelist/add',
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            // Ajouter la ligne au tableau
+                            const newRow = `
+                                <tr data-id="${response.id}">
+                                    <td>${formData.ldapUsername}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger remove-from-whitelist" data-username="${formData.ldapUsername}">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            $('#whitelistTable').append(newRow);
+
+                            // Réinitialiser le formulaire
+                            $('#addToWhitelistForm')[0].reset();
+                        } else {
+                            alert('Erreur : ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Erreur lors de l\'ajout à la whitelist');
+                    }
+                });
+            });
+
+            // Supprimer de la whitelist
+            $(document).on('click', '.remove-from-whitelist', function() {
+                const username = $(this).data('username');
+                const row = $(this).closest('tr');
+
+                if (confirm('Voulez-vous vraiment supprimer cet utilisateur de la whitelist ?')) {
+                    $.ajax({
+                        url: '/whitelist/remove',
+                        method: 'POST',
+                        data: { ldapUsername: username },
+                        success: function(response) {
+                            if (response.success) {
+                                row.remove();
+                            } else {
+                                alert('Erreur : ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Erreur lors de la suppression de la whitelist');
+                        }
+                    });
+                }
             });
         });
     </script>

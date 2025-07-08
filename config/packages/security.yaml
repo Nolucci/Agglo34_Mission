@@ -27,7 +27,28 @@ security:
 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/lines, roles: ROLE_VISITEUR_LIGNES }
+        - { path: ^/equipment, roles: ROLE_VISITEUR_PARC }
+        - { path: ^/boxes, roles: ROLE_VISITEUR_BOXS }
         - { path: ^/, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_ADMIN:
+            - ROLE_MODIFIEUR
+            - ROLE_VISITEUR_TOUT
+            - ROLE_VISITEUR_LIGNES
+            - ROLE_VISITEUR_PARC
+            - ROLE_VISITEUR_BOXS
+        ROLE_MODIFIEUR:
+            - ROLE_VISITEUR_TOUT
+            - ROLE_VISITEUR_LIGNES
+            - ROLE_VISITEUR_PARC
+            - ROLE_VISITEUR_BOXS
+        ROLE_VISITEUR_TOUT:
+            - ROLE_VISITEUR_LIGNES
+            - ROLE_VISITEUR_PARC
+            - ROLE_VISITEUR_BOXS
 
 when@test:
     security:

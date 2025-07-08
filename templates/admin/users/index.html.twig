@@ -1,0 +1,308 @@
+{% extends 'index.html.twig' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">{{ page_title }}</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Onglets -->
+                    <ul class="nav nav-tabs" id="userTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                                Utilisateurs
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="whitelist-tab" data-bs-toggle="tab" data-bs-target="#whitelist" type="button" role="tab">
+                                Whitelist
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="userTabsContent">
+                        <!-- Onglet Utilisateurs -->
+                        <div class="tab-pane fade show active" id="users" role="tabpanel">
+                            <div class="mt-3">
+                                <h5>Utilisateurs Enregistrés</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Nom</th>
+                                                <th>Email</th>
+                                                <th>Nom d'utilisateur LDAP</th>
+                                                <th>Rôles</th>
+                                                <th>Dernière connexion</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for user in users %}
+                                            <tr>
+                                                <td>
+                                                    {{ user.name }}
+                                                    {% if user.isFirstUser %}
+                                                        <span class="badge bg-warning">Premier Admin</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ user.email }}</td>
+                                                <td>{{ user.ldapUsername }}</td>
+                                                <td>
+                                                    {% for role in user.roles %}
+                                                        {% if role != 'ROLE_USER' %}
+                                                            <span class="badge bg-primary me-1">
+                                                                {{ available_roles[role] ?? role }}
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </td>
+                                                <td>
+                                                    {% if user.lastLoginAt %}
+                                                        {{ user.lastLoginAt|date('d/m/Y H:i') }}
+                                                    {% else %}
+                                                        <em>Jamais</em>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                onclick="showRoleModal({{ user.id }}, '{{ user.name }}')">
+                                                            Gérer Rôles
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Onglet Whitelist -->
+                        <div class="tab-pane fade" id="whitelist" role="tabpanel">
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5>Whitelist des Utilisateurs</h5>
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addWhitelistModal">
+                                        Ajouter à la Whitelist
+                                    </button>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Nom d'utilisateur LDAP</th>
+                                                <th>Nom</th>
+                                                <th>Email</th>
+                                                <th>Ajouté par</th>
+                                                <th>Date d'ajout</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for entry in whitelist_entries %}
+                                            <tr>
+                                                <td>{{ entry.ldapUsername }}</td>
+                                                <td>{{ entry.name ?? '-' }}</td>
+                                                <td>{{ entry.email ?? '-' }}</td>
+                                                <td>{{ entry.createdBy ? entry.createdBy.name : 'Système' }}</td>
+                                                <td>{{ entry.createdAt|date('d/m/Y H:i') }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="removeFromWhitelist('{{ entry.ldapUsername }}')">
+                                                        Retirer
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajout Whitelist -->
+<div class="modal fade" id="addWhitelistModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter à la Whitelist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addWhitelistForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="ldap_username" class="form-label">Nom d'utilisateur LDAP *</label>
+                        <input type="text" class="form-control" id="ldap_username" name="ldap_username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom complet</label>
+                        <input type="text" class="form-control" id="name" name="name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Gestion Rôles -->
+<div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gérer les Rôles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Utilisateur: <strong id="roleModalUserName"></strong></p>
+                <div id="rolesList">
+                    {% for role_key, role_name in available_roles %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input role-checkbox" type="checkbox"
+                               value="{{ role_key }}" id="role_{{ role_key }}">
+                        <label class="form-check-label" for="role_{{ role_key }}">
+                            {{ role_name }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary" onclick="saveRoles()">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUserId = null;
+
+// Gestion de l'ajout à la whitelist
+document.getElementById('addWhitelistForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('{{ path('admin_whitelist_add') }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de communication: ' + error);
+    });
+});
+
+// Suppression de la whitelist
+function removeFromWhitelist(ldapUsername) {
+    if (confirm('Êtes-vous sûr de vouloir retirer cet utilisateur de la whitelist ?')) {
+        fetch(`{{ path('admin_whitelist_remove', {ldapUsername: 'PLACEHOLDER'}) }}`.replace('PLACEHOLDER', ldapUsername), {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur de communication: ' + error);
+        });
+    }
+}
+
+// Gestion des rôles
+function showRoleModal(userId, userName) {
+    currentUserId = userId;
+    document.getElementById('roleModalUserName').textContent = userName;
+
+    // Récupérer les rôles actuels de l'utilisateur
+    const userRow = document.querySelector(`tr:has(button[onclick*="${userId}"])`);
+    const roleBadges = userRow.querySelectorAll('.badge');
+    const currentRoles = Array.from(roleBadges).map(badge => {
+        const text = badge.textContent.trim();
+        // Trouver la clé du rôle basée sur le nom affiché
+        for (const [key, value] of Object.entries({{ available_roles|json_encode|raw }})) {
+            if (value === text) return key;
+        }
+        return null;
+    }).filter(role => role !== null);
+
+    // Cocher les cases appropriées
+    document.querySelectorAll('.role-checkbox').forEach(checkbox => {
+        checkbox.checked = currentRoles.includes(checkbox.value);
+    });
+
+    new bootstrap.Modal(document.getElementById('roleModal')).show();
+}
+
+function saveRoles() {
+    const checkedRoles = Array.from(document.querySelectorAll('.role-checkbox:checked')).map(cb => cb.value);
+    const uncheckedRoles = Array.from(document.querySelectorAll('.role-checkbox:not(:checked)')).map(cb => cb.value);
+
+    // Assigner les nouveaux rôles
+    const assignPromises = checkedRoles.map(role => {
+        const formData = new FormData();
+        formData.append('user_id', currentUserId);
+        formData.append('role', role);
+
+        return fetch('{{ path('admin_user_assign_role') }}', {
+            method: 'POST',
+            body: formData
+        });
+    });
+
+    // Retirer les rôles décochés
+    const removePromises = uncheckedRoles.map(role => {
+        const formData = new FormData();
+        formData.append('user_id', currentUserId);
+        formData.append('role', role);
+
+        return fetch('{{ path('admin_user_remove_role') }}', {
+            method: 'POST',
+            body: formData
+        });
+    });
+
+    Promise.all([...assignPromises, ...removePromises])
+        .then(() => {
+            location.reload();
+        })
+        .catch(error => {
+            alert('Erreur lors de la sauvegarde: ' + error);
+        });
+}
+</script>
+{% endblock %}

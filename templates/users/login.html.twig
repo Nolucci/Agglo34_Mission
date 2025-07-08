@@ -20,7 +20,15 @@
                     </div>
                     <div class="login-form">
                         {% if error %}
-                            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            {% if is_whitelist_error %}
+                                <div class="alert alert-warning">
+                                    <h5><i class="fas fa-exclamation-triangle"></i> Accès non autorisé</h5>
+                                    <p>Votre compte n'est pas autorisé à accéder à cette application.</p>
+                                    <p>Veuillez contacter votre administrateur pour être ajouté à la liste des utilisateurs autorisés.</p>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            {% endif %}
                         {% endif %}
                         <form action="{{ path('app_login') }}" method="post">
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">

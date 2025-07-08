@@ -19,14 +19,17 @@ class SecurityController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
 
         $currentUser = $this->getUser();
-        // Si l'utilisateur n'est pas connecté, il n'y a pas de données utilisateur à passer au template de login
-        // Le template de login ne devrait pas avoir besoin des informations de l'utilisateur connecté
-        // Cependant, si le template attend une variable 'user', nous pouvons la passer comme null ou un tableau vide.
-        // Pour l'instant, je vais la passer comme null si non connecté, ou l'objet User si connecté.
+
+        // Vérifier si l'erreur est liée à la whitelist
+        $isWhitelistError = false;
+        if ($error && str_contains($error->getMessage(), 'not whitelisted')) {
+            $isWhitelistError = true;
+        }
 
         return $this->render('users/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
+            'is_whitelist_error' => $isWhitelistError,
             'page_title' => 'Connexion',
             'user' => $currentUser,
         ]);

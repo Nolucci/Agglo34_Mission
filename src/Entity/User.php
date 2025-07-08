@@ -31,6 +31,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $ldapUsername = null;
 
+    #[ORM\Column]
+    private bool $isFirstUser = false;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastLoginAt = null;
+
     #[ORM\ManyToOne(inversedBy: 'account')]
     private ?Settings $settings = null;
 
@@ -132,6 +141,85 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->ldapUsername = $ldapUsername;
 
         return $this;
+    }
+
+    public function isFirstUser(): bool
+    {
+        return $this->isFirstUser;
+    }
+
+    public function setIsFirstUser(bool $isFirstUser): static
+    {
+        $this->isFirstUser = $isFirstUser;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getLastLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function setLastLoginAt(?\DateTimeImmutable $lastLoginAt): static
+    {
+        $this->lastLoginAt = $lastLoginAt;
+        return $this;
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return in_array($role, $this->getRoles());
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('ROLE_ADMIN');
+    }
+
+    public function isModifieur(): bool
+    {
+        return $this->hasRole('ROLE_MODIFIEUR') || $this->isAdmin();
+    }
+
+    public function canAccessPhoneLines(): bool
+    {
+        return $this->hasRole('ROLE_VISITEUR_LIGNES') ||
+               $this->hasRole('ROLE_VISITEUR_TOUT') ||
+               $this->isModifieur();
+    }
+
+    public function canAccessEquipment(): bool
+    {
+        return $this->hasRole('ROLE_VISITEUR_PARC') ||
+               $this->hasRole('ROLE_VISITEUR_TOUT') ||
+               $this->isModifieur();
+    }
+
+    public function canAccessBoxes(): bool
+    {
+        return $this->hasRole('ROLE_VISITEUR_BOXS') ||
+               $this->hasRole('ROLE_VISITEUR_TOUT') ||
+               $this->isModifieur();
+    }
+
+    public function canModify(): bool
+    {
+        return $this->isModifieur();
+    }
+
+    public function canManageUsers(): bool
+    {
+        return $this->isAdmin();
     }
 
 }

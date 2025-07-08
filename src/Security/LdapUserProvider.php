@@ -4,6 +4,7 @@ namespace App\Security;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\UserPermissionService;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\LdapInterface;
@@ -23,6 +24,7 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
     private array $defaultRoles;
     private string $uidKey;
     private UserRepository $userRepository;
+    private UserPermissionService $permissionService;
 
     public function __construct(
         LdapInterface $ldap,
@@ -31,7 +33,8 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
         ?string $searchPassword,
         array $defaultRoles,
         string $uidKey,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        UserPermissionService $permissionService
     ) {
         $this->ldap = $ldap;
         $this->baseDn = $baseDn;
@@ -40,11 +43,20 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
         $this->defaultRoles = $defaultRoles;
         $this->uidKey = $uidKey;
         $this->userRepository = $userRepository;
+        $this->permissionService = $permissionService;
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
         try {
+            // Vérifier si c'est le premier utilisateur
+            $isFirstUser = $this->permissionService->isFirstUser();
+
+            // Si ce n'est pas le premier utilisateur, vérifier la whitelist
+            if (!$isFirstUser && !$this->permissionService->isUserWhitelisted($identifier)) {
+                throw new UserNotFoundException(sprintf('User "%s" is not whitelisted.', $identifier));
+            }
+
             // Recherche de l'utilisateur dans la base de données locale
             $user = $this->userRepository->findOneBy(['ldapUsername' => $identifier]);
 
@@ -58,11 +70,18 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
 
                 $user = new User();
                 $user->setLdapUsername($identifier);
+                $user->setCreatedAt(new \DateTimeImmutable());
 
                 // Récupération des attributs LDAP
                 $user->setName($this->getLdapUserAttribute($ldapUser, 'displayname') ?? $identifier);
                 $user->setEmail($this->getLdapUserAttribute($ldapUser, 'mail') ?? $identifier);
-                $user->setRoles($this->defaultRoles);
+
+                // Gestion des rôles pour le premier utilisateur
+                if ($isFirstUser) {
+                    $this->permissionService->makeFirstUserAdmin($user);
+                } else {
+                    $user->setRoles($this->defaultRoles);
+                }
 
                 // Le mot de passe est géré par LDAP, on met une valeur aléatoire
                 $user->setPassword(bin2hex(random_bytes(20)));
@@ -71,11 +90,22 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
                 error_log(sprintf('Création utilisateur LDAP: %s', $identifier));
                 error_log(sprintf('Attributs: %s', json_encode([
                     'name' => $user->getName(),
-                    'email' => $user->getEmail()
+                    'email' => $user->getEmail(),
+                    'isFirstUser' => $isFirstUser
                 ])));
 
+                // Persister l'utilisateur d'abord
                 $this->userRepository->save($user, true);
+
+                // Ajouter à la whitelist après persistance pour le premier utilisateur
+                if ($isFirstUser) {
+                    $this->permissionService->addFirstUserToWhitelist($user);
+                }
             }
+
+            // Mettre à jour la dernière connexion
+            $user->setLastLoginAt(new \DateTimeImmutable());
+            $this->userRepository->save($user, true);
 
             return $user;
         } catch (ConnectionException $e) {

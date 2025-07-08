@@ -1,63 +1,75 @@
 # This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
+# Files in the config/packages/ folder configure your dependencies.
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-  uploads_directory: "%kernel.project_dir%/public/uploads"
 
 services:
-  # default configuration for services in *this* file
-  _defaults:
-    autowire: true # Automatically injects dependencies in your services.
-    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event listeners, etc.
 
-  # makes classes in src/ available to be used as services
-  # this creates a service per class whose id is the fully-qualified class name
-  App\:
-    resource: "../src/"
-    exclude:
-      - "../src/DependencyInjection/"
-      - "../src/Entity/"
-      - "../src/Kernel.php"
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
 
-  # add more service definitions when explicit configuration is needed
-  # please note that last definitions always *replace* previous ones
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
 
-  # Configuration du service LdapUserProvider
-  App\Security\LdapUserProvider:
-    arguments:
-      $ldap: '@Symfony\Component\Ldap\Ldap'
-      $baseDn: "%env(LDAP_BASE_DN)%"
-      $searchDn: "%env(LDAP_SEARCH_DN)%"
-      $searchPassword: "%env(LDAP_SEARCH_PASSWORD)%"
-      $defaultRoles: ["ROLE_USER"]
-      $uidKey: "samaccountname"
-      $userRepository: '@App\Repository\UserRepository'
+    # Configuration LDAP
+    Symfony\Component\Ldap\LdapInterface:
+        class: Symfony\Component\Ldap\Ldap
+        factory: ['Symfony\Component\Ldap\Ldap', 'create']
+        arguments:
+            - 'ext_ldap'
+            -
+                host: '%env(LDAP_HOST)%'
+                port: '%env(int:LDAP_PORT)%'
+                encryption: '%env(LDAP_ENCRYPTION)%'
 
-  # Configuration de l'authenticateur LDAP
-  App\Security\LdapAuthenticator:
-    arguments:
-      $urlGenerator: "@router"
-      $ldap: '@Symfony\Component\Ldap\Ldap'
-      $baseDn: "%env(LDAP_BASE_DN)%"
-      $searchDn: "%env(LDAP_SEARCH_DN)%"
-      $searchPassword: "%env(LDAP_SEARCH_PASSWORD)%"
-      $uidKey: "samaccountname"
-      $userProvider: '@App\Security\LdapUserProvider'
+    # Configuration du provider LDAP
+    App\Security\LdapUserProvider:
+        arguments:
+            $ldap: '@Symfony\Component\Ldap\LdapInterface'
+            $baseDn: '%env(LDAP_BASE_DN)%'
+            $searchDn: '%env(LDAP_SEARCH_DN)%'
+            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $defaultRoles: ['ROLE_USER']
+            $uidKey: '%env(LDAP_UID_KEY)%'
 
-  # Configuration du contrôleur d'équipement
-  App\Controller\EquipmentController:
-    arguments:
-      $uploadsDirectory: "%uploads_directory%"
+    # Configuration de l'authenticator LDAP
+    App\Security\LdapAuthenticator:
+        arguments:
+            $ldap: '@Symfony\Component\Ldap\LdapInterface'
+            $baseDn: '%env(LDAP_BASE_DN)%'
+            $searchDn: '%env(LDAP_SEARCH_DN)%'
+            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $uidKey: '%env(LDAP_UID_KEY)%'
 
-  # Configuration de la commande de test LDAP
-  App\Command\TestLdapCommand:
-    arguments:
-      $ldapHost: "%env(LDAP_HOST)%"
-      $ldapPort: "%env(int:LDAP_PORT)%"
-      $ldapEncryption: "%env(LDAP_ENCRYPTION)%"
-      $ldapBaseDn: "%env(LDAP_BASE_DN)%"
-      $ldapSearchDn: "%env(LDAP_SEARCH_DN)%"
-      $ldapSearchPassword: "%env(LDAP_SEARCH_PASSWORD)%"
-      $ldapUidKey: "samaccountname"
+    # Configuration de la commande de test LDAP
+    App\Command\TestLdapCommand:
+        arguments:
+            $ldapHost: '%env(LDAP_HOST)%'
+            $ldapPort: '%env(int:LDAP_PORT)%'
+            $ldapEncryption: '%env(LDAP_ENCRYPTION)%'
+            $ldapBaseDn: '%env(LDAP_BASE_DN)%'
+            $ldapSearchDn: '%env(LDAP_SEARCH_DN)%'
+            $ldapSearchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
+            $ldapUidKey: '%env(LDAP_UID_KEY)%'
+
+    # Configuration du contrôleur Equipment
+    App\Controller\EquipmentController:
+        arguments:
+            $uploadsDirectory: '%kernel.project_dir%/public/uploads'
+
+    # Service de gestion des permissions
+    App\Service\UserPermissionService:
+        autowire: true
+        autoconfigure: true

@@ -208,7 +208,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/agents', name: 'agents')]
-    public function agents(): Response
+    public function agents(\App\Repository\WhitelistRepository $whitelistRepository): Response
     {
         $currentUser = $this->getUser();
         if (!$currentUser) {
@@ -217,10 +217,18 @@ class DashboardController extends AbstractController
 
         $agents = $this->userRepository->findAll();
 
+        // Récupérer la whitelist pour les admins
+        $whitelist = [];
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $whitelist = $whitelistRepository->findBy(['isActive' => true]);
+        }
+
         return $this->render('pages/agents.html.twig', [
-            'page_title' => "Liste des Agents",
+            'page_title' => "Gestion des Utilisateurs",
             'agents' => $agents,
             'user' => $currentUser,
+            'whitelist' => $whitelist,
+            'isAdmin' => $this->isGranted('ROLE_ADMIN'),
         ]);
     }
 
