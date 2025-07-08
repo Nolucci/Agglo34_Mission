@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
@@ -58,14 +59,14 @@ class DashboardController extends AbstractController
         // Calculer les statistiques des lignes téléphoniques
         $uniqueOperators = [];
         $uniqueServices = [];
-        $globalLines = 0; // Cette variable ne sera plus utilisée pour les stats de fonctionnement
-        $localLines = 0; // Cette variable ne sera plus utilisée pour les stats de fonctionnement
-        $workingLines = 0; // Initialisation de la nouvelle variable
-        $notWorkingLines = 0; // Initialisation de la nouvelle variable
+        $uniqueLineTypes = [];
+        $workingLines = 0;
+        $notWorkingLines = 0;
 
         foreach ($lines as $line) {
             $operator = $line->getOperator();
             $service = $line->getService();
+            $lineType = $line->getLineType();
 
             if ($operator && !in_array($operator, $uniqueOperators)) {
                 $uniqueOperators[] = $operator;
@@ -73,6 +74,10 @@ class DashboardController extends AbstractController
 
             if ($service && !in_array($service, $uniqueServices)) {
                 $uniqueServices[] = $service;
+            }
+
+            if ($lineType && !in_array($lineType, $uniqueLineTypes)) {
+                $uniqueLineTypes[] = $lineType;
             }
 
             if ($line->isWorking()) {
@@ -86,6 +91,7 @@ class DashboardController extends AbstractController
             'total_lines' => count($lines),
             'unique_operators' => count($uniqueOperators),
             'unique_services' => count($uniqueServices),
+            'unique_line_types' => count($uniqueLineTypes),
             'working_lines' => $workingLines,
             'not_working_lines' => $notWorkingLines,
         ];
@@ -387,6 +393,7 @@ class DashboardController extends AbstractController
         ]);
     }
     #[Route('/settings', name: 'settings')]
+    #[IsGranted('ROLE_ADMIN')]
     public function settings(SettingsRepository $settingsRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
     {
         $settings = $settingsRepository->findOneBy([]);
@@ -421,8 +428,10 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/settings/save', name: 'settings_save', methods: ['POST'])]
-    public function saveSettings(\Symfony\Component\HttpFoundation\Request $request, SettingsRepository $settingsRepository, \Doctrine\ORM\EntityManagerInterface $entityManager): Response
+    #[IsGranted('ROLE_ADMIN')]
+    public function saveSettings(\Symfony\Component\HttpFoundation\Request $request, SettingsRepository $settingsRepository, \Doctrine\ORM\EntityManagerInterface $entityManager, \App\Service\SettingsService $settingsService): Response
     {
+        // Paramètres généraux
         $crudEnabled = $request->request->get('crud_enabled') === '1';
         $displayMode = $request->request->get('display_mode');
         $itemsPerPage = (int)$request->request->get('items_per_page');
@@ -431,13 +440,30 @@ class DashboardController extends AbstractController
         $alertThreshold = (int)$request->request->get('alert_threshold');
         $featureEnabled = $request->request->get('feature_enabled') === '1';
 
+        // Paramètres LDAP
+        $ldapEnabled = $request->request->get('ldap_enabled') === '1';
+        $ldapHost = $request->request->get('ldap_host');
+        $ldapPort = (int)$request->request->get('ldap_port') ?: 389;
+        $ldapEncryption = $request->request->get('ldap_encryption') ?: 'none';
+        $ldapBaseDn = $request->request->get('ldap_base_dn');
+        $ldapSearchDn = $request->request->get('ldap_search_dn');
+        $ldapSearchPassword = $request->request->get('ldap_search_password');
+        $ldapUidKey = $request->request->get('ldap_uid_key') ?: 'nomcompte';
+
+        // Paramètres base de données
+        $databaseUrl = $request->request->get('database_url');
+
+        // Paramètres mode maintenance
+        $maintenanceMode = $request->request->get('maintenance_mode') === '1';
+        $maintenanceMessage = $request->request->get('maintenance_message') ?: 'Application en maintenance. Veuillez réessayer plus tard.';
+
         // Récupérer les paramètres existants ou créer un nouvel objet
         $settings = $settingsRepository->findOneBy([]);
         if (!$settings) {
             $settings = new \App\Entity\Settings();
         }
 
-        // Mettre à jour les paramètres
+        // Mettre à jour tous les paramètres
         $settings->setCrudEnabled($crudEnabled);
         $settings->setDisplayMode($displayMode);
         $settings->setItemsPerPage($itemsPerPage);
@@ -446,13 +472,92 @@ class DashboardController extends AbstractController
         $settings->setAlertThreshold($alertThreshold);
         $settings->setFeatureEnabled($featureEnabled);
 
+        // Paramètres LDAP
+        $settings->setLdapEnabled($ldapEnabled);
+        $settings->setLdapHost($ldapHost);
+        $settings->setLdapPort($ldapPort);
+        $settings->setLdapEncryption($ldapEncryption);
+        $settings->setLdapBaseDn($ldapBaseDn);
+        $settings->setLdapSearchDn($ldapSearchDn);
+        $settings->setLdapSearchPassword($ldapSearchPassword);
+        $settings->setLdapUidKey($ldapUidKey);
+
+        // Paramètres base de données
+        $settings->setDatabaseUrl($databaseUrl);
+
+        // Paramètres mode maintenance
+        $settings->setMaintenanceMode($maintenanceMode);
+        $settings->setMaintenanceMessage($maintenanceMessage);
+
         // Sauvegarder en base de données
         $entityManager->persist($settings);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Paramètres enregistrés avec succès.');
+        // Mettre à jour les fichiers d'environnement avec les nouveaux paramètres
+        try {
+            $settingsService->updateEnvironmentFile();
+            $this->addFlash('success', 'Paramètres enregistrés avec succès. Les modifications LDAP et base de données nécessitent un redémarrage de l\'application pour prendre effet.');
+        } catch (\Exception $e) {
+            $this->addFlash('warning', 'Paramètres enregistrés mais erreur lors de la mise à jour des fichiers d\'environnement : ' . $e->getMessage());
+        }
 
         return $this->redirectToRoute('settings');
+    }
+
+    #[Route('/settings/test-ldap', name: 'settings_test_ldap', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function testLdapConnection(\Symfony\Component\HttpFoundation\Request $request, \App\Service\LdapTestService $ldapTestService): \Symfony\Component\HttpFoundation\JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Données invalides.'
+            ]);
+        }
+
+        $config = [
+            'host' => $data['host'] ?? '',
+            'port' => $data['port'] ?? 389,
+            'encryption' => $data['encryption'] ?? 'none',
+            'base_dn' => $data['base_dn'] ?? '',
+            'search_dn' => $data['search_dn'] ?? '',
+            'search_password' => $data['search_password'] ?? '',
+            'uid_key' => $data['uid_key'] ?? 'nomcompte'
+        ];
+
+        $result = $ldapTestService->testConnection($config);
+
+        return $this->json($result);
+    }
+
+    #[Route('/settings/test-ldap-user', name: 'settings_test_ldap_user', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function testLdapUserAuthentication(\Symfony\Component\HttpFoundation\Request $request, \App\Service\LdapTestService $ldapTestService): \Symfony\Component\HttpFoundation\JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data || empty($data['username']) || empty($data['password'])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Nom d\'utilisateur et mot de passe requis.'
+            ]);
+        }
+
+        $config = [
+            'host' => $data['host'] ?? '',
+            'port' => $data['port'] ?? 389,
+            'encryption' => $data['encryption'] ?? 'none',
+            'base_dn' => $data['base_dn'] ?? '',
+            'search_dn' => $data['search_dn'] ?? '',
+            'search_password' => $data['search_password'] ?? '',
+            'uid_key' => $data['uid_key'] ?? 'nomcompte'
+        ];
+
+        $result = $ldapTestService->testUserAuthentication($config, $data['username'], $data['password']);
+
+        return $this->json($result);
     }
     private function generateLineStatsByMunicipality(array $lines): array
     {

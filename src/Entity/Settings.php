@@ -45,6 +45,39 @@ class Settings
     #[ORM\Column(nullable: true)]
     private ?bool $feature_enabled = false;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $ldap_enabled = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ldap_host = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $ldap_port = 389;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $ldap_encryption = 'none';
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $ldap_base_dn = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $ldap_search_dn = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ldap_search_password = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $ldap_uid_key = 'nomcompte';
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $database_url = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $maintenance_mode = false;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $maintenance_message = 'Application en maintenance. Veuillez réessayer plus tard.';
+
     public function __construct()
     {
         $this->account = new ArrayCollection();
@@ -178,6 +211,127 @@ class Settings
     {
         $this->feature_enabled = $feature_enabled;
 
+        return $this;
+    }
+
+    public function isLdapEnabled(): ?bool
+    {
+        return $this->ldap_enabled;
+    }
+
+    public function setLdapEnabled(?bool $ldap_enabled): static
+    {
+        $this->ldap_enabled = $ldap_enabled;
+        return $this;
+    }
+
+    public function getLdapHost(): ?string
+    {
+        return $this->ldap_host;
+    }
+
+    public function setLdapHost(?string $ldap_host): static
+    {
+        $this->ldap_host = $ldap_host;
+        return $this;
+    }
+
+    public function getLdapPort(): ?int
+    {
+        return $this->ldap_port;
+    }
+
+    public function setLdapPort(?int $ldap_port): static
+    {
+        $this->ldap_port = $ldap_port;
+        return $this;
+    }
+
+    public function getLdapEncryption(): ?string
+    {
+        return $this->ldap_encryption;
+    }
+
+    public function setLdapEncryption(?string $ldap_encryption): static
+    {
+        $this->ldap_encryption = $ldap_encryption;
+        return $this;
+    }
+
+    public function getLdapBaseDn(): ?string
+    {
+        return $this->ldap_base_dn;
+    }
+
+    public function setLdapBaseDn(?string $ldap_base_dn): static
+    {
+        $this->ldap_base_dn = $ldap_base_dn;
+        return $this;
+    }
+
+    public function getLdapSearchDn(): ?string
+    {
+        return $this->ldap_search_dn;
+    }
+
+    public function setLdapSearchDn(?string $ldap_search_dn): static
+    {
+        $this->ldap_search_dn = $ldap_search_dn;
+        return $this;
+    }
+
+    public function getLdapSearchPassword(): ?string
+    {
+        return $this->ldap_search_password;
+    }
+
+    public function setLdapSearchPassword(?string $ldap_search_password): static
+    {
+        $this->ldap_search_password = $ldap_search_password;
+        return $this;
+    }
+
+    public function getLdapUidKey(): ?string
+    {
+        return $this->ldap_uid_key;
+    }
+
+    public function setLdapUidKey(?string $ldap_uid_key): static
+    {
+        $this->ldap_uid_key = $ldap_uid_key;
+        return $this;
+    }
+
+    public function getDatabaseUrl(): ?string
+    {
+        return $this->database_url;
+    }
+
+    public function setDatabaseUrl(?string $database_url): static
+    {
+        $this->database_url = $database_url;
+        return $this;
+    }
+
+    public function isMaintenanceMode(): ?bool
+    {
+        return $this->maintenance_mode;
+    }
+
+    public function setMaintenanceMode(?bool $maintenance_mode): static
+    {
+        $this->maintenance_mode = $maintenance_mode;
+        return $this;
+    }
+
+    public function getMaintenanceMessage(): ?string
+    {
+        return $this->maintenance_message;
+    }
+
+    public function setMaintenanceMessage(?string $maintenance_message): static
+    {
+        $this->maintenance_message = $maintenance_message;
         return $this;
     }
 }

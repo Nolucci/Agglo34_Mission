@@ -81,6 +81,26 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Boutons de test LDAP -->
+                                            <div class="row mt-3">
+                                                <div class="col-12">
+                                                    <div class="alert alert-info">
+                                                        <i class="fas fa-info-circle mr-2"></i>
+                                                        <strong>Test de connexion :</strong> Utilisez ces boutons pour tester votre configuration LDAP avant de l'activer.
+                                                    </div>
+
+                                                    <button type="button" class="btn btn-info mr-2" id="test-ldap-connection">
+                                                        <i class="fas fa-plug mr-2"></i>Tester la connexion LDAP
+                                                    </button>
+
+                                                    <button type="button" class="btn btn-warning" id="test-ldap-user" data-toggle="modal" data-target="#testUserModal">
+                                                        <i class="fas fa-user-check mr-2"></i>Tester l'authentification utilisateur
+                                                    </button>
+
+                                                    <div id="ldap-test-result" class="mt-3" style="display: none;"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -161,4 +181,153 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal pour tester l'authentification utilisateur -->
+    <div class="modal fade" id="testUserModal" tabindex="-1" role="dialog" aria-labelledby="testUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="testUserModalLabel">Test d'authentification utilisateur</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="test-user-form">
+                        <div class="form-group">
+                            <label for="test-username">Nom d'utilisateur</label>
+                            <input type="text" class="form-control" id="test-username" placeholder="Entrez le nom d'utilisateur à tester">
+                        </div>
+                        <div class="form-group">
+                            <label for="test-password">Mot de passe</label>
+                            <input type="password" class="form-control" id="test-password" placeholder="Entrez le mot de passe">
+                        </div>
+                        <div id="user-test-result"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="execute-user-test">Tester l'authentification</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Test de connexion LDAP
+        document.getElementById('test-ldap-connection').addEventListener('click', function() {
+            const button = this;
+            const resultDiv = document.getElementById('ldap-test-result');
+
+            // Désactiver le bouton et afficher le loading
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+
+            // Récupérer les valeurs du formulaire
+            const config = {
+                host: document.getElementById('ldap_host').value,
+                port: document.getElementById('ldap_port').value,
+                encryption: document.getElementById('ldap_encryption').value,
+                base_dn: document.getElementById('ldap_base_dn').value,
+                search_dn: document.getElementById('ldap_search_dn').value,
+                search_password: document.getElementById('ldap_search_password').value,
+                uid_key: document.getElementById('ldap_uid_key').value
+            };
+
+            // Envoyer la requête de test
+            fetch('{{ path('settings_test_ldap') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Afficher le résultat
+                resultDiv.style.display = 'block';
+                if (data.success) {
+                    resultDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + data.message + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle mr-2"></i>' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors du test : ' + error.message + '</div>';
+            })
+            .finally(() => {
+                // Réactiver le bouton
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-plug mr-2"></i>Tester la connexion LDAP';
+            });
+        });
+
+        // Test d'authentification utilisateur
+        document.getElementById('execute-user-test').addEventListener('click', function() {
+            const button = this;
+            const resultDiv = document.getElementById('user-test-result');
+            const username = document.getElementById('test-username').value;
+            const password = document.getElementById('test-password').value;
+
+            if (!username || !password) {
+                resultDiv.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle mr-2"></i>Veuillez saisir un nom d\'utilisateur et un mot de passe.</div>';
+                return;
+            }
+
+            // Désactiver le bouton et afficher le loading
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test en cours...';
+
+            // Récupérer les valeurs du formulaire
+            const config = {
+                host: document.getElementById('ldap_host').value,
+                port: document.getElementById('ldap_port').value,
+                encryption: document.getElementById('ldap_encryption').value,
+                base_dn: document.getElementById('ldap_base_dn').value,
+                search_dn: document.getElementById('ldap_search_dn').value,
+                search_password: document.getElementById('ldap_search_password').value,
+                uid_key: document.getElementById('ldap_uid_key').value,
+                username: username,
+                password: password
+            };
+
+            // Envoyer la requête de test
+            fetch('{{ path('settings_test_ldap_user') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Afficher le résultat
+                if (data.success) {
+                    let message = '<div class="alert alert-success"><i class="fas fa-check-circle mr-2"></i>' + data.message;
+                    if (data.user_attributes) {
+                        message += '<hr><strong>Attributs utilisateur :</strong><ul>';
+                        for (const [key, value] of Object.entries(data.user_attributes)) {
+                            message += '<li><strong>' + key + ':</strong> ' + value + '</li>';
+                        }
+                        message += '</ul>';
+                    }
+                    message += '</div>';
+                    resultDiv.innerHTML = message;
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle mr-2"></i>' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle mr-2"></i>Erreur lors du test : ' + error.message + '</div>';
+            })
+            .finally(() => {
+                // Réactiver le bouton
+                button.disabled = false;
+                button.innerHTML = 'Tester l\'authentification';
+            });
+        });
+    });
+    </script>
 {% endblock %}

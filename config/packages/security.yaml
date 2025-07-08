@@ -5,8 +5,8 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        ldap_user_provider:
-            id: App\Security\LdapUserProvider
+        conditional_user_provider:
+            id: App\Security\ConditionalUserProvider
 
     firewalls:
         dev:
@@ -14,9 +14,11 @@ security:
             security: false
         main:
             lazy: true
-            provider: ldap_user_provider
-            custom_authenticator: App\Security\LdapAuthenticator
-            entry_point: App\Security\LdapAuthenticator
+            provider: conditional_user_provider
+            custom_authenticators:
+                - App\Security\AnonymousAuthenticator
+                - App\Security\ConditionalLdapAuthenticator
+            entry_point: App\Security\ConditionalEntryPoint
             logout:
                 path: app_logout
                 target: app_login
@@ -28,10 +30,11 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/settings, roles: ROLE_ADMIN }
         - { path: ^/lines, roles: ROLE_VISITEUR_LIGNES }
         - { path: ^/equipment, roles: ROLE_VISITEUR_PARC }
         - { path: ^/boxes, roles: ROLE_VISITEUR_BOXS }
-        - { path: ^/, roles: ROLE_USER }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
     role_hierarchy:
         ROLE_ADMIN:

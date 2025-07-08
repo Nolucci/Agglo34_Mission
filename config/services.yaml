@@ -73,3 +73,38 @@ services:
     App\Service\UserPermissionService:
         autowire: true
         autoconfigure: true
+
+    # Configuration du listener de maintenance
+    App\EventListener\MaintenanceListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 1000 }
+
+    # Configuration du listener d'authentification conditionnelle
+    # App\EventListener\ConditionalAuthenticationListener:
+    #     tags:
+    #         - { name: kernel.event_subscriber }
+
+    # Configuration du provider utilisateur conditionnel
+    App\Security\ConditionalUserProvider:
+        arguments:
+            $ldapUserProvider: '@App\Security\LdapUserProvider'
+
+    # Configuration de l'authenticator conditionnel
+    App\Security\ConditionalLdapAuthenticator:
+        arguments:
+            $ldapAuthenticator: '@App\Security\LdapAuthenticator'
+
+    # Service de test LDAP
+    App\Service\LdapTestService:
+        autowire: true
+        autoconfigure: true
+
+    # Configuration de l'authenticator anonyme
+    App\Security\AnonymousAuthenticator:
+        autowire: true
+        autoconfigure: true
+
+    # Configuration de l'entry point conditionnel
+    App\Security\ConditionalEntryPoint:
+        autowire: true
+        autoconfigure: true

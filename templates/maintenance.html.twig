@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Maintenance</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .maintenance-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .maintenance-icon {
+            font-size: 80px;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+
+        .maintenance-title {
+            color: #333;
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .maintenance-message {
+            color: #666;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .maintenance-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .app-name {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .login-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .maintenance-icon {
+            animation: pulse 2s infinite;
+        }
+
+        /* Masquer la barre de debug Symfony */
+        .sf-toolbar {
+            display: none !important;
+        }
+
+        #sfwdt {
+            display: none !important;
+        }
+
+        .sf-minitoolbar {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <div class="maintenance-icon">🔧</div>
+        <h1 class="maintenance-title">Maintenance en cours</h1>
+        <p class="maintenance-message">{{ message }}</p>
+        <div class="maintenance-info">
+            <p><strong>Application :</strong> <span class="app-name">{{ app_name }}</span></p>
+            <p>Nous travaillons actuellement sur l'amélioration de nos services. Veuillez réessayer dans quelques instants.</p>
+            <p><em>Seuls les administrateurs peuvent accéder à l'application pendant la maintenance.</em></p>
+        </div>
+        <a href="{{ path('app_login') }}" class="login-button">
+            Accéder à la connexion
+        </a>
+    </div>
+</body>
+</html>

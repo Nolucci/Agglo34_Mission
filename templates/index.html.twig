@@ -26,7 +26,7 @@
 
                     <div class="row">
                         <div class="col-lg-4">
-                            <div class="card">
+                            <div class="card" style="height: 400px;">
                                 <div class="card-header">
                                     <strong class="card-title">Carte de l'Agglomération</strong>
                                 </div>
@@ -36,15 +36,15 @@
                             </div>
                         </div>
                         <div class="col-lg-4">
-                            <div class="card">
+                            <div class="card" style="height: 400px;">
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques des Lignes</strong>
                                 </div>
                                 <div class="card-body" style="height: 300px;">
                                     <div class="row">
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title"><i class="fa fa-phone fa-2x"></i></h5>
                                                     <p class="card-text">Total des lignes</p>
                                                     <h3 style="font-size: 1.5rem;">{{ phoneLineStats.total_lines|default(0) }}</h3>
@@ -52,8 +52,8 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
                                                      <h5 class="card-title"><i class="fa fa-building fa-2x"></i></h5>
                                                     <p class="card-text">Services uniques</p>
                                                     <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_services|default(0) }}</h3>
@@ -61,20 +61,20 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
-                                                    <h5 class="card-title"><i class="fa fa-signal fa-2x"></i></h5>
-                                                    <p class="card-text">Opérateurs</p>
-                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_operators|default(0) }}</h3>
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
+                                                    <h5 class="card-title"><i class="fa fa-list fa-2x"></i></h5>
+                                                    <p class="card-text">Types de lignes</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.unique_line_types|default(0) }}</h3>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
-                                                     <h5 class="card-title"><i class="fa fa-globe fa-2x"></i></h5>
-                                                    <p class="card-text">Lignes globales</p>
-                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.global_lines|default(0) }}</h3>
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
+                                                     <h5 class="card-title"><i class="fa fa-check-circle fa-2x"></i></h5>
+                                                    <p class="card-text">Lignes actives</p>
+                                                    <h3 style="font-size: 1.5rem;">{{ phoneLineStats.working_lines|default(0) }}</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -83,15 +83,15 @@
                             </div>
                         </div>
                         <div class="col-lg-4">
-                            <div class="card">
+                            <div class="card" style="height: 400px;">
                                 <div class="card-header">
                                     <strong class="card-title">Statistiques du Matériel</strong>
                                 </div>
                                 <div class="card-body" style="height: 300px;">
                                     <div class="row">
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title"><i class="fa fa-desktop fa-2x"></i></h5>
                                                     <p class="card-text">Total du matériel</p>
                                                     <h3 style="font-size: 1.5rem;">{{ parkStats.total_equipments|default(0) }}</h3>
@@ -99,8 +99,8 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title"><i class="fa fa-building fa-2x"></i></h5>
                                                     <p class="card-text">Services uniques</p>
                                                     <h3 style="font-size: 1.5rem;">{{ parkStats.unique_services|default(0) }}</h3>
@@ -108,8 +108,8 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title"><i class="fa fa-map-marker fa-2x"></i></h5>
                                                     <p class="card-text">Communes</p>
                                                     <h3 style="font-size: 1.5rem;">{{ parkStats.unique_municipalities|default(0) }}</h3>
@@ -117,8 +117,8 @@
                                             </div>
                                         </div>
                                         <div class="col-sm-6">
-                                            <div class="card text-center">
-                                                <div class="card-body">
+                                            <div class="card text-center" style="height: 120px;">
+                                                <div class="card-body d-flex flex-column justify-content-center">
                                                     <h5 class="card-title"><i class="fa fa-check-circle fa-2x"></i></h5>
                                                     <p class="card-text">Matériel actif</p>
                                                     <h3 style="font-size: 1.5rem;">{{ parkStats.active_equipments|default(0) }}</h3>

@@ -6,32 +6,32 @@
                 <div class="account-wrap">
                     <div class="account-item clearfix js-item-menu">
                         <div class="image">
-                            <img src="{{ (user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ user ? user.name : 'User' }}" />
+                            <img src="{{ (user is defined and user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ (user is defined and user) ? user.name : 'User' }}" />
                         </div>
                         <div class="content">
-                            <a class="js-acc-btn" href="#">{{ user ? user.name|lower : 'Compte' }}</a>
+                            <a class="js-acc-btn" href="#">{{ (user is defined and user) ? user.name|lower : 'Compte' }}</a>
                         </div>
                         <div class="account-dropdown js-dropdown">
                             <div class="info clearfix">
                                 <div class="image">
                                     <a href="#">
-                                        <img src="{{ (user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ user ? user.name : 'User' }}" />
+                                        <img src="{{ (user is defined and user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ (user is defined and user) ? user.name : 'User' }}" />
                                     </a>
                                 </div>
                                 <div class="content">
                                     <h5 class="name">
-                                        <a href="#">{{ user ? user.name : 'Compte' }}</a>
+                                        <a href="#">{{ (user is defined and user) ? user.name : 'Compte' }}</a>
                                     </h5>
-                                    <span class="email">{{ user ? user.email : 'Compte@exemple.com' }}</span>
+                                    <span class="email">{{ (user is defined and user) ? user.email : 'Compte@exemple.com' }}</span>
                                 </div>
                             </div>
                             <div class="account-dropdown__body">
-                                {% if user %}
+                                {% if user is defined and user %}
                                 <div class="account-dropdown__item">
                                     <a href="{{ path('settings') }}">
                                         <i class="zmdi zmdi-settings"></i>Paramètres</a>
                                 </div>
-                                {% if user.isAdmin %}
+                                {% if user is defined and user and user.isAdmin %}
                                 <div class="account-dropdown__item">
                                     <a href="{{ path('agents') }}">
                                         <i class="zmdi zmdi-accounts"></i>Gestion Utilisateurs</a>
@@ -40,7 +40,7 @@
                                 {% endif %}
                             </div>
                             <div class="account-dropdown__footer">
-                                {% if user %}
+                                {% if user is defined and user %}
                                 <a href="{{ path('app_logout') }}">
                                     <i class="zmdi zmdi-power"></i>Logout</a>
                                 </a>
