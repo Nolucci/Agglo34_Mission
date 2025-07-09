@@ -7,10 +7,8 @@ echo "Vérification et installation des dépendances système (git, apache2, php
 sudo apt update
 sudo apt install -y git apache2 php libapache2-mod-php php-cli php-mysql php-mbstring php-xml php-zip php-gd php-curl php-intl
 
-# 2. Clonage du dépôt GitHub
-echo "Clonage du dépôt GitHub..."
-git clone https://github.com/Nolucci/Agglo34_Mission.git /var/www/html/agglomission
-cd /var/www/html/agglomission
+# Le dépôt est déjà cloné, le script s'exécute depuis la racine du dépôt.
+# Assurez-vous que le script est exécuté depuis le répertoire racine du projet cloné.
 
 # 3. Installation des dépendances Composer
 echo "Installation des dépendances Composer..."
@@ -20,15 +18,15 @@ composer install --no-interaction --optimize-autoloader
 
 # 4. Configuration d'Apache
 echo "Configuration d'Apache..."
-sudo chown -R www-data:www-data /var/www/html/agglomission
+sudo chown -R www-data:www-data .
 sudo a2enmod rewrite
 
 # Création du fichier de configuration Apache pour l'application
 APACHE_CONF="/etc/apache2/sites-available/agglomission.conf"
 echo "<VirtualHost *:80>" | sudo tee $APACHE_CONF
 echo "    ServerAdmin webmaster@localhost" | sudo tee -a $APACHE_CONF
-echo "    DocumentRoot /var/www/html/agglomission/public" | sudo tee -a $APACHE_CONF
-echo "    <Directory /var/www/html/agglomission/public>" | sudo tee -a $APACHE_CONF
+echo "    DocumentRoot $(pwd)/public" | sudo tee -a $APACHE_CONF
+echo "    <Directory $(pwd)/public>" | sudo tee -a $APACHE_CONF
 echo "        AllowOverride All" | sudo tee -a $APACHE_CONF
 echo "        Require all granted" | sudo tee -a $APACHE_CONF
 echo "    </Directory>" | sudo tee -a $APACHE_CONF
