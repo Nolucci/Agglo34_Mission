@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Donner les permissions d'exécution au script
-chmod +x deploy.sh
 
 echo "Début du déploiement de l'application Agglo34_Mission..."
 
@@ -28,17 +26,17 @@ sudo docker-compose up -d --build
 
 # 2. Installation des dépendances Composer dans le conteneur
 echo "Installation des dépendances Composer dans le conteneur sru_app..."
-sudo docker exec sru_app composer install --no-interaction --optimize-autoloader
+sudo docker exec -w /var/www/html sru_app composer install --no-interaction --optimize-autoloader
 
 # 3. Mise en place de la base de données dans le conteneur
 echo "Mise en place de la base de données dans le conteneur sru_app..."
-sudo docker exec sru_app php bin/console doctrine:database:create --if-not-exists
-sudo docker exec sru_app php bin/console make:migration --no-interaction
-sudo docker exec sru_app php bin/console doctrine:migrations:migrate --no-interaction
+sudo docker exec -w /var/www/html sru_app php bin/console doctrine:database:create --if-not-exists
+sudo docker exec -w /var/www/html sru_app php bin/console make:migration --no-interaction
+sudo docker exec -w /var/www/html sru_app php bin/console doctrine:migrations:migrate --no-interaction
 
 # 4. Ajout de l'admin dans le conteneur
 echo "Création de l'utilisateur administrateur dans le conteneur sru_app..."
-sudo docker exec -it sru_app php bin/console app:create-admin-user
+sudo docker exec -it -w /var/www/html sru_app php bin/console app:create-admin-user
 
 # 7. Terminé
 echo "Déploiement terminé !"

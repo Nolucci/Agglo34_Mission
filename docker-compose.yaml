@@ -33,7 +33,7 @@ services:
     container_name: sru_pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
@@ -63,7 +63,7 @@ services:
       sru_network:
         ipv4_address: 172.40.0.2
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "agglo34_db", "-U", "admin"] 
+      test: ["CMD", "pg_isready", "-d", "agglo34_db", "-U", "admin"]
       timeout: 5s
       retries: 5
       start_period: 60s
