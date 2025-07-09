@@ -8,8 +8,20 @@ services:
       - ./:/var/www/html
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-prod}
+      - APP_SECRET=${APP_SECRET}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}?serverVersion=16&charset=utf8
+      - LDAP_HOST=${LDAP_HOST}
+      - LDAP_PORT=${LDAP_PORT:-389}
+      - LDAP_ENCRYPTION=${LDAP_ENCRYPTION:-none}
+      - LDAP_BASE_DN=${LDAP_BASE_DN}
+      - LDAP_SEARCH_DN=${LDAP_SEARCH_DN}
+      - LDAP_SEARCH_PASSWORD=${LDAP_SEARCH_PASSWORD}
+      - LDAP_UID_KEY=${LDAP_UID_KEY:-sAMAccountName}
     networks:
       sru_network:
         ipv4_address: 172.40.0.10
@@ -18,9 +30,10 @@ services:
     image: httpd:2.4
     container_name: sru_webserver
     ports:
-      - "4080:80"
+      - "${WEB_PORT:-4080}:80"
     volumes:
       - ./:/var/www/html
+      - ./docker/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
     depends_on:
       - app
     restart: unless-stopped
@@ -32,15 +45,16 @@ services:
     image: dpage/pgadmin4
     container_name: sru_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
-      - "4081:80"
-      - "4044:443"
+      - "${PGADMIN_PORT:-4081}:80"
+      - "${PGADMIN_HTTPS_PORT:-4044}:443"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       sru_network:
@@ -50,20 +64,20 @@ services:
     image: postgres:16
     container_name: sru_postgresql16
     environment:
-      POSTGRES_DB: agglo34_db
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "4032:5432"
+      - "${DB_PORT:-4032}:5432"
     restart: unless-stopped
     networks:
       sru_network:
         ipv4_address: 172.40.0.2
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "agglo34_db", "-U", "admin"]
+      test: ["CMD", "pg_isready", "-d", "${DB_NAME}", "-U", "${DB_USER}"]
       timeout: 5s
       retries: 5
       start_period: 60s

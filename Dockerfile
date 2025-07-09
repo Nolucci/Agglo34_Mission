@@ -1,18 +1,39 @@
 FROM php:8.4-fpm-alpine
 
+# Installation des dépendances système
 RUN apk update --no-cache && apk add --no-cache \
     libpq-dev \
     openldap-dev \
+    zip \
+    unzip \
+    git \
+    curl \
     && docker-php-ext-install pdo pdo_pgsql ldap
 
-WORKDIR /var/www/html
-
-COPY . /var/www/html
-
+# Installation de Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN composer install
+# Définition du répertoire de travail
+WORKDIR /var/www/html
 
+# Copie des fichiers de configuration Composer en premier pour optimiser le cache Docker
+COPY composer.json composer.lock ./
+
+# Installation des dépendances PHP
+RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader
+
+# Copie du reste des fichiers de l'application
+COPY . .
+
+# Finalisation de l'installation Composer
+RUN composer dump-autoload --optimize
+
+# Configuration des permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Exposition du port PHP-FPM
 EXPOSE 9000
 
+# Commande de démarrage
 CMD ["php-fpm"]
