@@ -20,7 +20,7 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 
 # Installation des dépendances PHP
-RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader
+RUN composer install --no-scripts --no-autoloader --optimize-autoloader
 
 # Copie du reste des fichiers de l'application
 COPY . .
@@ -32,8 +32,13 @@ RUN composer dump-autoload --optimize
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
+# Création du script d'initialisation
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Exposition du port PHP-FPM
 EXPOSE 9000
 
-# Commande de démarrage
+# Commande de démarrage avec script d'initialisation
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]

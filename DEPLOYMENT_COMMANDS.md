@@ -89,6 +89,7 @@ docker-compose exec app composer install --no-dev --optimize-autoloader
 ```
 
 ### 6. Configuration de l'application Symfony
+
 ```bash
 # Exécuter les migrations de base de données
 docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
