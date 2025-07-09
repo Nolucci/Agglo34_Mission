@@ -5,28 +5,18 @@
                 <h2 class="page-title">{{ page_title|default('Agglo34') }}</h2>
                 <div class="account-wrap">
                     <div class="account-item clearfix js-item-menu">
-                        <div class="image">
-                            <img src="{{ (user is defined and user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ (user is defined and user) ? user.name : 'User' }}" />
-                        </div>
                         <div class="content">
                             <a class="js-acc-btn" href="#">{{ (user is defined and user) ? user.name|lower : 'Compte' }}</a>
                         </div>
                         <div class="account-dropdown js-dropdown">
-                            <div class="info clearfix">
-                                <div class="image">
-                                    <a href="#">
-                                        <img src="{{ (user is defined and user and user.image_url is defined and user.image_url is not null) ? user.image_url : '/images/img.png' }}" alt="{{ (user is defined and user) ? user.name : 'User' }}" />
-                                    </a>
-                                </div>
-                                <div class="content">
+                            <div class="info">
                                     <h5 class="name">
                                         <a href="#">{{ (user is defined and user) ? user.name : 'Compte' }}</a>
                                     </h5>
                                     <span class="email">{{ (user is defined and user) ? user.email : 'Compte@exemple.com' }}</span>
-                                </div>
                             </div>
                             <div class="account-dropdown__body">
-                                {% if user is defined and user %}
+                                {% if user is defined and user and user.isAdmin %}
                                 <div class="account-dropdown__item">
                                     <a href="{{ path('settings') }}">
                                         <i class="zmdi zmdi-settings"></i>Paramètres</a>
