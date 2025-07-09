@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Donner les permissions d'exécution au script
+chmod +x deploy.sh
+
 echo "Début du déploiement de l'application Agglo34_Mission..."
 
 # Vérification et installation des outils essentiels (sudo, curl)
