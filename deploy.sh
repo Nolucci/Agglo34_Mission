@@ -2,6 +2,20 @@
 
 echo "Début du déploiement de l'application Agglo34_Mission..."
 
+# Vérification et installation des outils essentiels (sudo, curl)
+echo "Vérification et installation des outils essentiels (sudo, curl)..."
+if ! command -v sudo &> /dev/null
+then
+    echo "sudo n'est pas installé. Tentative d'installation..."
+    apt update && apt install -y sudo
+fi
+
+if ! command -v curl &> /dev/null
+then
+    echo "curl n'est pas installé. Tentative d'installation..."
+    sudo apt update && sudo apt install -y curl
+fi
+
 # 1. Installation de Git et Apache (si non installés)
 echo "Vérification et installation des dépendances système (git, apache2, php et ses modules)..."
 sudo apt update
