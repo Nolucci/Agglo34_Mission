@@ -5,6 +5,8 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
+        admin_user_provider:
+            id: App\Security\AdminUserProvider
         conditional_user_provider:
             id: App\Security\ConditionalUserProvider
 
@@ -13,10 +15,10 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            lazy: true
+            lazy: false
             provider: conditional_user_provider
             custom_authenticators:
-                - App\Security\AnonymousAuthenticator
+                - App\Security\AdminFormAuthenticator
                 - App\Security\ConditionalLdapAuthenticator
             entry_point: App\Security\ConditionalEntryPoint
             logout:
@@ -31,10 +33,11 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/settings, roles: ROLE_ADMIN }
+        - { path: ^/whitelist, roles: ROLE_ADMIN }
         - { path: ^/lines, roles: ROLE_VISITEUR_LIGNES }
         - { path: ^/equipment, roles: ROLE_VISITEUR_PARC }
         - { path: ^/boxes, roles: ROLE_VISITEUR_BOXS }
-        - { path: ^/, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
     role_hierarchy:
         ROLE_ADMIN:

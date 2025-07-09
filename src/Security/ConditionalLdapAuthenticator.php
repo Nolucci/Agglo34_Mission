@@ -36,8 +36,7 @@ class ConditionalLdapAuthenticator extends AbstractAuthenticator implements Auth
     {
         // Si LDAP n'est pas activé, on ne supporte que les routes de login pour redirection
         if (!$this->isLdapEnabled()) {
-            // On supporte seulement si c'est une tentative de login pour rediriger
-            return $request->getPathInfo() === '/login' && $request->isMethod('POST');
+            return false;
         }
 
         // Si LDAP est activé, on délègue au LdapAuthenticator

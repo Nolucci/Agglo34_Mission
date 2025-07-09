@@ -87,7 +87,9 @@ services:
     # Configuration du provider utilisateur conditionnel
     App\Security\ConditionalUserProvider:
         arguments:
+            $settingsService: '@App\Service\SettingsService'
             $ldapUserProvider: '@App\Security\LdapUserProvider'
+            $adminUserProvider: '@App\Security\AdminUserProvider'
 
     # Configuration de l'authenticator conditionnel
     App\Security\ConditionalLdapAuthenticator:

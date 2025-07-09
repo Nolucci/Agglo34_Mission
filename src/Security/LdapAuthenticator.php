@@ -57,8 +57,8 @@ class LdapAuthenticator extends AbstractLoginFormAuthenticator
     public function authenticate(Request $request): Passport
     {
         $this->logger->info("LdapAuthenticator::authenticate appelé.");
-        $username = $request->request->get('_username', '');
-        $password = $request->request->get('_password', '');
+        $username = $request->request->get('email', '');
+        $password = $request->request->get('password', '');
         $csrfToken = $request->request->get('_csrf_token', '');
         $this->logger->info("Username: " . $username . ", Password (partiel): " . substr($password, 0, 3) . '...');
 

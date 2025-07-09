@@ -27,7 +27,11 @@ class AnonymousAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
-        // Supporte toutes les requêtes quand LDAP est désactivé
+        // Ne supporte pas la page de login pour permettre l'authentification explicite
+        if ($request->getPathInfo() === '/login') {
+            return false;
+        }
+        // Supporte toutes les autres requêtes quand LDAP est désactivé
         return !$this->isLdapEnabled();
     }
 

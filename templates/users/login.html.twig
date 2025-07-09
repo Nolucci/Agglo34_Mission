@@ -19,26 +19,37 @@
                         </a>
                     </div>
                     <div class="login-form">
-                        {% if error %}
-                            {% if is_whitelist_error %}
-                                <div class="alert alert-warning">
-                                    <h5><i class="fas fa-exclamation-triangle"></i> Accès non autorisé</h5>
-                                    <p>Votre compte n'est pas autorisé à accéder à cette application.</p>
-                                    <p>Veuillez contacter votre administrateur pour être ajouté à la liste des utilisateurs autorisés.</p>
-                                </div>
-                            {% else %}
-                                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-                            {% endif %}
+                        {% if is_maintenance_mode %}
+                            <div class="alert alert-warning">
+                                <h5><i class="fas fa-tools"></i> Mode Maintenance</h5>
+                                <p>{{ maintenance_message|default('Application en maintenance. Seul l\'administrateur peut se connecter.') }}</p>
+                                <p><strong>Connexion administrateur uniquement</strong></p>
+                            </div>
                         {% endif %}
+
+                        {% if error %}
+                            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                        {% endif %}
+
                         <form action="{{ path('app_login') }}" method="post">
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                             <div class="form-group">
-                                <label for="username">Identifiant</label>
-                                <input class="au-input au-input--full" type="text" name="_username" id="username" placeholder="Identifiant (prénomnom)" value="{{ last_username }}" required autofocus>
+                                <label for="email">
+                                    {% if is_maintenance_mode %}
+                                        Email administrateur
+                                    {% elseif is_ldap_enabled %}
+                                        Identifiant LDAP
+                                    {% else %}
+                                        Email
+                                    {% endif %}
+                                </label>
+                                <input class="au-input au-input--full" type="text" name="email" id="email"
+                                       placeholder="{% if is_maintenance_mode %}admin@agglo34.local{% elseif is_ldap_enabled %}Identifiant (prénomnom){% else %}Email{% endif %}"
+                                       value="{{ last_username }}" required autofocus>
                             </div>
                             <div class="form-group">
                                 <label for="password">Mot de passe</label>
-                                <input class="au-input au-input--full" type="password" name="_password" id="password" placeholder="Mot de passe" required>
+                                <input class="au-input au-input--full" type="password" name="password" id="password" placeholder="Mot de passe" required>
                             </div>
                             <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit">Se connecter</button>
                         </form>

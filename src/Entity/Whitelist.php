@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\WhitelistRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: WhitelistRepository::class)]
@@ -17,24 +18,25 @@ class Whitelist
     private ?string $ldapUsername = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $email = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
     private ?string $name = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email = null;
+
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?bool $isActive = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $createdBy = null;
 
-    #[ORM\Column]
-    private bool $isActive = true;
-
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->isActive = true;
+        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -50,17 +52,7 @@ class Whitelist
     public function setLdapUsername(string $ldapUsername): static
     {
         $this->ldapUsername = $ldapUsername;
-        return $this;
-    }
 
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(?string $email): static
-    {
-        $this->email = $email;
         return $this;
     }
 
@@ -72,17 +64,43 @@ class Whitelist
     public function setName(?string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function isActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -94,17 +112,7 @@ class Whitelist
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
-        return $this;
-    }
 
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
         return $this;
     }
 }

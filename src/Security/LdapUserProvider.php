@@ -4,7 +4,9 @@ namespace App\Security;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Repository\WhitelistRepository;
 use App\Service\UserPermissionService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\LdapInterface;
@@ -25,6 +27,8 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
     private string $uidKey;
     private UserRepository $userRepository;
     private UserPermissionService $permissionService;
+    private WhitelistRepository $whitelistRepository;
+    private LoggerInterface $logger;
 
     public function __construct(
         LdapInterface $ldap,
@@ -34,7 +38,9 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
         array $defaultRoles,
         string $uidKey,
         UserRepository $userRepository,
-        UserPermissionService $permissionService
+        UserPermissionService $permissionService,
+        WhitelistRepository $whitelistRepository,
+        LoggerInterface $logger
     ) {
         $this->ldap = $ldap;
         $this->baseDn = $baseDn;
@@ -44,29 +50,53 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
         $this->uidKey = $uidKey;
         $this->userRepository = $userRepository;
         $this->permissionService = $permissionService;
+        $this->whitelistRepository = $whitelistRepository;
+        $this->logger = $logger;
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
+        $this->logger->info(sprintf('loadUserByIdentifier appelé pour l\'identifiant: %s', $identifier));
         try {
-            // Vérifier si c'est le premier utilisateur
-            $isFirstUser = $this->permissionService->isFirstUser();
-
-            // Si ce n'est pas le premier utilisateur, vérifier la whitelist
-            if (!$isFirstUser && !$this->permissionService->isUserWhitelisted($identifier)) {
-                throw new UserNotFoundException(sprintf('User "%s" is not whitelisted.', $identifier));
-            }
-
             // Recherche de l'utilisateur dans la base de données locale
             $user = $this->userRepository->findOneBy(['ldapUsername' => $identifier]);
 
-            if (!$user) {
+            if ($user) {
+                $this->logger->info(sprintf('Utilisateur trouvé en base de données locale: %s', $identifier));
+
+            if ($user) {
+                // Vérifier si l'utilisateur existant est toujours dans la whitelist
+                if (!$this->whitelistRepository->isUserWhitelisted($identifier)) {
+                    $this->logger->warning(sprintf('Utilisateur "%s" n\'est plus autorisé (whitelist).', $identifier));
+                    throw new UserNotFoundException(sprintf('User "%s" is no longer authorized to access this application.', $identifier));
+                }
+                $this->logger->info(sprintf('Utilisateur "%s" est dans la whitelist.', $identifier));
+
+                // Vérifier si l'utilisateur est désactivé
+                if ($user->isDisabled()) {
+                    $this->logger->warning(sprintf('Compte utilisateur "%s" est désactivé.', $identifier));
+                    throw new UserNotFoundException(sprintf('User "%s" account is disabled.', $identifier));
+                }
+                $this->logger->info(sprintf('Compte utilisateur "%s" est actif.', $identifier));
+            }
+            // Fin du bloc if ($user) de la ligne 64
+            } else {
+                $this->logger->info(sprintf('Utilisateur "%s" non trouvé en base de données locale, recherche dans LDAP.', $identifier));
                 // Si l'utilisateur n'existe pas en local, on le crée à partir des informations LDAP
                 $ldapUser = $this->findLdapUser($identifier);
 
                 if (!$ldapUser) {
+                    $this->logger->error(sprintf('Utilisateur "%s" non trouvé dans LDAP.', $identifier));
                     throw new UserNotFoundException(sprintf('User "%s" not found in LDAP.', $identifier));
                 }
+                $this->logger->info(sprintf('Utilisateur "%s" trouvé dans LDAP.', $identifier));
+
+                // Vérifier si l'utilisateur est dans la whitelist
+                if (!$this->whitelistRepository->isUserWhitelisted($identifier)) {
+                    $this->logger->warning(sprintf('Utilisateur "%s" non autorisé (whitelist).', $identifier));
+                    throw new UserNotFoundException(sprintf('User "%s" is not authorized to access this application.', $identifier));
+                }
+                $this->logger->info(sprintf('Utilisateur "%s" est dans la whitelist.', $identifier));
 
                 $user = new User();
                 $user->setLdapUsername($identifier);
@@ -76,31 +106,21 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
                 $user->setName($this->getLdapUserAttribute($ldapUser, 'displayname') ?? $identifier);
                 $user->setEmail($this->getLdapUserAttribute($ldapUser, 'mail') ?? $identifier);
 
-                // Gestion des rôles pour le premier utilisateur
-                if ($isFirstUser) {
-                    $this->permissionService->makeFirstUserAdmin($user);
-                } else {
-                    $user->setRoles($this->defaultRoles);
-                }
+                // Assigner les rôles par défaut
+                $user->setRoles($this->defaultRoles);
 
                 // Le mot de passe est géré par LDAP, on met une valeur aléatoire
                 $user->setPassword(bin2hex(random_bytes(20)));
 
                 // Log des informations récupérées
-                error_log(sprintf('Création utilisateur LDAP: %s', $identifier));
-                error_log(sprintf('Attributs: %s', json_encode([
+                $this->logger->info(sprintf('Création utilisateur LDAP: %s', $identifier));
+                $this->logger->info(sprintf('Attributs: %s', json_encode([
                     'name' => $user->getName(),
-                    'email' => $user->getEmail(),
-                    'isFirstUser' => $isFirstUser
+                    'email' => $user->getEmail()
                 ])));
 
-                // Persister l'utilisateur d'abord
+                // Persister l'utilisateur
                 $this->userRepository->save($user, true);
-
-                // Ajouter à la whitelist après persistance pour le premier utilisateur
-                if ($isFirstUser) {
-                    $this->permissionService->addFirstUserToWhitelist($user);
-                }
             }
 
             // Mettre à jour la dernière connexion
@@ -108,28 +128,34 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
             $this->userRepository->save($user, true);
 
             return $user;
+        } catch (UserNotFoundException $e) {
+            $this->logger->error(sprintf('Erreur d\'utilisateur non trouvé pour "%s": %s', $identifier, $e->getMessage()));
+            throw $e;
         } catch (ConnectionException $e) {
+            $this->logger->error(sprintf('Erreur de connexion LDAP pour "%s": %s', $identifier, $e->getMessage()));
             throw new UserNotFoundException(sprintf('User "%s" not found in LDAP: %s', $identifier, $e->getMessage()));
+        } catch (\Exception $e) {
+            $this->logger->critical(sprintf('Erreur inattendue lors du chargement de l\'utilisateur "%s": %s', $identifier, $e->getMessage()));
+            throw $e;
         }
     }
 
     private function findLdapUser(string $identifier): ?Entry
     {
-        error_log("Tentative de connexion LDAP avec DN: " . $this->searchDn);
+        $this->logger->info("Tentative de liaison LDAP avec DN: " . $this->searchDn);
         $this->ldap->bind($this->searchDn, $this->searchPassword);
-        error_log("Connexion LDAP réussie");
+        $this->logger->info("Liaison LDAP réussie");
 
         $username = $this->ldap->escape($identifier, '', LdapInterface::ESCAPE_FILTER);
-        error_log("Valeur de uidKey dans LdapUserProvider (forcée): agglo34");
         $query = sprintf('(&(objectClass=user)(objectCategory=person)(%s=%s))', $this->uidKey, $username);
 
-        error_log("Recherche LDAP - Base DN: " . $this->baseDn);
-        error_log("Recherche LDAP - Filtre: " . $query);
+        $this->logger->info("Recherche LDAP - Base DN: " . $this->baseDn);
+        $this->logger->info("Recherche LDAP - Filtre: " . $query);
 
         $search = $this->ldap->query($this->baseDn, $query);
         $results = $search->execute();
 
-        error_log(sprintf("Nombre de résultats trouvés: %d", count($results)));
+        $this->logger->info(sprintf("Nombre de résultats trouvés: %d", count($results)));
 
         return $results[0] ?? null;
     }

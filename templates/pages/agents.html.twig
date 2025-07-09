@@ -28,7 +28,6 @@
                                                         <th>Email</th>
                                                         <th>Nom d'utilisateur LDAP</th>
                                                         <th>Rôles</th>
-                                                        <th>Premier utilisateur</th>
                                                         <th>Dernière connexion</th>
                                                         {% if isAdmin %}
                                                             <th>Actions</th>
@@ -55,15 +54,10 @@
                                                                     <span class="badge badge-secondary">Visiteur - Parc</span>
                                                                 {% elseif role == 'ROLE_VISITEUR_BOXS' %}
                                                                     <span class="badge badge-secondary">Visiteur - Boxs</span>
+                                                                {% elseif role == 'ROLE_DISABLED' %}
+                                                                    <span class="badge badge-dark">Désactivé</span>
                                                                 {% endif %}
                                                             {% endfor %}
-                                                        </td>
-                                                        <td>
-                                                            {% if agent.isFirstUser %}
-                                                                <span class="badge badge-success">Oui</span>
-                                                            {% else %}
-                                                                <span class="badge badge-light">Non</span>
-                                                            {% endif %}
                                                         </td>
                                                         <td>
                                                             {% if agent.lastLoginAt %}
@@ -74,18 +68,14 @@
                                                         </td>
                                                         {% if isAdmin %}
                                                             <td>
-                                                                {% if not agent.isFirstUser %}
-                                                                    <button class="btn btn-sm btn-primary edit-roles-btn"
-                                                                            data-id="{{ agent.id }}"
-                                                                            data-name="{{ agent.name }}"
-                                                                            data-roles="{{ agent.roles|json_encode }}"
-                                                                            data-toggle="modal"
-                                                                            data-target="#editRolesModal">
-                                                                        <i class="fa fa-edit"></i> Modifier les rôles
-                                                                    </button>
-                                                                {% else %}
-                                                                    <span class="text-muted">Premier admin</span>
-                                                                {% endif %}
+                                                                <button class="btn btn-sm btn-primary edit-roles-btn"
+                                                                        data-id="{{ agent.id }}"
+                                                                        data-name="{{ agent.name }}"
+                                                                        data-roles="{{ agent.roles|json_encode }}"
+                                                                        data-toggle="modal"
+                                                                        data-target="#editRolesModal">
+                                                                    <i class="fa fa-edit"></i> Modifier les rôles
+                                                                </button>
                                                             </td>
                                                         {% endif %}
                                                     </tr>
@@ -147,6 +137,10 @@
                                     <input class="form-check-input" type="radio" name="role" value="ROLE_VISITEUR_BOXS" id="roleVisiteurBoxs">
                                     <label class="form-check-label" for="roleVisiteurBoxs">Visiteur - Boxs</label>
                                 </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" value="ROLE_DISABLED" id="roleDisabled">
+                                    <label class="form-check-label" for="roleDisabled">Désactivé</label>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -158,6 +152,9 @@
             </div>
         </div>
 
+    {% endif %}
+
+    {% if isAdmin %}
         <!-- Modal pour gérer la whitelist -->
         <div class="modal fade" id="whitelistModal" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
@@ -171,46 +168,47 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Ajouter un utilisateur à la whitelist</h6>
+                                <h6>Ajouter un utilisateur</h6>
                                 <form id="addToWhitelistForm">
                                     <div class="form-group">
                                         <label for="ldapUsername">Nom d'utilisateur LDAP :</label>
                                         <input type="text" class="form-control" id="ldapUsername" name="ldapUsername" required>
+                                        <small class="form-text text-muted">Vérification automatique dans LDAP</small>
                                     </div>
                                     <div class="form-group">
-                                        <label for="email">Email (optionnel) :</label>
-                                        <input type="email" class="form-control" id="email" name="email">
+                                        <label for="initialRole">Rôle initial :</label>
+                                        <select class="form-control" id="initialRole" name="initialRole">
+                                            <option value="ROLE_VISITEUR_TOUT">Visiteur - Tout</option>
+                                            <option value="ROLE_VISITEUR_LIGNES">Visiteur - Lignes</option>
+                                            <option value="ROLE_VISITEUR_PARC">Visiteur - Parc</option>
+                                            <option value="ROLE_VISITEUR_BOXS">Visiteur - Boxs</option>
+                                            <option value="ROLE_MODIFIEUR">Modifieur</option>
+                                            <option value="ROLE_ADMIN">Administrateur</option>
+                                        </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="name">Nom (optionnel) :</label>
-                                        <input type="text" class="form-control" id="name" name="name">
-                                    </div>
-                                    <button type="submit" class="btn btn-success">Ajouter</button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fa fa-plus"></i> Ajouter
+                                    </button>
                                 </form>
                             </div>
                             <div class="col-md-6">
                                 <h6>Utilisateurs autorisés</h6>
-                                <div class="table-responsive">
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>Utilisateur LDAP</th>
+                                                <th>Utilisateur</th>
+                                                <th>Statut</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="whitelistTable">
-                                            {% for entry in whitelist %}
-                                            <tr data-id="{{ entry.id }}">
-                                                <td>{{ entry.ldapUsername }}</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-danger remove-from-whitelist" data-username="{{ entry.ldapUsername }}">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
+                                            <!-- Contenu chargé dynamiquement -->
                                         </tbody>
                                     </table>
+                                </div>
+                                <div id="whitelistLoading" class="text-center">
+                                    <i class="fa fa-spinner fa-spin"></i> Chargement...
                                 </div>
                             </div>
                         </div>
@@ -238,7 +236,9 @@
                 $('input[name="role"]').prop('checked', false);
 
                 // Cocher le rôle principal (le plus élevé dans la hiérarchie)
-                if (roles.includes('ROLE_ADMIN')) {
+                if (roles.includes('ROLE_DISABLED')) {
+                    $('#roleDisabled').prop('checked', true);
+                } else if (roles.includes('ROLE_ADMIN')) {
                     $('#roleAdmin').prop('checked', true);
                 } else if (roles.includes('ROLE_MODIFIEUR')) {
                     $('#roleModifieur').prop('checked', true);
@@ -271,6 +271,7 @@
                         role: selectedRole
                     },
                     success: function(response) {
+
                         if (response.success) {
                             location.reload();
                         } else {
@@ -283,70 +284,169 @@
                 });
             });
 
-            // Ajouter à la whitelist
+            // Gestion de la modal whitelist
+            $('#whitelistModal').on('show.bs.modal', function() {
+                loadWhitelistUsers();
+            });
+
+            // Charger la liste des utilisateurs de la whitelist
+            function loadWhitelistUsers() {
+                $('#whitelistLoading').show();
+                $('#whitelistTable').empty();
+
+                $.ajax({
+                    url: '/admin/whitelist/api/users',
+                    method: 'GET',
+                    success: function(response) {
+                        $('#whitelistLoading').hide();
+                        if (response.success) {
+                            updateWhitelistTable(response.users);
+                        } else {
+                            alert('Erreur lors du chargement : ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        $('#whitelistLoading').hide();
+                        alert('Erreur lors du chargement de la whitelist');
+                    }
+                });
+            }
+
+            // Mettre à jour le tableau de la whitelist
+            function updateWhitelistTable(users) {
+                const tbody = $('#whitelistTable');
+                tbody.empty();
+
+                users.forEach(function(user) {
+                    const statusBadge = !user.is_active ?
+                        '<span class="badge badge-dark">Désactivé</span>' :
+                        '<span class="badge badge-success">Actif</span>';
+
+                    const actionButtons = !user.is_active ?
+                        `<button class="btn btn-xs btn-success reactivate-user mr-1" data-username="${user.ldapUsername}" title="Réactiver">
+                            <i class="fa fa-check"></i>
+                        </button>
+                        <button class="btn btn-xs btn-danger remove-user" data-username="${user.ldapUsername}" title="Supprimer">
+                            <i class="fa fa-trash"></i>
+                        </button>` :
+                        `<button class="btn btn-xs btn-warning disable-user mr-1" data-username="${user.ldapUsername}" title="Désactiver">
+                            <i class="fa fa-ban"></i>
+                        </button>
+                        <button class="btn btn-xs btn-danger remove-user" data-username="${user.ldapUsername}" title="Supprimer">
+                            <i class="fa fa-trash"></i>
+                        </button>`;
+
+                    const row = `
+                        <tr data-username="${user.ldapUsername}">
+                            <td>${user.ldapUsername}</td>
+                            <td>${statusBadge}</td>
+                            <td>
+                                ${actionButtons}
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            }
+
+            // Ajouter un utilisateur à la whitelist
             $('#addToWhitelistForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const formData = {
                     ldapUsername: $('#ldapUsername').val(),
-                    email: $('#email').val(),
-                    name: $('#name').val()
+                    role: $('#initialRole').val()
                 };
 
                 $.ajax({
-                    url: '/whitelist/add',
+                    url: '/admin/whitelist/api/add',
                     method: 'POST',
                     data: formData,
                     success: function(response) {
                         if (response.success) {
-                            // Ajouter la ligne au tableau
-                            const newRow = `
-                                <tr data-id="${response.id}">
-                                    <td>${formData.ldapUsername}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger remove-from-whitelist" data-username="${formData.ldapUsername}">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                            $('#whitelistTable').append(newRow);
-
-                            // Réinitialiser le formulaire
                             $('#addToWhitelistForm')[0].reset();
+                            loadWhitelistUsers();
+                            alert('Utilisateur ajouté avec succès');
                         } else {
                             alert('Erreur : ' + response.message);
                         }
                     },
                     error: function() {
-                        alert('Erreur lors de l\'ajout à la whitelist');
+                        alert('Erreur lors de l\'ajout de l\'utilisateur');
                     }
                 });
             });
 
-            // Supprimer de la whitelist
-            $(document).on('click', '.remove-from-whitelist', function() {
+            // Désactiver un utilisateur
+            $(document).on('click', '.disable-user', function() {
                 const username = $(this).data('username');
-                const row = $(this).closest('tr');
 
-                if (confirm('Voulez-vous vraiment supprimer cet utilisateur de la whitelist ?')) {
+                if (confirm('Voulez-vous vraiment désactiver cet utilisateur ?')) {
                     $.ajax({
-                        url: '/whitelist/remove',
+                        url: '/admin/whitelist/api/disable',
                         method: 'POST',
                         data: { ldapUsername: username },
                         success: function(response) {
                             if (response.success) {
-                                row.remove();
+                                loadWhitelistUsers();
+                                alert('Utilisateur désactivé');
                             } else {
                                 alert('Erreur : ' + response.message);
                             }
                         },
                         error: function() {
-                            alert('Erreur lors de la suppression de la whitelist');
+                            alert('Erreur lors de la désactivation');
                         }
                     });
                 }
             });
+
+            // Réactiver un utilisateur
+            $(document).on('click', '.reactivate-user', function() {
+                const username = $(this).data('username');
+
+                $.ajax({
+                    url: '/admin/whitelist/api/reactivate',
+                    method: 'POST',
+                    data: { ldapUsername: username },
+                    success: function(response) {
+                        if (response.success) {
+                            loadWhitelistUsers();
+                            alert('Utilisateur réactivé');
+                        } else {
+                            alert('Erreur : ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Erreur lors de la réactivation');
+                    }
+                });
+            });
+
+            // Supprimer un utilisateur
+            $(document).on('click', '.remove-user', function() {
+                const username = $(this).data('username');
+
+                if (confirm('Voulez-vous vraiment supprimer définitivement cet utilisateur de la whitelist ?')) {
+                    $.ajax({
+                        url: '/admin/whitelist/api/remove',
+                        method: 'POST',
+                        data: { ldapUsername: username },
+                        success: function(response) {
+                            if (response.success) {
+                                loadWhitelistUsers();
+                                alert('Utilisateur supprimé');
+                            } else {
+                                alert('Erreur : ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Erreur lors de la suppression');
+                        }
+                    });
+                }
+            });
+
         });
     </script>
 {% endblock %}

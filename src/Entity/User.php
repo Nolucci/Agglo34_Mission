@@ -31,8 +31,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $ldapUsername = null;
 
-    #[ORM\Column]
-    private bool $isFirstUser = false;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -143,16 +141,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isFirstUser(): bool
-    {
-        return $this->isFirstUser;
-    }
-
-    public function setIsFirstUser(bool $isFirstUser): static
-    {
-        $this->isFirstUser = $isFirstUser;
-        return $this;
-    }
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
@@ -220,6 +208,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function canManageUsers(): bool
     {
         return $this->isAdmin();
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->hasRole('ROLE_DISABLED');
     }
 
 }

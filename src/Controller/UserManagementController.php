@@ -3,9 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Entity\Whitelist;
 use App\Repository\UserRepository;
-use App\Repository\WhitelistRepository;
 use App\Service\UserPermissionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +19,6 @@ class UserManagementController extends AbstractController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UserRepository $userRepository,
-        private WhitelistRepository $whitelistRepository,
         private UserPermissionService $permissionService
     ) {
     }
@@ -42,9 +39,9 @@ class UserManagementController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Utilisateur non trouvé']);
         }
 
-        // Vérifier que ce n'est pas le premier utilisateur
-        if ($user->isFirstUser()) {
-            return new JsonResponse(['success' => false, 'message' => 'Impossible de modifier les rôles du premier administrateur']);
+        // Vérifier que ce n'est pas l'utilisateur admin par défaut
+        if ($user->getEmail() === 'admin@agglo34.local') {
+            return new JsonResponse(['success' => false, 'message' => 'Impossible de modifier les rôles de l\'administrateur par défaut']);
         }
 
         // Valider le rôle
@@ -54,7 +51,8 @@ class UserManagementController extends AbstractController
             UserPermissionService::ROLE_VISITEUR_TOUT,
             UserPermissionService::ROLE_VISITEUR_LIGNES,
             UserPermissionService::ROLE_VISITEUR_PARC,
-            UserPermissionService::ROLE_VISITEUR_BOXS
+            UserPermissionService::ROLE_VISITEUR_BOXS,
+            UserPermissionService::ROLE_DISABLED
         ];
 
         if (!in_array($role, $validRoles)) {

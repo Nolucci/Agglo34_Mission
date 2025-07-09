@@ -1,0 +1,249 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion de la Whitelist{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Gestion de la Whitelist LDAP</h3>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-plus"></i> Ajouter un utilisateur
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if not is_ldap_enabled %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            LDAP n'est pas activé. La whitelist n'est pas utilisée pour l'authentification.
+                        </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="whitelistTable">
+                            <thead>
+                                <tr>
+                                    <th>Nom d'utilisateur LDAP</th>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Statut</th>
+                                    <th>Créé le</th>
+                                    <th>Créé par</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr data-username="{{ user.ldapUsername }}" class="{% if not user.isActive %}table-secondary{% endif %}">
+                                        <td>
+                                            <strong>{{ user.ldapUsername }}</strong>
+                                        </td>
+                                        <td>{{ user.name ?? '-' }}</td>
+                                        <td>{{ user.email ?? '-' }}</td>
+                                        <td>
+                                            {% if user.isActive %}
+                                                <span class="badge bg-success">Actif</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Désactivé</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.createdAt|date('d/m/Y H:i') }}</td>
+                                        <td>{{ user.createdBy ? user.createdBy.name : '-' }}</td>
+                                        <td>
+                                            {% if user.isActive %}
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('{{ user.ldapUsername }}')">
+                                                    <i class="fas fa-ban"></i> Désactiver
+                                                </button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-success" onclick="activateUser('{{ user.ldapUsername }}')">
+                                                    <i class="fas fa-check"></i> Réactiver
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">
+                                            Aucun utilisateur dans la whitelist
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'ajout d'utilisateur -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Ajouter un utilisateur à la whitelist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addUserForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="ldap_username" class="form-label">Nom d'utilisateur LDAP *</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="ldap_username" name="ldap_username" required>
+                            {% if is_ldap_enabled %}
+                                <button type="button" class="btn btn-outline-secondary" id="testLdapBtn">
+                                    <i class="fas fa-search"></i> Tester
+                                </button>
+                            {% endif %}
+                        </div>
+                        <div class="form-text">Identifiant de l'utilisateur dans LDAP</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom complet</label>
+                        <input type="text" class="form-control" id="name" name="name">
+                        <div class="form-text">Sera récupéré automatiquement depuis LDAP si disponible</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                        <div class="form-text">Sera récupéré automatiquement depuis LDAP si disponible</div>
+                    </div>
+
+                    <div id="ldapTestResult" class="alert" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Test LDAP
+    {% if is_ldap_enabled %}
+    document.getElementById('testLdapBtn').addEventListener('click', function() {
+        const username = document.getElementById('ldap_username').value;
+        if (!username) {
+            alert('Veuillez saisir un nom d\'utilisateur');
+            return;
+        }
+
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Test...';
+        btn.disabled = true;
+
+        fetch('{{ path('admin_whitelist_test_ldap') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'ldap_username=' + encodeURIComponent(username)
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('ldapTestResult');
+            resultDiv.style.display = 'block';
+
+            if (data.success && data.user_exists) {
+                resultDiv.className = 'alert alert-success';
+                resultDiv.innerHTML = '<i class="fas fa-check"></i> ' + data.message;
+
+                // Remplir automatiquement les champs
+                if (data.user_info) {
+                    if (data.user_info.name) {
+                        document.getElementById('name').value = data.user_info.name;
+                    }
+                    if (data.user_info.email) {
+                        document.getElementById('email').value = data.user_info.email;
+                    }
+                }
+            } else {
+                resultDiv.className = 'alert alert-warning';
+                resultDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + data.message;
+            }
+        })
+        .catch(error => {
+            const resultDiv = document.getElementById('ldapTestResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'alert alert-danger';
+            resultDiv.innerHTML = '<i class="fas fa-times"></i> Erreur lors du test LDAP';
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    });
+    {% endif %}
+
+    // Ajout d'utilisateur
+    document.getElementById('addUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('{{ path('admin_whitelist_add') }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur lors de l\'ajout de l\'utilisateur');
+        });
+    });
+});
+
+function removeUser(username) {
+    if (confirm('Êtes-vous sûr de vouloir désactiver cet utilisateur ?')) {
+        fetch(`{{ path('admin_whitelist_remove', {ldapUsername: '__USERNAME__'}) }}`.replace('__USERNAME__', encodeURIComponent(username)), {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur lors de la désactivation de l\'utilisateur');
+        });
+    }
+}
+
+function activateUser(username) {
+    if (confirm('Êtes-vous sûr de vouloir réactiver cet utilisateur ?')) {
+        fetch(`{{ path('admin_whitelist_activate', {ldapUsername: '__USERNAME__'}) }}`.replace('__USERNAME__', encodeURIComponent(username)), {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur lors de la réactivation de l\'utilisateur');
+        });
+    }
+}
+</script>
+{% endblock %}

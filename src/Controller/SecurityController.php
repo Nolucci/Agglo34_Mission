@@ -21,21 +21,21 @@ class SecurityController extends AbstractController
             return $this->redirectToRoute('dashboard');
         }
 
-        // Si LDAP est désactivé, rediriger directement vers le dashboard
-        // L'EventListener se chargera de l'authentification automatique
-        $settings = $settingsService->getSettings();
-        if (!$settings || !$settings->isLdapEnabled()) {
-            return $this->redirectToRoute('dashboard');
-        }
-
         // Récupérer l'erreur de connexion s'il y en a une
         $error = $authenticationUtils->getLastAuthenticationError();
         // Dernier nom d'utilisateur saisi par l'utilisateur
         $lastUsername = $authenticationUtils->getLastUsername();
 
+        $settings = $settingsService->getSettings();
+        $isMaintenanceMode = $settingsService->isMaintenanceMode();
+        $isLdapEnabled = $settings ? $settings->isLdapEnabled() : false;
+
         return $this->render('users/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
+            'is_maintenance_mode' => $isMaintenanceMode,
+            'is_ldap_enabled' => $isLdapEnabled,
+            'maintenance_message' => $isMaintenanceMode ? $settings?->getMaintenanceMessage() : null,
         ]);
     }
 

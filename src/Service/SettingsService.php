@@ -2,7 +2,9 @@
 
 namespace App\Service;
 
+use App\Entity\Settings;
 use App\Repository\SettingsRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -10,15 +12,11 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class SettingsService
 {
-    private SettingsRepository $settingsRepository;
-    private ParameterBagInterface $parameterBag;
-
     public function __construct(
-        SettingsRepository $settingsRepository,
-        ParameterBagInterface $parameterBag
+        private SettingsRepository $settingsRepository,
+        private ParameterBagInterface $parameterBag,
+        private EntityManagerInterface $entityManager
     ) {
-        $this->settingsRepository = $settingsRepository;
-        $this->parameterBag = $parameterBag;
     }
 
     /**
@@ -140,5 +138,14 @@ class SettingsService
 
         // Écrire le fichier
         file_put_contents($envLocalPath, implode("\n", $envContent) . "\n");
+    }
+
+    /**
+     * Sauvegarde les paramètres de l'application
+     */
+    public function saveSettings(Settings $settings): void
+    {
+        $this->entityManager->persist($settings);
+        $this->entityManager->flush();
     }
 }

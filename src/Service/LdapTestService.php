@@ -94,10 +94,10 @@ class LdapTestService
             $this->logger->info('Test d\'authentification utilisateur LDAP', ['username' => $username]);
 
             // Validation des paramètres
-            if (empty($username) || empty($password)) {
+            if (empty($username)) {
                 return [
                     'success' => false,
-                    'message' => 'Nom d\'utilisateur et mot de passe requis.'
+                    'message' => 'Nom d\'utilisateur requis.'
                 ];
             }
 
@@ -136,27 +136,50 @@ class LdapTestService
             $user = $results[0];
             $userDn = $user->getDn();
 
-            // Test d'authentification avec les identifiants utilisateur
-            $ldap->bind($userDn, $password);
+            // Si un mot de passe est fourni, tester l'authentification
+            if (!empty($password)) {
+                try {
+                    $ldap->bind($userDn, $password);
+                    $this->logger->info('Test d\'authentification utilisateur réussi', ['username' => $username]);
 
-            $this->logger->info('Test d\'authentification utilisateur réussi', ['username' => $username]);
+                    return [
+                        'success' => true,
+                        'message' => "Authentification réussie pour l'utilisateur '{$username}'.",
+                        'user_dn' => $userDn,
+                        'user_attributes' => $this->extractUserAttributes($user)
+                    ];
+                } catch (ConnectionException $e) {
+                    $this->logger->error('Erreur d\'authentification LDAP', [
+                        'username' => $username,
+                        'error' => $e->getMessage()
+                    ]);
 
-            return [
-                'success' => true,
-                'message' => "Authentification réussie pour l'utilisateur '{$username}'.",
-                'user_dn' => $userDn,
-                'user_attributes' => $this->extractUserAttributes($user)
-            ];
+                    return [
+                        'success' => false,
+                        'message' => 'Erreur d\'authentification : ' . $e->getMessage(),
+                        'user_dn' => $userDn,
+                        'user_attributes' => $this->extractUserAttributes($user)
+                    ];
+                }
+            } else {
+                // Pas de mot de passe fourni, on retourne juste les informations de l'utilisateur
+                return [
+                    'success' => true,
+                    'message' => "Utilisateur '{$username}' trouvé dans LDAP.",
+                    'user_dn' => $userDn,
+                    'user_attributes' => $this->extractUserAttributes($user)
+                ];
+            }
 
         } catch (ConnectionException $e) {
-            $this->logger->error('Erreur d\'authentification LDAP', [
+            $this->logger->error('Erreur de connexion LDAP', [
                 'username' => $username,
                 'error' => $e->getMessage()
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Erreur d\'authentification : ' . $e->getMessage()
+                'message' => 'Erreur de connexion LDAP : ' . $e->getMessage()
             ];
         } catch (\Exception $e) {
             $this->logger->error('Erreur générale lors du test d\'authentification', [
@@ -169,6 +192,14 @@ class LdapTestService
                 'message' => 'Erreur lors du test : ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Vérifie l'existence d'un utilisateur dans LDAP sans tester l'authentification
+     */
+    public function checkUserExists(array $config, string $username): array
+    {
+        return $this->testUserAuthentication($config, $username, '');
     }
 
     /**

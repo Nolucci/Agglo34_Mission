@@ -16,24 +16,9 @@ class WhitelistRepository extends ServiceEntityRepository
         parent::__construct($registry, Whitelist::class);
     }
 
-    public function save(Whitelist $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Whitelist $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
+    /**
+     * Vérifie si un utilisateur LDAP est dans la whitelist active
+     */
     public function isUserWhitelisted(string $ldapUsername): bool
     {
         $result = $this->createQueryBuilder('w')
@@ -48,7 +33,22 @@ class WhitelistRepository extends ServiceEntityRepository
         return $result > 0;
     }
 
-    public function findActiveWhitelistEntries(): array
+    /**
+     * Trouve une entrée whitelist par nom d'utilisateur LDAP
+     */
+    public function findByLdapUsername(string $ldapUsername): ?Whitelist
+    {
+        return $this->createQueryBuilder('w')
+            ->where('w.ldapUsername = :username')
+            ->setParameter('username', $ldapUsername)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Trouve toutes les entrées actives de la whitelist
+     */
+    public function findActiveEntries(): array
     {
         return $this->createQueryBuilder('w')
             ->where('w.isActive = :active')

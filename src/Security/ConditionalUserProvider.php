@@ -18,33 +18,37 @@ class ConditionalUserProvider implements UserProviderInterface, PasswordUpgrader
 {
     private SettingsService $settingsService;
     private LdapUserProvider $ldapUserProvider;
+    private AdminUserProvider $adminUserProvider;
 
     public function __construct(
         SettingsService $settingsService,
-        LdapUserProvider $ldapUserProvider
+        LdapUserProvider $ldapUserProvider,
+        AdminUserProvider $adminUserProvider
     ) {
         $this->settingsService = $settingsService;
         $this->ldapUserProvider = $ldapUserProvider;
+        $this->adminUserProvider = $adminUserProvider;
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        // Si LDAP est activé, on délègue au LdapUserProvider
+        // En mode maintenance, seul l'admin peut se connecter
+        if ($this->isMaintenanceMode()) {
+            return $this->adminUserProvider->loadUserByIdentifier($identifier);
+        }
+
+        // Vérifier d'abord si c'est l'utilisateur admin
+        if ($this->adminUserProvider->isAdminUser($identifier)) {
+            return $this->adminUserProvider->loadUserByIdentifier($identifier);
+        }
+
+        // Si LDAP est activé, on délègue au LdapUserProvider pour les autres utilisateurs
         if ($this->isLdapEnabled()) {
             return $this->ldapUserProvider->loadUserByIdentifier($identifier);
         }
 
-        // Si LDAP est désactivé, on crée un utilisateur anonyme avec tous les droits
-        $user = new User();
-        $user->setLdapUsername('anonymous');
-        $user->setName('Utilisateur Anonyme');
-        $user->setEmail('anonymous@local');
-        $user->setRoles(['ROLE_ADMIN']); // Accès complet quand LDAP est désactivé
-        $user->setPassword(''); // Pas de mot de passe nécessaire
-        $user->setCreatedAt(new \DateTimeImmutable());
-        $user->setLastLoginAt(new \DateTimeImmutable());
-
-        return $user;
+        // Si LDAP est désactivé, seul l'admin peut se connecter
+        throw new UserNotFoundException(sprintf('LDAP is disabled. Only admin user can access the application.'));
     }
 
     public function refreshUser(UserInterface $user): UserInterface
@@ -53,13 +57,18 @@ class ConditionalUserProvider implements UserProviderInterface, PasswordUpgrader
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
 
+        // En mode maintenance, utiliser l'AdminUserProvider
+        if ($this->isMaintenanceMode()) {
+            return $this->adminUserProvider->refreshUser($user);
+        }
+
         // Si LDAP est activé, on délègue au LdapUserProvider
         if ($this->isLdapEnabled()) {
             return $this->ldapUserProvider->refreshUser($user);
         }
 
-        // Si LDAP est désactivé, on retourne l'utilisateur anonyme
-        return $this->loadUserByIdentifier('anonymous');
+        // Sinon, utiliser l'AdminUserProvider
+        return $this->adminUserProvider->refreshUser($user);
     }
 
     public function supportsClass(string $class): bool
@@ -69,11 +78,20 @@ class ConditionalUserProvider implements UserProviderInterface, PasswordUpgrader
 
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
+        // En mode maintenance, utiliser l'AdminUserProvider
+        if ($this->isMaintenanceMode()) {
+            $this->adminUserProvider->upgradePassword($user, $newHashedPassword);
+            return;
+        }
+
         // Si LDAP est activé, on délègue au LdapUserProvider
         if ($this->isLdapEnabled()) {
             $this->ldapUserProvider->upgradePassword($user, $newHashedPassword);
+            return;
         }
-        // Sinon, on ne fait rien car pas de gestion de mot de passe en mode anonyme
+
+        // Sinon, utiliser l'AdminUserProvider
+        $this->adminUserProvider->upgradePassword($user, $newHashedPassword);
     }
 
     /**
@@ -83,5 +101,13 @@ class ConditionalUserProvider implements UserProviderInterface, PasswordUpgrader
     {
         $settings = $this->settingsService->getSettings();
         return $settings && $settings->isLdapEnabled();
+    }
+
+    /**
+     * Vérifie si l'application est en mode maintenance
+     */
+    private function isMaintenanceMode(): bool
+    {
+        return $this->settingsService->isMaintenanceMode();
     }
 }

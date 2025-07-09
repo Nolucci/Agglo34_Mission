@@ -2,29 +2,25 @@
 
 namespace App\EventListener;
 
-use App\Repository\SettingsRepository;
+use App\Service\MaintenanceService;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Environment;
 
 /**
  * Listener pour gérer le mode maintenance
  */
+#[AsEventListener(event: KernelEvents::REQUEST, priority: 1000)]
 class MaintenanceListener
 {
-    private SettingsRepository $settingsRepository;
-    private Security $security;
-    private Environment $twig;
-
     public function __construct(
-        SettingsRepository $settingsRepository,
-        Security $security,
-        Environment $twig
+        private MaintenanceService $maintenanceService,
+        private Environment $twig,
+        private UrlGeneratorInterface $urlGenerator
     ) {
-        $this->settingsRepository = $settingsRepository;
-        $this->security = $security;
-        $this->twig = $twig;
     }
 
     public function onKernelRequest(RequestEvent $event): void
@@ -36,44 +32,30 @@ class MaintenanceListener
         $request = $event->getRequest();
         $route = $request->attributes->get('_route');
 
-        // Ignorer certaines routes (login, logout, assets, etc.)
-        $ignoredRoutes = [
-            'app_login',
-            'app_logout',
-            '_wdt',
-            '_profiler',
-            '_profiler_search',
-            '_profiler_search_bar',
-            '_profiler_search_results',
-            '_profiler_open_file'
-        ];
-
-        if (in_array($route, $ignoredRoutes) ||
-            str_starts_with($request->getPathInfo(), '/_') ||
+        // Ignorer les routes de développement et les assets
+        if (str_starts_with($route, '_') ||
             str_starts_with($request->getPathInfo(), '/css') ||
             str_starts_with($request->getPathInfo(), '/js') ||
-            str_starts_with($request->getPathInfo(), '/images') ||
-            str_starts_with($request->getPathInfo(), '/login')) {
+            str_starts_with($request->getPathInfo(), '/images')) {
             return;
         }
 
-        // Vérifier si le mode maintenance est activé
-        $settings = $this->settingsRepository->findOneBy([]);
+        // Ignorer la route de login
+        if ($route === 'app_login' || $route === 'app_logout') {
+            return;
+        }
 
-        if ($settings && $settings->isMaintenanceMode()) {
-            // Vérifier si l'utilisateur est connecté ET est un administrateur
-            if (!$this->security->getUser() || !$this->security->isGranted('ROLE_ADMIN')) {
-                // Afficher la page de maintenance
-                $maintenanceMessage = $settings->getMaintenanceMessage() ?: 'Application en maintenance. Veuillez réessayer plus tard.';
-
-                $content = $this->twig->render('maintenance.html.twig', [
-                    'message' => $maintenanceMessage,
-                    'app_name' => $settings->getAppName() ?: 'Agglo34 Mission'
-                ]);
-
-                $response = new Response($content, 503);
-                $response->headers->set('Retry-After', '3600'); // Réessayer dans 1 heure
-                $event->setResponse($response);
+        // Vérifier si l'application est en mode maintenance
+        if ($this->maintenanceService->isMaintenanceMode()) {
+            // Vérifier si l'utilisateur peut accéder pendant la maintenance
+            if (!$this->maintenanceService->canAccessDuringMaintenance()) {
+                // Rediriger vers la page de login si pas connecté en tant qu'admin
+                if ($route !== 'app_login') {
+                    $loginUrl = $this->urlGenerator->generate('app_login');
+                    $response = new Response('', 302, ['Location' => $loginUrl]);
+                    $event->setResponse($response);
+                    return;
+                }
             }
         }
     }
