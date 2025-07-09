@@ -11,17 +11,6 @@ services:
       database:
         condition: service_healthy
     restart: unless-stopped
-    environment:
-      APP_ENV: "${APP_ENV:-prod}"
-      APP_SECRET: "${APP_SECRET}"
-      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}?serverVersion=16&charset=utf8"
-      LDAP_HOST: "${LDAP_HOST}"
-      LDAP_PORT: "${LDAP_PORT:-389}"
-      LDAP_ENCRYPTION: "${LDAP_ENCRYPTION:-none}"
-      LDAP_BASE_DN: "${LDAP_BASE_DN}"
-      LDAP_SEARCH_DN: "${LDAP_SEARCH_DN}"
-      LDAP_SEARCH_PASSWORD: "${LDAP_SEARCH_PASSWORD}"
-      LDAP_UID_KEY: "${LDAP_UID_KEY:-sAMAccountName}"
     networks:
       sru_network:
         ipv4_address: 172.40.0.10
@@ -30,7 +19,7 @@ services:
     image: httpd:2.4
     container_name: sru_webserver
     ports:
-      - "${WEB_PORT:-4080}:80"
+      - "4080:80"
     volumes:
       - ./:/var/www/html
       - ./docker/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
@@ -45,13 +34,13 @@ services:
     image: dpage/pgadmin4
     container_name: sru_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL}"
-      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD}"
+      PGADMIN_DEFAULT_EMAIL: admin@agglo34.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
-      - "${PGADMIN_PORT:-4081}:80"
-      - "${PGADMIN_HTTPS_PORT:-4044}:443"
+      - "4081:80"
+      - "4044:443"
     depends_on:
       database:
         condition: service_healthy
@@ -64,20 +53,20 @@ services:
     image: postgres:16
     container_name: sru_postgresql16
     environment:
-      POSTGRES_DB: "${DB_NAME}"
-      POSTGRES_USER: "${DB_USER}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: agglo34_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "${DB_PORT:-4032}:5432"
+      - "4032:5432"
     restart: unless-stopped
     networks:
       sru_network:
         ipv4_address: 172.40.0.2
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "$${DB_NAME}", "-U", "$${DB_USER}"]
+      test: ["CMD", "pg_isready", "-d", "agglo34_db", "-U", "admin"]
       timeout: 5s
       retries: 5
       start_period: 60s
