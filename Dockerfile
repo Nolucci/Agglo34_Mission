@@ -19,15 +19,15 @@ WORKDIR /var/www/html
 # Copie des fichiers de configuration Composer en premier pour optimiser le cache Docker
 COPY composer.json composer.lock ./
 
-# Copie du script d'initialisation en premier
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 # Installation des dépendances PHP
 RUN composer install --no-scripts --no-autoloader --optimize-autoloader
 
 # Copie du reste des fichiers de l'application
 COPY . .
+
+# Copie du script d'initialisation APRÈS la copie complète pour éviter l'écrasement
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Configuration Git pour éviter l'erreur de propriété douteuse
 RUN git config --global --add safe.directory /var/www/html
@@ -43,5 +43,5 @@ RUN chown -R www-data:www-data /var/www/html \
 EXPOSE 9000
 
 # Commande de démarrage avec script d'initialisation
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["php-fpm"]
