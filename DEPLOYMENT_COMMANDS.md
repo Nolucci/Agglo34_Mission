@@ -1,294 +1,269 @@
-# 🚀 COMMANDES DE DÉPLOIEMENT EN PRODUCTION - AGGLO34 MISSION
+# Commandes de Déploiement - Agglo34_Mission
 
-## Étapes à exécuter dans l'ordre pour déployer l'application
+## Prérequis
 
-### 📁 ÉTAPE 0 : PRÉPARATION DE L'ENVIRONNEMENT
+### 1. Installation de Docker et Docker Compose
+
+**Sur Ubuntu/Debian :**
 ```bash
-# 🖥️ ENVIRONNEMENT : Terminal système (n'importe quel dossier)
-# Créer le dossier de déploiement sur le serveur
-mkdir -p /var/www/agglo34-mission
-cd /var/www/agglo34-mission
+# Mise à jour du système
+sudo apt update && sudo apt upgrade -y
 
-# Cloner ou copier les fichiers du projet dans ce dossier
-# git clone [URL_DU_REPO] .
-# OU copier tous les fichiers du projet dans /var/www/agglo34-mission/
+# Installation de Docker
+sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+# Installation de Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Ajouter l'utilisateur au groupe docker
+sudo usermod -aG docker $USER
 ```
 
-### 1. INSTALLATION DES DÉPENDANCES
+**Sur CentOS/RHEL/Fedora :**
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
+# Installation de Docker
+sudo dnf install -y dnf-plugins-core
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
 
-# Installation des packages PHP
-composer install --no-dev --optimize-autoloader
+# Installation de Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
-# Installation des assets JavaScript
-php bin/console importmap:install
+# Démarrer et activer Docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Ajouter l'utilisateur au groupe docker
+sudo usermod -aG docker $USER
 ```
 
-### 2. CONFIGURATION DE L'ENVIRONNEMENT
+### 2. Redémarrage de session
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
-
-# Copier le fichier d'environnement
-cp .env .env.local
-
-# 📝 ÉDITER LE FICHIER : .env.local (avec nano, vim, ou éditeur de texte)
-# Modifier les valeurs suivantes :
-# APP_ENV=prod
-# APP_SECRET=[générer_une_clé_secrète_32_caractères]
-# DATABASE_URL="postgresql://admin:admin@localhost:5432/agglo34_db?serverVersion=16&charset=utf8"
-# LDAP_HOST=votre-serveur-ldap.com
-# LDAP_BASE_DN=dc=votre-domaine,dc=com
-# LDAP_SEARCH_DN=cn=admin,dc=votre-domaine,dc=com
-# LDAP_SEARCH_PASSWORD=votre_mot_de_passe_ldap
-
-# Exemple d'édition :
-nano .env.local
+# Redémarrer la session pour appliquer les changements de groupe
+newgrp docker
+# OU se déconnecter/reconnecter
 ```
 
-### 3. CRÉATION DE LA BASE DE DONNÉES
+## Déploiement de l'Application
+
+### 1. Cloner le projet (si pas déjà fait)
 ```bash
-# 🖥️ ENVIRONNEMENT : Terminal système (PostgreSQL doit être installé)
-# 📂 DOSSIER : N'importe quel dossier (commandes système PostgreSQL)
-
-# Créer la base de données PostgreSQL
-createdb -U postgres agglo34_db
-
-# Créer l'utilisateur de base de données
-psql -U postgres -c "CREATE USER admin WITH PASSWORD 'admin';"
-psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE agglo34_db TO admin;"
+git clone <URL_DU_REPO>
+cd Agglo34_Mission
 ```
 
-### 4. MIGRATION DE LA BASE DE DONNÉES
+### 2. Vérifier les fichiers de configuration
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
-
-# Exécuter les migrations
-php bin/console doctrine:migrations:migrate --no-interaction
-
-# Vérifier que le schéma est correct
-php bin/console doctrine:schema:validate
+# Vérifier que les fichiers existent
+ls -la docker-compose.yaml Dockerfile .env
 ```
 
-### 5. CRÉATION DE L'UTILISATEUR ADMINISTRATEUR
+### 3. Construire et démarrer les conteneurs
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
+# Construire les images et démarrer tous les services
+docker-compose up -d --build
 
-# Créer l'utilisateur admin (remplacer MOT_DE_PASSE par un mot de passe sécurisé)
-php bin/console app:create-admin-user MOT_DE_PASSE_ADMIN_SECURISE
+# Vérifier que tous les conteneurs sont démarrés
+docker-compose ps
 ```
 
-### 6. CONFIGURATION LDAP (SI UTILISÉ)
+### 4. Attendre que la base de données soit prête
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
+# Vérifier que PostgreSQL est prêt
+docker-compose exec database pg_isready -U admin -d agglo34_db
 
-# Initialiser les paramètres LDAP
-php bin/console app:init-ldap-settings
-
-# Tester la connexion LDAP (optionnel)
-php bin/console app:test-ldap nom_utilisateur_test
+# Si la commande échoue, attendre quelques secondes et réessayer
+# Répéter jusqu'à ce que la base soit prête
 ```
 
-### 7. OPTIMISATION POUR LA PRODUCTION
+### 5. Installation des dépendances Composer
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
-
-# Compiler les variables d'environnement
-composer dump-env prod
-
-# Vider et optimiser le cache
-php bin/console cache:clear --env=prod
-php bin/console cache:warmup --env=prod
-
-# Compiler les assets
-php bin/console asset-map:compile
+# Installer les dépendances PHP
+docker-compose exec app composer install --no-dev --optimize-autoloader
 ```
 
-### 8. PERMISSIONS DES FICHIERS
+### 6. Configuration de l'application Symfony
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal système avec privilèges sudo
+# Exécuter les migrations de base de données
+docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 
-# Linux/Mac
-sudo chown -R www-data:www-data var/ public/
-sudo chmod -R 755 var/ public/
+# Charger les fixtures (données de test)
+docker-compose exec app php bin/console doctrine:fixtures:load --no-interaction
 
-# Windows - Depuis l'explorateur de fichiers ou PowerShell en tant qu'administrateur
-# S'assurer que IIS/Apache a les permissions sur var/ et public/
+# Vider le cache
+docker-compose exec app php bin/console cache:clear --env=prod
 ```
 
-### 9. VÉRIFICATIONS FINALES
+### 7. Créer un utilisateur administrateur
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
+# Créer un utilisateur admin interactivement
+docker-compose exec app php bin/console app:create-admin-user
 
-# Vérifier la configuration
-php bin/console about
+# OU avec des paramètres directs
+docker-compose exec app php bin/console app:create-admin-user admin admin@agglo34.local motdepasse
+```
 
-# Vérifier les routes
-php bin/console debug:router
+### 8. Configurer les permissions
+```bash
+# Ajuster les permissions des fichiers
+docker-compose exec app chown -R www-data:www-data /var/www/html/var
+docker-compose exec app chmod -R 775 /var/www/html/var
+```
+
+## Vérification du Déploiement
+
+### 1. Vérifier les services
+```bash
+# Voir l'état de tous les conteneurs
+docker-compose ps
+
+# Voir les logs en cas de problème
+docker-compose logs app
+docker-compose logs database
+docker-compose logs webserver
+docker-compose logs pgadmin
+```
+
+### 2. Tester l'accès aux services
+```bash
+# Tester l'application web
+curl -I http://localhost:4080
 
 # Tester la base de données
-php bin/console doctrine:schema:validate
+docker-compose exec database psql -U admin -d agglo34_db -c "SELECT version();"
 ```
 
-### 10. CONFIGURATION SERVEUR WEB
+## Accès aux Services
+
+- **Application Web** : http://localhost:4080
+- **PgAdmin** : http://localhost:4081
+  - Email : admin@agglo34.local
+  - Mot de passe : admin123
+- **Base de données PostgreSQL** : localhost:4032
+  - Utilisateur : admin
+  - Mot de passe : admin123
+  - Base de données : agglo34_db
+
+## Commandes de Maintenance
+
+### Arrêter l'application
 ```bash
-# 🖥️ ENVIRONNEMENT : Configuration serveur web
-
-# Pour Apache - Créer/modifier le VirtualHost
-# 📝 FICHIER : /etc/apache2/sites-available/agglo34-mission.conf
-# DocumentRoot /var/www/agglo34-mission/public
-
-# Pour Nginx - Créer/modifier la configuration
-# 📝 FICHIER : /etc/nginx/sites-available/agglo34-mission
-# root /var/www/agglo34-mission/public;
-
-# Activer le site (Apache)
-sudo a2ensite agglo34-mission.conf
-sudo systemctl reload apache2
-
-# Activer le site (Nginx)
-sudo ln -s /etc/nginx/sites-available/agglo34-mission /etc/nginx/sites-enabled/
-sudo systemctl reload nginx
+docker-compose down
 ```
 
----
-
-## 🔐 CONNEXION INITIALE
-- URL : `http://votre-domaine.com/login`
-- Email : `admin@agglo34.local`
-- Mot de passe : `[MOT_DE_PASSE_ADMIN_SECURISE]`
-
----
-
-## 🛠️ COMMANDES DE MAINTENANCE UTILES
-
-### Mode maintenance
+### Redémarrer l'application
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
-
-# Activer le mode maintenance
-php bin/console app:maintenance on
-
-# Activer avec message personnalisé
-php bin/console app:maintenance on "Maintenance en cours - Retour prévu à 14h00"
-
-# Désactiver le mode maintenance
-php bin/console app:maintenance off
-
-# Vérifier le statut
-php bin/console app:maintenance status
+docker-compose restart
 ```
 
-### Gestion des utilisateurs LDAP
+### Voir les logs en temps réel
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
-
-# Ajouter un utilisateur à la whitelist
-php bin/console app:whitelist:add nom_utilisateur email@domain.com "Nom Complet"
-
-# Lister les utilisateurs autorisés
-php bin/console app:whitelist:list
-
-# Activer/désactiver un utilisateur
-php bin/console app:whitelist:toggle nom_utilisateur
-
-# Supprimer un utilisateur
-php bin/console app:whitelist:remove nom_utilisateur
+docker-compose logs -f
 ```
 
-### Maintenance de la base de données
+### Sauvegarder la base de données
 ```bash
-# 🖥️ ENVIRONNEMENT : Terminal système (PostgreSQL)
-# 📂 DOSSIER : N'importe quel dossier
-
-# Sauvegarde
-pg_dump -U admin -h localhost agglo34_db > backup_$(date +%Y%m%d_%H%M%S).sql
-
-# Optimisation PostgreSQL
-psql -U admin -d agglo34_db -c "VACUUM ANALYZE;"
+docker-compose exec database pg_dump -U admin agglo34_db > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-### Nettoyage et optimisation
+### Restaurer la base de données
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
-
-# Nettoyer le cache
-php bin/console cache:clear --env=prod
-
-# Nettoyer les logs anciens
-find var/log -name "*.log" -mtime +30 -delete
-
-# Optimiser l'autoloader
-composer dump-autoload --optimize --no-dev
+docker-compose exec -T database psql -U admin agglo34_db < backup_file.sql
 ```
 
----
-
-## ⚠️ NOTES IMPORTANTES
-
-1. **Sécurité** : Changez tous les mots de passe par défaut
-2. **Sauvegarde** : Effectuez une sauvegarde avant chaque mise à jour
-3. **Logs** : Surveillez les fichiers de logs dans `var/log/`
-4. **HTTPS** : Configurez SSL/TLS pour la production
-5. **Firewall** : Limitez l'accès aux ports nécessaires uniquement
-
----
-
-## 🆘 DÉPANNAGE RAPIDE
-
-### En cas de problème
+### Mettre à jour l'application
 ```bash
-# 📂 DOSSIER : /var/www/agglo34-mission/ (racine du projet)
-# 🖥️ ENVIRONNEMENT : Terminal dans le dossier du projet
+# Arrêter les services
+docker-compose down
 
-# Réinitialiser le cache complètement
-rm -rf var/cache/*
-php bin/console cache:warmup --env=prod
+# Récupérer les dernières modifications
+git pull
 
-# Vérifier les permissions
-ls -la var/ public/
+# Reconstruire et redémarrer
+docker-compose up -d --build
 
-# Désactiver le mode maintenance d'urgence
-php bin/console app:maintenance off
+# Exécuter les migrations si nécessaire
+docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 
-# Recréer l'utilisateur admin si nécessaire
-php bin/console app:create-admin-user NouveauMotDePasse123!
+# Vider le cache
+docker-compose exec app php bin/console cache:clear --env=prod
 ```
 
-### Vérification des logs
+## Dépannage
+
+### Problèmes courants
+
+1. **Port déjà utilisé** :
+   ```bash
+   # Vérifier les ports utilisés
+   sudo netstat -tulpn | grep :4080
+
+   # Modifier les ports dans docker-compose.yaml si nécessaire
+   ```
+
+2. **Permissions insuffisantes** :
+   ```bash
+   # Vérifier que l'utilisateur est dans le groupe docker
+   groups $USER
+
+   # Si pas dans le groupe, l'ajouter et redémarrer la session
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+
+3. **Conteneur qui ne démarre pas** :
+   ```bash
+   # Voir les logs détaillés
+   docker-compose logs [nom_du_service]
+
+   # Reconstruire l'image
+   docker-compose build --no-cache [nom_du_service]
+   ```
+
+4. **Base de données non accessible** :
+   ```bash
+   # Vérifier que le conteneur PostgreSQL est démarré
+   docker-compose ps database
+
+   # Vérifier les logs de la base
+   docker-compose logs database
+
+   # Tester la connexion
+   docker-compose exec database pg_isready -U admin -d agglo34_db
+   ```
+
+## Commandes de Déploiement Complètes (Copier-Coller)
+
 ```bash
-# Voir les erreurs récentes
-tail -f var/log/prod.log
+# 1. Installation Docker (Ubuntu/Debian)
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo usermod -aG docker $USER
+newgrp docker
 
-# Voir les erreurs PHP
-tail -f /var/log/apache2/error.log  # Apache
-tail -f /var/log/nginx/error.log    # Nginx
+# 2. Déploiement de l'application
+cd /chemin/vers/Agglo34_Mission
+docker-compose up -d --build
+docker-compose exec app composer install --no-dev --optimize-autoloader
+docker-compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+docker-compose exec app php bin/console doctrine:fixtures:load --no-interaction
+docker-compose exec app php bin/console cache:clear --env=prod
+docker-compose exec app php bin/console app:create-admin-user
+docker-compose exec app chown -R www-data:www-data /var/www/html/var
+docker-compose exec app chmod -R 775 /var/www/html/var
 
----
-
-## 📍 RÉSUMÉ DES EMPLACEMENTS
-
-### Dossiers de travail :
-- **Racine du projet** : `/var/www/agglo34-mission/` (toutes les commandes Symfony)
-- **Système** : N'importe quel dossier (commandes PostgreSQL, serveur web)
-
-### Fichiers à éditer :
-- **Configuration app** : `/var/www/agglo34-mission/.env.local`
-- **Apache VirtualHost** : `/etc/apache2/sites-available/agglo34-mission.conf`
-- **Nginx config** : `/etc/nginx/sites-available/agglo34-mission`
-
-### Logs à surveiller :
-- **Application** : `/var/www/agglo34-mission/var/log/prod.log`
-- **Apache** : `/var/log/apache2/error.log`
-- **Nginx** : `/var/log/nginx/error.log`
+# 3. Vérification
+docker-compose ps
+curl -I http://localhost:4080
