@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Service\SettingsService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,17 +16,18 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
 class ConditionalEntryPoint implements AuthenticationEntryPointInterface
 {
     private UrlGeneratorInterface $urlGenerator;
+    private SettingsService $settingsService;
 
-    public function __construct(UrlGeneratorInterface $urlGenerator)
+    public function __construct(UrlGeneratorInterface $urlGenerator, SettingsService $settingsService)
     {
         $this->urlGenerator = $urlGenerator;
+        $this->settingsService = $settingsService;
     }
 
-    public function start(Request $request, AuthenticationException $authException = null): Response
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
     {
-        // Toujours rediriger vers la page de login
-        // L'admin peut se connecter même si LDAP est désactivé
-        // Les utilisateurs LDAP peuvent se connecter s'ils sont dans la whitelist
+        // Rediriger vers la page de login
+        // Le SimpleMaintenanceListener gère déjà le mode maintenance
         return new RedirectResponse($this->urlGenerator->generate('app_login'));
     }
 }

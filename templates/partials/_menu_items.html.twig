@@ -3,42 +3,58 @@
         <i class="fas fa-television"></i>Tableau de bord
     </a>
 </li>
+{% if app.user and app.user.canAccessPhoneLines() %}
 <li class="{{ app.request.attributes.get('_route') == 'lines' ? 'active' : '' }}">
     <a href="{{ path('lines') }}">
         <i class="fas fa-phone"></i>Lignes Téléphoniques
     </a>
 </li>
+{% endif %}
+{% if app.user and app.user.canAccessEquipment() %}
 <li class="{{ app.request.attributes.get('_route') == 'park' ? 'active' : '' }}">
     <a href="{{ path('park') }}">
         <i class="fas fa-wrench"></i>Parc Informatique</a>
 </li>
+{% endif %}
+{% if app.user and app.user.canAccessBoxes() %}
 <li class="{{ app.request.attributes.get('_route') == 'box_list' ? 'active' : '' }}">
     <a href="{{ path('box_list') }}">
         <i class="fas fa-boxes"></i>Boxs
     </a>
 </li>
+{% endif %}
+{% if app.user and app.user.isAdmin() %}
 <li class="{{ app.request.attributes.get('_route') == 'agents' ? 'active' : '' }}">
     <a href="{{ path('agents') }}">
         <i class="fas fa-users"></i>Agents
     </a>
 </li>
+{% endif %}
+{% if app.user and (app.user.isModifieur() or app.user.isAdmin()) %}
 <li class="{{ app.request.attributes.get('_route') == 'documents' ? 'active' : '' }}">
     <a href="{{ path('documents') }}">
         <i class="far fa-folder"></i>Documents et données
     </a>
 </li>
+{% endif %}
+{% if app.user and (app.user.isModifieur() or app.user.isAdmin()) %}
 <li class="{{ app.request.attributes.get('_route') == 'app_archive' ? 'active' : '' }}">
     <a href="{{ path('app_archive') }}">
         <i class="fas fa-archive"></i>Archives
     </a>
 </li>
+{% endif %}
+{% if app.user and app.user.isAdmin() %}
 <li class="{{ app.request.attributes.get('_route') == 'app_logs' ? 'active' : '' }}">
     <a href="{{ path('app_logs') }}">
         <i class="fas fa-file-alt"></i>Logs
     </a>
 </li>
+{% endif %}
+{% if app.user and app.user.isAdmin() %}
 <li class="{{ app.request.attributes.get('_route') == 'settings' ? 'active' : '' }}">
     <a href="{{ path('settings') }}">
         <i class="fas fa-cogs"></i>Paramètres
     </a>
 </li>
+{% endif %}

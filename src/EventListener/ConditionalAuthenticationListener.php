@@ -50,6 +50,7 @@ class ConditionalAuthenticationListener implements EventSubscriberInterface
         }
 
         // Si LDAP est désactivé, authentifier automatiquement un utilisateur anonyme
+        // même en mode maintenance (les admins doivent pouvoir accéder)
         if (!$this->isLdapEnabled()) {
             $token = $this->tokenStorage->getToken();
             $user = $token ? $token->getUser() : null;
@@ -100,6 +101,14 @@ class ConditionalAuthenticationListener implements EventSubscriberInterface
     {
         $settings = $this->settingsService->getSettings();
         return $settings && $settings->isLdapEnabled();
+    }
+
+    /**
+     * Vérifie si l'application est en mode maintenance
+     */
+    private function isMaintenanceMode(): bool
+    {
+        return $this->settingsService->isMaintenanceMode();
     }
 
     public static function getSubscribedEvents(): array

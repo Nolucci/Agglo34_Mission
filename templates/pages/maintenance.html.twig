@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - Agglo34 Mission</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        .maintenance-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 3rem;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            z-index: 1000;
+        }
+        .maintenance-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1.5rem;
+        }
+        .maintenance-title {
+            color: #333;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .maintenance-message {
+            color: #666;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        .admin-login-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .admin-login-btn:hover {
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+        .contact-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        /* Masquer tous les éléments de debug */
+        #sfwdt, .sf-toolbar, .sf-minitoolbar, script, noscript {
+            display: none !important;
+            visibility: hidden !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <div class="maintenance-icon">
+            🔧
+        </div>
+
+        <h1 class="maintenance-title">Maintenance en cours</h1>
+
+        <div class="maintenance-message">
+            {{ maintenance_message }}
+        </div>
+
+        <a href="/logout" class="admin-login-btn" onclick="window.location.href='/logout'; return false;">
+            🛡️ Accès Administrateur
+        </a>
+
+        <div class="contact-info">
+            <p><strong>Administrateurs :</strong> Utilisez vos identifiants d'administration pour accéder à l'application.</p>
+            <p>En cas de problème, contactez le service informatique.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -13,7 +13,7 @@ use Twig\Environment;
 /**
  * Listener pour gérer le mode maintenance
  */
-#[AsEventListener(event: KernelEvents::REQUEST, priority: 1000)]
+// #[AsEventListener(event: KernelEvents::REQUEST, priority: 2000)] - Désactivé
 class MaintenanceListener
 {
     public function __construct(
@@ -25,6 +25,9 @@ class MaintenanceListener
 
     public function onKernelRequest(RequestEvent $event): void
     {
+        // Temporairement désactivé pour debug
+        return;
+
         if (!$event->isMainRequest()) {
             return;
         }
@@ -33,15 +36,15 @@ class MaintenanceListener
         $route = $request->attributes->get('_route');
 
         // Ignorer les routes de développement et les assets
-        if (str_starts_with($route, '_') ||
+        if (($route && str_starts_with($route, '_')) ||
             str_starts_with($request->getPathInfo(), '/css') ||
             str_starts_with($request->getPathInfo(), '/js') ||
             str_starts_with($request->getPathInfo(), '/images')) {
             return;
         }
 
-        // Ignorer la route de login
-        if ($route === 'app_login' || $route === 'app_logout') {
+        // Ignorer les routes de login, logout et maintenance
+        if ($route === 'app_login' || $route === 'app_logout' || $route === 'app_maintenance') {
             return;
         }
 
@@ -49,13 +52,11 @@ class MaintenanceListener
         if ($this->maintenanceService->isMaintenanceMode()) {
             // Vérifier si l'utilisateur peut accéder pendant la maintenance
             if (!$this->maintenanceService->canAccessDuringMaintenance()) {
-                // Rediriger vers la page de login si pas connecté en tant qu'admin
-                if ($route !== 'app_login') {
-                    $loginUrl = $this->urlGenerator->generate('app_login');
-                    $response = new Response('', 302, ['Location' => $loginUrl]);
-                    $event->setResponse($response);
-                    return;
-                }
+                // Rediriger vers la page de maintenance
+                $maintenanceUrl = $this->urlGenerator->generate('app_maintenance');
+                $response = new Response('', 302, ['Location' => $maintenanceUrl]);
+                $event->setResponse($response);
+                return;
             }
         }
     }

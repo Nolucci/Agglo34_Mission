@@ -24,6 +24,8 @@ security:
             logout:
                 path: app_logout
                 target: app_login
+            form_login:
+                default_target_path: dashboard
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 semaine en secondes
@@ -31,6 +33,7 @@ security:
 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/maintenance, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/settings, roles: ROLE_ADMIN }
         - { path: ^/whitelist, roles: ROLE_ADMIN }
