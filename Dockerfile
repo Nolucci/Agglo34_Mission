@@ -19,6 +19,10 @@ WORKDIR /var/www/html
 # Copie des fichiers de configuration Composer en premier pour optimiser le cache Docker
 COPY composer.json composer.lock ./
 
+# Copie du script d'initialisation en premier
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Installation des dépendances PHP
 RUN composer install --no-scripts --no-autoloader --optimize-autoloader
 
@@ -34,10 +38,6 @@ RUN composer dump-autoload --optimize
 # Configuration des permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
-
-# Création du script d'initialisation
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Exposition du port PHP-FPM
 EXPOSE 9000
