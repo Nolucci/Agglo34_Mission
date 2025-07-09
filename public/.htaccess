@@ -5,7 +5,7 @@
 # Use the front controller as index file.
 DirectoryIndex index.php
 
-# Uncomment the following line if you install assets as symlinks or if you 
+# Uncomment the following line if you install assets as symlinks or if you
 # experience problems related to symlinks when compiling LESS/Sass/CoffeScript.
 # Options +FollowSymlinks
 
@@ -22,8 +22,8 @@ DirectoryIndex index.php
     # See https://httpd.apache.org/docs/current/mod/mod_rewrite.html#rewriterule
     # Here we will compare the stripped per-dir path *relative to the filesystem
     # path where the .htaccess file is read from* with the URI of the request.
-    # 
-    # If a match is found, the prefix path is stored into an ENV var that is later 
+    #
+    # If a match is found, the prefix path is stored into an ENV var that is later
     # used to properly prefix the URI of the front controller index.php.
     # This is what makes it possible to host a Symfony application under a subpath,
     # such as example.com/subpath
@@ -60,13 +60,12 @@ DirectoryIndex index.php
 
 <IfModule !mod_rewrite.c>
     <IfModule mod_alias.c>
-        # When mod_rewrite is not available, we instruct a temporary redirect 
+        # When mod_rewrite is not available, we instruct a temporary redirect
         # to the front controller explicitly so that the website
         RedirectMatch 307 ^/$ /index.php/
     </IfModule>
 </IfModule>
 
  <Limit GET POST PUT PATCH DELETE>
-     Order deny,allow
      Require all granted
  </Limit>

@@ -25,6 +25,9 @@ RUN composer install --no-scripts --no-autoloader --optimize-autoloader
 # Copie du reste des fichiers de l'application
 COPY . .
 
+# Configuration Git pour éviter l'erreur de propriété douteuse
+RUN git config --global --add safe.directory /var/www/html
+
 # Finalisation de l'installation Composer
 RUN composer dump-autoload --optimize
 
