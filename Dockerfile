@@ -25,10 +25,6 @@ RUN composer install --no-scripts --no-autoloader --optimize-autoloader
 # Copie du reste des fichiers de l'application
 COPY . .
 
-# Copie du script d'initialisation APRÈS la copie complète pour éviter l'écrasement
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 # Configuration Git pour éviter l'erreur de propriété douteuse
 RUN git config --global --add safe.directory /var/www/html
 
@@ -42,6 +38,5 @@ RUN chown -R www-data:www-data /var/www/html \
 # Exposition du port PHP-FPM
 EXPOSE 9000
 
-# Commande de démarrage avec script d'initialisation
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Commande de démarrage directe avec PHP-FPM
 CMD ["php-fpm"]
