@@ -471,7 +471,7 @@
                 window.displayedBoxes = window.allBoxes.filter(box => {
                     // Filtre par type
                     if (filterType && box.type) {
-                        if (box.type.toLowerCase() !== filterType.toLowerCase()) {
+                        if (!box.type.toLowerCase().includes(filterType.toLowerCase())) {
                             return false;
                         }
                     }
@@ -485,14 +485,23 @@
 
                     // Filtre par commune
                     if (filterMunicipality && box.commune) {
-                        if (box.commune.toLowerCase() !== filterMunicipality.toLowerCase()) {
-                            return false;
+                        // Vérifier si c'est un objet commune ou une chaîne
+                        if (typeof box.commune === 'object' && box.commune.name) {
+                            // Si c'est un objet avec une propriété name
+                            if (!box.commune.name.toLowerCase().includes(filterMunicipality.toLowerCase())) {
+                                return false;
+                            }
+                        } else if (typeof box.commune === 'string') {
+                            // Si c'est une chaîne directe
+                            if (!box.commune.toLowerCase().includes(filterMunicipality.toLowerCase())) {
+                                return false;
+                            }
                         }
                     }
 
                     // Filtre par statut
                     if (filterStatus && box.statut) {
-                        if (box.statut.toLowerCase() !== filterStatus.toLowerCase()) {
+                        if (!box.statut.toLowerCase().includes(filterStatus.toLowerCase())) {
                             return false;
                         }
                     }

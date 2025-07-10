@@ -457,28 +457,38 @@
                 window.displayedEquipments = window.allEquipments.filter(equipment => {
                     // Filtre par modèle
                     if (filterModele && equipment.modele) {
-                        if (equipment.modele.toLowerCase() !== filterModele.toLowerCase()) {
+                        if (!equipment.modele.toLowerCase().includes(filterModele.toLowerCase())) {
                             return false;
                         }
                     }
 
                     // Filtre par service
                     if (filterService && equipment.service) {
-                        if (equipment.service.toLowerCase() !== filterService.toLowerCase()) {
+                        if (!equipment.service.toLowerCase().includes(filterService.toLowerCase())) {
                             return false;
                         }
                     }
 
                     // Filtre par commune
-                    if (filterCommune && equipment.commune && equipment.commune.id) {
-                        if (equipment.commune.id.toString() !== filterCommune) {
-                            return false;
+                    if (filterCommune && equipment.commune) {
+                        // Vérifier si c'est un ID ou un nom de commune
+                        const isNumeric = !isNaN(filterCommune);
+                        if (isNumeric) {
+                            // Filtrage par ID
+                            if (equipment.commune.id && equipment.commune.id.toString() !== filterCommune) {
+                                return false;
+                            }
+                        } else {
+                            // Filtrage par nom
+                            if (!equipment.commune.name || !equipment.commune.name.toLowerCase().includes(filterCommune.toLowerCase())) {
+                                return false;
+                            }
                         }
                     }
 
                     // Filtre par statut
                     if (filterStatut && equipment.statut) {
-                        if (equipment.statut.toLowerCase() !== filterStatut.toLowerCase()) {
+                        if (!equipment.statut.toLowerCase().includes(filterStatut.toLowerCase())) {
                             return false;
                         }
                     }

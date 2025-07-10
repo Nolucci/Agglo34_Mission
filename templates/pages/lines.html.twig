@@ -527,29 +527,39 @@
 
             window.displayedPhoneLines = window.allPhoneLines.filter(line => {
                 // Filtre par commune
-                if (filters.municipality && line.municipality && line.municipality.id) {
-                    if (line.municipality.id.toString() !== filters.municipality) {
-                        return false;
+                if (filters.municipality && line.municipality) {
+                    // Vérifier si c'est un ID ou un nom de commune
+                    const isNumeric = !isNaN(filters.municipality);
+                    if (isNumeric) {
+                        // Filtrage par ID
+                        if (line.municipality.id && line.municipality.id.toString() !== filters.municipality) {
+                            return false;
+                        }
+                    } else {
+                        // Filtrage par nom
+                        if (!line.municipality.name || !line.municipality.name.toLowerCase().includes(filters.municipality.toLowerCase())) {
+                            return false;
+                        }
                     }
                 }
 
                 // Filtre par service
                 if (filters.service && line.service) {
-                    if (line.service.toLowerCase() !== filters.service.toLowerCase()) {
+                    if (!line.service.toLowerCase().includes(filters.service.toLowerCase())) {
                         return false;
                     }
                 }
 
                 // Filtre par opérateur
                 if (filters.operator && line.operator) {
-                    if (line.operator.toLowerCase() !== filters.operator.toLowerCase()) {
+                    if (!line.operator.toLowerCase().includes(filters.operator.toLowerCase())) {
                         return false;
                     }
                 }
 
                 // Filtre par type de ligne
                 if (filters.lineType && line.lineType) {
-                    if (line.lineType.toLowerCase() !== filters.lineType.toLowerCase()) {
+                    if (!line.lineType.toLowerCase().includes(filters.lineType.toLowerCase())) {
                         return false;
                     }
                 }
