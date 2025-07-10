@@ -120,9 +120,9 @@ class BoxRepository extends ServiceEntityRepository
      */
     private function applyFilters(\Doctrine\ORM\QueryBuilder $qb, array $filters): void
     {
-        if (isset($filters['municipality']) && $filters['municipality'] !== '') {
-            $qb->andWhere('m.id = :municipalityId')
-               ->setParameter('municipalityId', $filters['municipality']);
+        if (isset($filters['municipalityName']) && $filters['municipalityName'] !== '') {
+            $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
+               ->setParameter('municipalityName', '%' . strtolower($filters['municipalityName']) . '%');
         }
         if (isset($filters['service']) && $filters['service'] !== '') {
             $qb->andWhere('LOWER(b.service) LIKE :service')

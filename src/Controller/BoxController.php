@@ -129,6 +129,18 @@ class BoxController extends AbstractController
 
         $filters = $this->getFiltersFromRequest($request);
 
+        // Si un filtre de municipalité est présent, récupérer le nom de la municipalité
+        if (isset($filters['municipality']) && !empty($filters['municipality'])) {
+            $municipalityId = $filters['municipality'];
+            $municipality = $this->municipalityRepository->find($municipalityId);
+            if ($municipality) {
+                $filters['municipalityName'] = $municipality->getName();
+            } else {
+                // Si la municipalité n'est pas trouvée, invalider le filtre pour éviter des résultats inattendus
+                unset($filters['municipality']);
+            }
+        }
+
         // Si une recherche est effectuée, utiliser la nouvelle méthode de recherche
         if (!empty($search)) {
             $result = $this->boxRepository->searchWithPagination($search, $page, $limit, $filters);

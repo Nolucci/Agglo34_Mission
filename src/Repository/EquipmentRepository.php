@@ -188,9 +188,9 @@ class EquipmentRepository extends ServiceEntityRepository
             $qb->andWhere('LOWER(e.service) LIKE :service')
                ->setParameter('service', '%' . strtolower($filters['service']) . '%');
         }
-        if (isset($filters['commune']) && $filters['commune'] !== '') {
-            $qb->andWhere('m.id = :communeId')
-               ->setParameter('communeId', $filters['commune']);
+        if (isset($filters['communeName']) && $filters['communeName'] !== '') {
+            $qb->andWhere('LOWER(m.name) LIKE :communeName')
+               ->setParameter('communeName', '%' . strtolower($filters['communeName']) . '%');
         }
         if (isset($filters['statut']) && $filters['statut'] !== '') {
             $qb->andWhere('LOWER(e.statut) LIKE :statut')

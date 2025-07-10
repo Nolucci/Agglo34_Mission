@@ -194,8 +194,8 @@ class PhoneLineRepository extends ServiceEntityRepository
                ->setParameter('service', $filters['service']);
         }
         if (isset($filters['municipality']) && $filters['municipality'] !== '') {
-            $qb->andWhere('m.id = :municipalityId')
-               ->setParameter('municipalityId', $filters['municipality']);
+            $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
+               ->setParameter('municipalityName', '%' . strtolower($filters['municipalityName']) . '%');
         }
         if (isset($filters['location']) && $filters['location'] !== '') {
             $qb->andWhere('LOWER(pl.location) LIKE :location')
