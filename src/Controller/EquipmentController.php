@@ -1030,6 +1030,26 @@ class EquipmentController extends AbstractController
             $filters['os'] = $request->query->get('os');
         }
 
+        if ($request->query->has('localisation')) {
+            $filters['localisation'] = $request->query->get('localisation');
+        }
+
+        if ($request->query->has('etiquetage')) {
+            $filters['etiquetage'] = $request->query->get('etiquetage');
+        }
+
+        if ($request->query->has('numeroSerie')) {
+            $filters['numeroSerie'] = $request->query->get('numeroSerie');
+        }
+
+        if ($request->query->has('utilisateur')) {
+            $filters['utilisateur'] = $request->query->get('utilisateur');
+        }
+
+        if ($request->query->has('version')) {
+            $filters['version'] = $request->query->get('version');
+        }
+
         return $filters;
     }
 
