@@ -2,11 +2,13 @@
 
 namespace App\Security;
 
+use App\Service\SettingsService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Ldap\Ldap;
 use Symfony\Component\Ldap\LdapInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -27,29 +29,15 @@ class LdapAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'app_login';
 
-    private LdapInterface $ldap;
-    private string $baseDn;
-    private string $searchDn;
-    private string $searchPassword;
-    private string $uidKey;
     private LdapUserProvider $userProvider;
     private LoggerInterface $logger;
 
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        LdapInterface $ldap,
-        string $baseDn,
-        string $searchDn,
-        string $searchPassword,
-        string $uidKey,
+        private SettingsService $settingsService,
         LdapUserProvider $userProvider,
         LoggerInterface $logger
     ) {
-        $this->ldap = $ldap;
-        $this->baseDn = $baseDn;
-        $this->searchDn = $searchDn;
-        $this->searchPassword = $searchPassword;
-        $this->uidKey = $uidKey;
         $this->userProvider = $userProvider;
         $this->logger = $logger;
     }
@@ -71,14 +59,33 @@ class LdapAuthenticator extends AbstractLoginFormAuthenticator
                     $userIdentifier = explode('@', $userIdentifier)[0];
                 }
 
+                // Récupérer les paramètres LDAP depuis la base de données
+                $settings = $this->settingsService->getSettings();
+                if (!$settings || !$settings->isLdapEnabled()) {
+                    throw new BadCredentialsException('LDAP is not enabled');
+                }
+
+                // Créer la connexion LDAP avec les paramètres de la base de données
+                $ldap = Ldap::create('ext_ldap', [
+                    'host' => $settings->getLdapHost(),
+                    'port' => $settings->getLdapPort(),
+                    'encryption' => $settings->getLdapEncryption(),
+                    'options' => [
+                        'protocol_version' => 3,
+                        'referrals' => false
+                    ]
+                ]);
+
                 // Vérification des identifiants LDAP
                 try {
                     $this->logger->info("Tentative d'authentification pour l'utilisateur: " . $userIdentifier);
 
                     // Première connexion avec le compte de service
                     try {
-                        $this->logger->info("Tentative de connexion avec le compte de service DN: " . $this->searchDn);
-                        $this->ldap->bind($this->searchDn, $this->searchPassword);
+                        $searchDn = $settings->getLdapSearchDn();
+                        $searchPassword = $settings->getLdapSearchPassword();
+                        $this->logger->info("Tentative de connexion avec le compte de service DN: " . $searchDn);
+                        $ldap->bind($searchDn, $searchPassword);
                         $this->logger->info("Connexion avec le compte de service réussie");
                     } catch (\Exception $e) {
                         $this->logger->error("Erreur de connexion avec le compte de service: " . $e->getMessage());
@@ -86,23 +93,25 @@ class LdapAuthenticator extends AbstractLoginFormAuthenticator
                     }
 
                     // Recherche de l'utilisateur avec le filtre exact
-                    $username = $this->ldap->escape($userIdentifier, '', LdapInterface::ESCAPE_FILTER);
-                    $query = sprintf('(&(objectClass=user)(objectCategory=person)(%s=%s))', $this->uidKey, $username);
+                    $uidKey = $settings->getLdapUidKey();
+                    $baseDn = $settings->getLdapBaseDn();
+                    $username = $ldap->escape($userIdentifier, '', LdapInterface::ESCAPE_FILTER);
+                    $query = sprintf('(&(objectClass=user)(objectCategory=person)(%s=%s))', $uidKey, $username);
 
-                    $this->logger->info("Recherche LDAP - Base DN: " . $this->baseDn);
+                    $this->logger->info("Recherche LDAP - Base DN: " . $baseDn);
                     $this->logger->info("Recherche LDAP - Filtre: " . $query);
 
-                    $search = $this->ldap->query($this->baseDn, $query);
+                    $search = $ldap->query($baseDn, $query);
                     $results = $search->execute();
 
                     $this->logger->info(sprintf("Nombre de résultats trouvés: %d", count($results)));
 
                     if (0 === count($results)) {
-                        throw new BadCredentialsException(sprintf('Aucun utilisateur trouvé avec %s=%s', $this->uidKey, $username));
+                        throw new BadCredentialsException(sprintf('Aucun utilisateur trouvé avec %s=%s', $uidKey, $username));
                     }
 
                     if (count($results) > 1) {
-                        throw new BadCredentialsException(sprintf('Plusieurs utilisateurs trouvés avec %s=%s', $this->uidKey, $username));
+                        throw new BadCredentialsException(sprintf('Plusieurs utilisateurs trouvés avec %s=%s', $uidKey, $username));
                     }
 
                     $user = $results[0];
@@ -121,7 +130,7 @@ class LdapAuthenticator extends AbstractLoginFormAuthenticator
                     $this->logger->info(sprintf("Tentative de liaison avec le DN utilisateur: %s", $userDn));
                     $this->logger->info(sprintf("Mot de passe fourni (partiel): %s...", substr($password, 0, 3)));
                     try {
-                        $this->ldap->bind($userDn, $password);
+                        $ldap->bind($userDn, $password);
                         $this->logger->info(sprintf("Authentification réussie pour l'utilisateur: %s", $userIdentifier));
                     } catch (ConnectionException $e) {
                         $this->logger->error(sprintf("Échec de l'authentification pour %s. Message complet: %s", $userIdentifier, $e->getMessage()));

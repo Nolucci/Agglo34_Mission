@@ -5,10 +5,12 @@ namespace App\Security;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Repository\WhitelistRepository;
+use App\Service\SettingsService;
 use App\Service\UserPermissionService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Exception\ConnectionException;
+use Symfony\Component\Ldap\Ldap;
 use Symfony\Component\Ldap\LdapInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
@@ -19,39 +21,26 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    private LdapInterface $ldap;
-    private string $baseDn;
-    private ?string $searchDn;
-    private ?string $searchPassword;
     private array $defaultRoles;
-    private string $uidKey;
     private UserRepository $userRepository;
     private UserPermissionService $permissionService;
     private WhitelistRepository $whitelistRepository;
     private LoggerInterface $logger;
+    private SettingsService $settingsService;
 
     public function __construct(
-        LdapInterface $ldap,
-        string $baseDn,
-        ?string $searchDn,
-        ?string $searchPassword,
-        array $defaultRoles,
-        string $uidKey,
         UserRepository $userRepository,
         UserPermissionService $permissionService,
         WhitelistRepository $whitelistRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        SettingsService $settingsService
     ) {
-        $this->ldap = $ldap;
-        $this->baseDn = $baseDn;
-        $this->searchDn = $searchDn;
-        $this->searchPassword = $searchPassword;
-        $this->defaultRoles = $defaultRoles;
-        $this->uidKey = $uidKey;
         $this->userRepository = $userRepository;
         $this->permissionService = $permissionService;
         $this->whitelistRepository = $whitelistRepository;
         $this->logger = $logger;
+        $this->settingsService = $settingsService;
+        $this->defaultRoles = ['ROLE_USER'];
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
@@ -142,17 +131,38 @@ class LdapUserProvider implements UserProviderInterface, PasswordUpgraderInterfa
 
     private function findLdapUser(string $identifier): ?Entry
     {
-        $this->logger->info("Tentative de liaison LDAP avec DN: " . $this->searchDn);
-        $this->ldap->bind($this->searchDn, $this->searchPassword);
+        // Récupérer les paramètres LDAP depuis la base de données
+        $settings = $this->settingsService->getSettings();
+        if (!$settings || !$settings->isLdapEnabled()) {
+            throw new ConnectionException('LDAP is not enabled');
+        }
+
+        // Créer la connexion LDAP avec les paramètres de la base de données
+        $ldap = Ldap::create('ext_ldap', [
+            'host' => $settings->getLdapHost(),
+            'port' => $settings->getLdapPort(),
+            'encryption' => $settings->getLdapEncryption(),
+            'options' => [
+                'protocol_version' => 3,
+                'referrals' => false
+            ]
+        ]);
+
+        $searchDn = $settings->getLdapSearchDn();
+        $searchPassword = $settings->getLdapSearchPassword();
+        $this->logger->info("Tentative de liaison LDAP avec DN: " . $searchDn);
+        $ldap->bind($searchDn, $searchPassword);
         $this->logger->info("Liaison LDAP réussie");
 
-        $username = $this->ldap->escape($identifier, '', LdapInterface::ESCAPE_FILTER);
-        $query = sprintf('(&(objectClass=user)(objectCategory=person)(%s=%s))', $this->uidKey, $username);
+        $uidKey = $settings->getLdapUidKey();
+        $baseDn = $settings->getLdapBaseDn();
+        $username = $ldap->escape($identifier, '', LdapInterface::ESCAPE_FILTER);
+        $query = sprintf('(&(objectClass=user)(objectCategory=person)(%s=%s))', $uidKey, $username);
 
-        $this->logger->info("Recherche LDAP - Base DN: " . $this->baseDn);
+        $this->logger->info("Recherche LDAP - Base DN: " . $baseDn);
         $this->logger->info("Recherche LDAP - Filtre: " . $query);
 
-        $search = $this->ldap->query($this->baseDn, $query);
+        $search = $ldap->query($baseDn, $query);
         $results = $search->execute();
 
         $this->logger->info(sprintf("Nombre de résultats trouvés: %d", count($results)));

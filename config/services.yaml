@@ -36,22 +36,13 @@ services:
 
     # Configuration du provider LDAP
     App\Security\LdapUserProvider:
-        arguments:
-            $ldap: '@Symfony\Component\Ldap\LdapInterface'
-            $baseDn: '%env(LDAP_BASE_DN)%'
-            $searchDn: '%env(LDAP_SEARCH_DN)%'
-            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
-            $defaultRoles: ['ROLE_USER']
-            $uidKey: '%env(LDAP_UID_KEY)%'
+        autowire: true
+        autoconfigure: true
 
     # Configuration de l'authenticator LDAP
     App\Security\LdapAuthenticator:
-        arguments:
-            $ldap: '@Symfony\Component\Ldap\LdapInterface'
-            $baseDn: '%env(LDAP_BASE_DN)%'
-            $searchDn: '%env(LDAP_SEARCH_DN)%'
-            $searchPassword: '%env(LDAP_SEARCH_PASSWORD)%'
-            $uidKey: '%env(LDAP_UID_KEY)%'
+        autowire: true
+        autoconfigure: true
 
     # Configuration de la commande de test LDAP
     App\Command\TestLdapCommand:
