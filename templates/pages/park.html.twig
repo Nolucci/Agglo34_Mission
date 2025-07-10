@@ -225,10 +225,10 @@
                 url.searchParams.set('search', searchTerm);
             }
 
-            // Ajouter les filtres à l'URL
+            // Ajouter les filtres à l'URL avec encodage approprié
             for (const key in filters) {
                 if (filters.hasOwnProperty(key) && filters[key]) {
-                    url.searchParams.set(key, filters[key]);
+                    url.searchParams.set(key, encodeURIComponent(filters[key]));
                 }
             }
 

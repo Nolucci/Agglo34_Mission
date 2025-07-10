@@ -583,6 +583,14 @@ class BoxController extends AbstractController
             $filters['statut'] = $request->query->get('statut');
         }
 
+        if ($request->query->has('adresse')) {
+            $filters['adresse'] = $request->query->get('adresse');
+        }
+
+        if ($request->query->has('ligne_support')) {
+            $filters['ligne_support'] = $request->query->get('ligne_support');
+        }
+
         return $filters;
     }
 
