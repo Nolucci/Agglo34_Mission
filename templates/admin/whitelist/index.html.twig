@@ -98,7 +98,7 @@
                     <div class="mb-3">
                         <label for="ldap_username" class="form-label">Nom d'utilisateur LDAP *</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="ldap_username" name="ldap_username" required>
+                            <input type="text" class="form-control" id="ldap_username" name="ldapUsername" required>
                             {% if is_ldap_enabled %}
                                 <button type="button" class="btn btn-outline-secondary" id="testLdapBtn">
                                     <i class="fas fa-search"></i> Tester
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: 'ldap_username=' + encodeURIComponent(username)
+            body: 'ldapUsername=' + encodeURIComponent(username)
         })
         .then(response => response.json())
         .then(data => {
@@ -203,7 +203,45 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                const tableBody = document.querySelector('#whitelistTable tbody');
+                const newRow = `
+                    <tr data-username="${data.user.ldap_username}" class="${data.user.is_active ? '' : 'table-secondary'}">
+                        <td><strong>${data.user.ldap_username}</strong></td>
+                        <td>${data.user.name ?? '-'}</td>
+                        <td>${data.user.email ?? '-'}</td>
+                        <td>
+                            <span class="badge bg-${data.user.is_active ? 'success' : 'danger'}">
+                                ${data.user.is_active ? 'Actif' : 'Désactivé'}
+                            </span>
+                        </td>
+                        <td>${data.user.createdAt}</td>
+                        <td>${data.user.createdBy}</td>
+                        <td>
+                            ${data.user.is_active ? `
+                                <button type="button" class="btn btn-sm btn-warning me-1" onclick="disableUser('${data.user.ldap_username}')">
+                                    <i class="fas fa-ban"></i> Désactiver
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('${data.user.ldap_username}')">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            ` : `
+                                <button type="button" class="btn btn-sm btn-success me-1" onclick="reactivateUser('${data.user.ldap_username}')">
+                                    <i class="fas fa-check"></i> Réactiver
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('${data.user.ldap_username}')">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', newRow);
+                // Fermer la modale
+                const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
+                modal.hide();
+                // Réinitialiser le formulaire
+                document.getElementById('addUserForm').reset();
+                document.getElementById('ldapTestResult').style.display = 'none';
             } else {
                 alert('Erreur: ' + data.message);
             }
@@ -226,7 +264,23 @@ function disableUser(username) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                // Mettre à jour la ligne dans le tableau
+                const row = document.querySelector(`tr[data-username="${username}"]`);
+                if (row) {
+                    row.classList.add('table-secondary');
+                    row.querySelector('.badge').classList.remove('bg-success');
+                    row.querySelector('.badge').classList.add('bg-danger');
+                    row.querySelector('.badge').textContent = 'Désactivé';
+                    // Mettre à jour les boutons
+                    row.querySelector('td:last-child').innerHTML = `
+                        <button type="button" class="btn btn-sm btn-success me-1" onclick="reactivateUser('${username}')">
+                            <i class="fas fa-check"></i> Réactiver
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('${username}')">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    `;
+                }
             } else {
                 alert('Erreur: ' + data.message);
             }
@@ -249,7 +303,23 @@ function reactivateUser(username) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                // Mettre à jour la ligne dans le tableau
+                const row = document.querySelector(`tr[data-username="${username}"]`);
+                if (row) {
+                    row.classList.remove('table-secondary');
+                    row.querySelector('.badge').classList.remove('bg-danger');
+                    row.querySelector('.badge').classList.add('bg-success');
+                    row.querySelector('.badge').textContent = 'Actif';
+                    // Mettre à jour les boutons
+                    row.querySelector('td:last-child').innerHTML = `
+                        <button type="button" class="btn btn-sm btn-warning me-1" onclick="disableUser('${username}')">
+                            <i class="fas fa-ban"></i> Désactiver
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('${username}')">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    `;
+                }
             } else {
                 alert('Erreur: ' + data.message);
             }
@@ -272,7 +342,11 @@ function removeUser(username) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                // Supprimer la ligne du tableau
+                const row = document.querySelector(`tr[data-username="${username}"]`);
+                if (row) {
+                    row.remove();
+                }
             } else {
                 alert('Erreur: ' + data.message);
             }
@@ -282,5 +356,6 @@ function removeUser(username) {
         });
     }
 }
+</script>
 </script>
 {% endblock %}

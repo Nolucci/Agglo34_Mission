@@ -84,7 +84,7 @@ class PhoneLineRepository extends ServiceEntityRepository
      * Récupère toutes les lignes téléphoniques triées par commune
      * @return PhoneLine[]
      */
-    public function findAllOrderedByMunicipality(int $limit = null, int $offset = null): array
+    public function findAllOrderedByMunicipality(?int $limit = null, ?int $offset = null): array
     {
         return $this->createQueryBuilder('pl')
             ->leftJoin('pl.municipality', 'm')

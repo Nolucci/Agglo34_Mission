@@ -42,7 +42,7 @@ class EquipmentRepository extends ServiceEntityRepository
     /**
      * @return Equipment[] Returns an array of Equipment objects with their associated Commune
      */
-    public function findAllWithCommune(int $limit = null, int $offset = null): array
+    public function findAllWithCommune(?int $limit = null, ?int $offset = null): array
     {
         return $this->createQueryBuilder('e')
             ->leftJoin('e.commune', 'm')
@@ -83,7 +83,7 @@ class EquipmentRepository extends ServiceEntityRepository
     /**
      * @return Equipment[] Returns an array of Equipment objects with their associated Commune, ordered by commune name
      */
-    public function findAllWithCommuneOrdered(int $limit = null, int $offset = null): array
+    public function findAllWithCommuneOrdered(?int $limit = null, ?int $offset = null): array
     {
         return $this->createQueryBuilder('e')
             ->leftJoin('e.commune', 'm')

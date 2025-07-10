@@ -55,7 +55,7 @@ class WhitelistController extends AbstractController
     #[Route('/api/add', name: 'admin_whitelist_api_add', methods: ['POST'])]
     public function addUser(Request $request): JsonResponse
     {
-        $ldapUsername = $request->request->get('ldap_username');
+        $ldapUsername = $request->request->get('ldapUsername');
         $name = $request->request->get('name');
         $email = $request->request->get('email');
 
@@ -110,11 +110,12 @@ class WhitelistController extends AbstractController
                 'success' => true,
                 'message' => 'Utilisateur ajouté à la whitelist avec succès',
                 'user' => [
-                    'id' => $whitelistEntry->getId(),
                     'ldap_username' => $whitelistEntry->getLdapUsername(),
                     'name' => $whitelistEntry->getName(),
                     'email' => $whitelistEntry->getEmail(),
-                    'is_active' => $whitelistEntry->isActive()
+                    'is_active' => $whitelistEntry->isActive(),
+                    'createdAt' => $whitelistEntry->getCreatedAt()->format('d/m/Y H:i'),
+                    'createdBy' => $this->getUser() ? $this->getUser()->getName() : '-'
                 ]
             ]);
 
@@ -279,7 +280,7 @@ class WhitelistController extends AbstractController
     #[Route('/test-ldap-user', name: 'admin_whitelist_test_ldap', methods: ['POST'])]
     public function testLdapUser(Request $request): JsonResponse
     {
-        $ldapUsername = $request->request->get('ldap_username');
+        $ldapUsername = $request->request->get('ldapUsername');
 
         if (!$ldapUsername) {
             return new JsonResponse([
