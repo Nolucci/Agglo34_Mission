@@ -140,9 +140,9 @@ class BoxRepository extends ServiceEntityRepository
             $qb->andWhere('LOWER(b.ligneSupport) LIKE :ligneSupport')
                ->setParameter('ligneSupport', '%' . strtolower($filters['ligne_support']) . '%');
         }
-        if (isset($filters['status']) && $filters['status'] !== '') {
-            $qb->andWhere('LOWER(b.statut) LIKE :status')
-               ->setParameter('status', '%' . strtolower($filters['status']) . '%');
+        if (isset($filters['statut']) && $filters['statut'] !== '') {
+            $qb->andWhere('LOWER(b.statut) LIKE :statut')
+               ->setParameter('statut', '%' . strtolower($filters['statut']) . '%');
         }
     }
 

@@ -609,6 +609,22 @@ class PhoneLineController extends AbstractController
             $filters['lineType'] = $request->query->get('lineType');
         }
 
+        if ($request->query->has('location')) {
+            $filters['location'] = $request->query->get('location');
+        }
+
+        if ($request->query->has('assignedTo')) {
+            $filters['assignedTo'] = $request->query->get('assignedTo');
+        }
+
+        if ($request->query->has('directLine')) {
+            $filters['directLine'] = $request->query->get('directLine');
+        }
+
+        if ($request->query->has('shortNumber')) {
+            $filters['shortNumber'] = $request->query->get('shortNumber');
+        }
+
         if ($request->query->has('isWorking')) {
             $filters['isWorking'] = $request->query->get('isWorking') === 'true';
         }

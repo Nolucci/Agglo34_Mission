@@ -210,9 +210,12 @@
         window.itemsPerPage = 50;
         window.totalItems = 0;
         window.currentSearchTerm = '';
+        window.currentFilters = {};
 
         // Charger les données des équipements avec pagination
         window.loadEquipments = function(page = 1, searchTerm = '', filters = {}) {
+            // Stocker les filtres courants
+            window.currentFilters = filters;
             const url = new URL('/equipment/list', window.location.origin);
             url.searchParams.set('page', page);
             url.searchParams.set('limit', window.itemsPerPage);
@@ -264,7 +267,7 @@
             firstLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (window.currentPage > 1) {
-                    window.loadEquipments(1, window.currentSearchTerm || '');
+                    window.loadEquipments(1, window.currentSearchTerm || '', window.currentFilters);
                 }
             });
             firstLi.appendChild(firstLink);
@@ -280,7 +283,7 @@
             prevLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (window.currentPage > 1) {
-                    window.loadEquipments(window.currentPage - 1, window.currentSearchTerm || '');
+                    window.loadEquipments(window.currentPage - 1, window.currentSearchTerm || '', window.currentFilters);
                 }
             });
             prevLi.appendChild(prevLink);
@@ -304,7 +307,7 @@
                 pageLink.textContent = i;
                 pageLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    window.loadEquipments(i, window.currentSearchTerm || '');
+                    window.loadEquipments(i, window.currentSearchTerm || '', window.currentFilters);
                 });
                 pageLi.appendChild(pageLink);
                 paginationElement.appendChild(pageLi);
@@ -320,7 +323,7 @@
             nextLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (window.currentPage < window.totalPages) {
-                    window.loadEquipments(window.currentPage + 1, window.currentSearchTerm || '');
+                    window.loadEquipments(window.currentPage + 1, window.currentSearchTerm || '', window.currentFilters);
                 }
             });
             nextLi.appendChild(nextLink);
@@ -336,7 +339,7 @@
             lastLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (window.currentPage < window.totalPages) {
-                    window.loadEquipments(window.totalPages, window.currentSearchTerm || '');
+                    window.loadEquipments(window.totalPages, window.currentSearchTerm || '', window.currentFilters);
                 }
             });
             lastLi.appendChild(lastLink);
@@ -444,119 +447,7 @@
             }
         });
 
-        // Filter logic for Park Equipment
-        const parkFilterForm = document.getElementById('park-filter-form');
-        const applyParkFiltersButton = document.getElementById('apply-park-filters');
-
-        if (applyParkFiltersButton) {
-            applyParkFiltersButton.addEventListener('click', function() {
-                const filterModele = document.getElementById('filter-modele').value;
-                const filterService = document.getElementById('filter-service').value;
-                const filterCommune = document.getElementById('filter-commune').value;
-                const filterStatut = document.getElementById('filter-statut').value;
-                const filterLocalisation = document.getElementById('filter-localisation').value;
-                const filterEtiquetage = document.getElementById('filter-etiquetage').value;
-                const filterNumeroSerie = document.getElementById('filter-numeroSerie').value;
-                const filterUtilisateur = document.getElementById('filter-utilisateur').value;
-                const filterOs = document.getElementById('filter-os').value;
-                const filterVersion = document.getElementById('filter-version').value;
-
-                window.displayedEquipments = window.allEquipments.filter(equipment => {
-                    // Filtre par modèle
-                    if (filterModele && equipment.modele) {
-                        if (!equipment.modele.toLowerCase().includes(filterModele.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par service
-                    if (filterService && equipment.service) {
-                        if (!equipment.service.toLowerCase().includes(filterService.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par commune
-                    if (filterCommune && equipment.commune) {
-                        // Vérifier si c'est un ID ou un nom de commune
-                        const isNumeric = !isNaN(filterCommune);
-                        if (isNumeric) {
-                            // Filtrage par ID
-                            if (equipment.commune.id && equipment.commune.id.toString() !== filterCommune) {
-                                return false;
-                            }
-                        } else {
-                            // Filtrage par nom
-                            if (!equipment.commune.name || !equipment.commune.name.toLowerCase().includes(filterCommune.toLowerCase())) {
-                                return false;
-                            }
-                        }
-                    }
-
-                    // Filtre par statut
-                    if (filterStatut && equipment.statut) {
-                        if (!equipment.statut.toLowerCase().includes(filterStatut.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par localisation
-                    if (filterLocalisation && equipment.localisation) {
-                        if (!equipment.localisation.toLowerCase().includes(filterLocalisation.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par étiquetage
-                    if (filterEtiquetage && equipment.etiquetage) {
-                        if (!equipment.etiquetage.toLowerCase().includes(filterEtiquetage.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par numéro de série
-                    if (filterNumeroSerie && equipment.numeroSerie) {
-                        if (!equipment.numeroSerie.toLowerCase().includes(filterNumeroSerie.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par utilisateur
-                    if (filterUtilisateur && equipment.utilisateur) {
-                        if (!equipment.utilisateur.toLowerCase().includes(filterUtilisateur.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par OS
-                    if (filterOs && equipment.os) {
-                        if (!equipment.os.toLowerCase().includes(filterOs.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    // Filtre par version
-                    if (filterVersion && equipment.version) {
-                        if (!equipment.version.toLowerCase().includes(filterVersion.toLowerCase())) {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                });
-
-                window.renderEquipmentsTable(window.displayedEquipments);
-
-                // Mettre à jour la pagination pour les données filtrées
-                window.totalItems = window.displayedEquipments.length;
-                window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
-                window.currentPage = 1;
-                window.renderEquipmentPagination();
-
-                // Close the modal after applying filters
-                $('#parkFiltersModal').modal('hide');
-            });
-        }
+        // Le filtrage est maintenant géré par equipment.js avec le système côté serveur
 
         // Gestion des exports
         document.addEventListener('DOMContentLoaded', function() {

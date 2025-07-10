@@ -221,8 +221,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            // Préserver le terme de recherche actuel s'il existe
+            const currentSearchTerm = document.querySelector('input[name="search"]')?.value || '';
+
             // Appeler la fonction de chargement des boxs avec les filtres
-            window.loadBoxes(1, '', filters); // Réinitialiser la page à 1, vider le terme de recherche générique
+            window.loadBoxes(1, currentSearchTerm, filters); // Préserver le terme de recherche
             $('#boxFiltersModal').modal('hide'); // Fermer la modale
         });
     }
@@ -233,8 +236,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (boxFilterForm) {
                 boxFilterForm.reset();
             }
-            // Recharger les boxs sans filtres
-            window.loadBoxes(1);
+
+            // Préserver le terme de recherche actuel s'il existe
+            const currentSearchTerm = document.querySelector('input[name="search"]')?.value || '';
+
+            // Recharger les boxs sans filtres mais avec le terme de recherche préservé
+            window.loadBoxes(1, currentSearchTerm, {});
             $('#boxFiltersModal').modal('hide'); // Fermer la modale
         });
     }

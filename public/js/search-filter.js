@@ -104,7 +104,13 @@ function setupPageSearch() {
 
             // Délai pour éviter trop de requêtes
             searchTimeouts['phone-lines'] = setTimeout(() => {
-                performServerSearch(searchTerm, 1, 'phone-lines');
+                // Utiliser la fonction loadPhoneLines qui gère les filtres
+                if (window.loadPhoneLines) {
+                    window.currentSearchTerm = searchTerm;
+                    window.loadPhoneLines(1, searchTerm, window.currentFilters || {});
+                } else {
+                    performServerSearch(searchTerm, 1, 'phone-lines');
+                }
             }, 300);
         });
     }
@@ -123,7 +129,13 @@ function setupPageSearch() {
 
             // Délai pour éviter trop de requêtes
             searchTimeouts['equipment'] = setTimeout(() => {
-                performServerSearch(searchTerm, 1, 'equipment');
+                // Utiliser la fonction loadEquipments qui gère les filtres
+                if (window.loadEquipments) {
+                    window.currentSearchTerm = searchTerm;
+                    window.loadEquipments(1, searchTerm, window.currentFilters || {});
+                } else {
+                    performServerSearch(searchTerm, 1, 'equipment');
+                }
             }, 300);
         });
     }

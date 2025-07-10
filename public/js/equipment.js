@@ -289,7 +289,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Appeler la fonction de chargement des équipements avec les filtres
-            window.loadEquipments(1, '', filters); // Réinitialiser la page à 1, vider le terme de recherche générique
+            // Préserver le terme de recherche actuel
+            window.loadEquipments(1, window.currentSearchTerm || '', filters);
             $('#parkFiltersModal').modal('hide'); // Fermer la modale
         });
     }
@@ -300,8 +301,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (parkFilterForm) {
                 parkFilterForm.reset();
             }
-            // Recharger les équipements sans filtres
-            window.loadEquipments(1);
+            // Recharger les équipements sans filtres mais préserver le terme de recherche
+            window.loadEquipments(1, window.currentSearchTerm || '', {});
             $('#parkFiltersModal').modal('hide'); // Fermer la modale
         });
     }

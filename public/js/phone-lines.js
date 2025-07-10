@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stocker les filtres actifs
             window.currentFilters = filters;
             // Appeler la fonction de chargement des lignes avec les filtres
-            window.loadPhoneLines(1, '', window.currentFilters); // Réinitialiser la page à 1, vider le terme de recherche générique
+            window.loadPhoneLines(1, window.currentSearchTerm || '', window.currentFilters); // Réinitialiser la page à 1, garder le terme de recherche
             $('#lignesFiltersModal').modal('hide'); // Fermer la modale
         });
     }
