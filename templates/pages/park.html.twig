@@ -443,26 +443,98 @@
 
         if (applyParkFiltersButton) {
             applyParkFiltersButton.addEventListener('click', function() {
-                const filterModele = document.getElementById('filter-modele').value.toLowerCase();
-                const filterService = document.getElementById('filter-service').value.toLowerCase();
-                const filterCommune = document.getElementById('filter-commune').value.toLowerCase();
-                const filterStatut = document.getElementById('filter-statut').value.toLowerCase();
+                const filterModele = document.getElementById('filter-modele').value;
+                const filterService = document.getElementById('filter-service').value;
+                const filterCommune = document.getElementById('filter-commune').value;
+                const filterStatut = document.getElementById('filter-statut').value;
+                const filterLocalisation = document.getElementById('filter-localisation').value;
+                const filterEtiquetage = document.getElementById('filter-etiquetage').value;
+                const filterNumeroSerie = document.getElementById('filter-numeroSerie').value;
+                const filterUtilisateur = document.getElementById('filter-utilisateur').value;
+                const filterOs = document.getElementById('filter-os').value;
+                const filterVersion = document.getElementById('filter-version').value;
 
-                displayedEquipments = allEquipments.filter(equipment => {
-                    const matchesModele = filterModele === '' || (equipment.modele && equipment.modele.toLowerCase().includes(filterModele));
-                    const matchesService = filterService === '' || (equipment.service && equipment.service.toLowerCase().includes(filterService));
+                window.displayedEquipments = window.allEquipments.filter(equipment => {
+                    // Filtre par modèle
+                    if (filterModele && equipment.modele) {
+                        if (equipment.modele.toLowerCase() !== filterModele.toLowerCase()) {
+                            return false;
+                        }
+                    }
 
-                    // Pour la commune, vérifier si c'est un objet avec un nom ou juste un ID
-                    const matchesCommune = filterCommune === '' ||
-                        (equipment.commune && typeof equipment.commune === 'object' &&
-                         equipment.commune.id && equipment.commune.id.toString() === filterCommune);
+                    // Filtre par service
+                    if (filterService && equipment.service) {
+                        if (equipment.service.toLowerCase() !== filterService.toLowerCase()) {
+                            return false;
+                        }
+                    }
 
-                    const matchesStatut = filterStatut === '' || (equipment.statut && equipment.statut.toLowerCase() === filterStatut);
+                    // Filtre par commune
+                    if (filterCommune && equipment.commune && equipment.commune.id) {
+                        if (equipment.commune.id.toString() !== filterCommune) {
+                            return false;
+                        }
+                    }
 
-                    return matchesModele && matchesService && matchesCommune && matchesStatut;
+                    // Filtre par statut
+                    if (filterStatut && equipment.statut) {
+                        if (equipment.statut.toLowerCase() !== filterStatut.toLowerCase()) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par localisation
+                    if (filterLocalisation && equipment.localisation) {
+                        if (!equipment.localisation.toLowerCase().includes(filterLocalisation.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par étiquetage
+                    if (filterEtiquetage && equipment.etiquetage) {
+                        if (!equipment.etiquetage.toLowerCase().includes(filterEtiquetage.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par numéro de série
+                    if (filterNumeroSerie && equipment.numeroSerie) {
+                        if (!equipment.numeroSerie.toLowerCase().includes(filterNumeroSerie.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par utilisateur
+                    if (filterUtilisateur && equipment.utilisateur) {
+                        if (!equipment.utilisateur.toLowerCase().includes(filterUtilisateur.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par OS
+                    if (filterOs && equipment.os) {
+                        if (!equipment.os.toLowerCase().includes(filterOs.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par version
+                    if (filterVersion && equipment.version) {
+                        if (!equipment.version.toLowerCase().includes(filterVersion.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 });
 
                 window.renderEquipmentsTable(window.displayedEquipments);
+
+                // Mettre à jour la pagination pour les données filtrées
+                window.totalItems = window.displayedEquipments.length;
+                window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
+                window.currentPage = 1;
+                window.renderEquipmentPagination();
 
                 // Close the modal after applying filters
                 $('#parkFiltersModal').modal('hide');
@@ -511,7 +583,7 @@
                 });
             }
 
-            // Fonction pour récupérer les filtres actifs
+            // Fonction pour récupérer les filtres actifs pour les exports
             function getActiveFilters() {
                 const filters = {};
 
@@ -541,6 +613,31 @@
                     const os = document.getElementById('filter-os');
                     if (os && os.value) {
                         filters.os = os.value;
+                    }
+
+                    const localisation = document.getElementById('filter-localisation');
+                    if (localisation && localisation.value) {
+                        filters.localisation = localisation.value;
+                    }
+
+                    const etiquetage = document.getElementById('filter-etiquetage');
+                    if (etiquetage && etiquetage.value) {
+                        filters.etiquetage = etiquetage.value;
+                    }
+
+                    const numeroSerie = document.getElementById('filter-numeroSerie');
+                    if (numeroSerie && numeroSerie.value) {
+                        filters.numeroSerie = numeroSerie.value;
+                    }
+
+                    const utilisateur = document.getElementById('filter-utilisateur');
+                    if (utilisateur && utilisateur.value) {
+                        filters.utilisateur = utilisateur.value;
+                    }
+
+                    const version = document.getElementById('filter-version');
+                    if (version && version.value) {
+                        filters.version = version.value;
                     }
                 }
 

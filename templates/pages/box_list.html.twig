@@ -461,26 +461,66 @@
 
         if (applyBoxFiltersButton) {
             applyBoxFiltersButton.addEventListener('click', function() {
-                const filterType = document.getElementById('filter-type').value.toLowerCase();
-                const filterService = document.getElementById('filter-service').value.toLowerCase();
-                const filterMunicipality = document.getElementById('filter-municipality').value.toLowerCase();
-                const filterStatus = document.getElementById('filter-status').value.toLowerCase();
-                const filterAdresse = document.getElementById('filter-adresse').value.toLowerCase();
-                const filterLigneSupport = document.getElementById('filter-ligne_support').value.toLowerCase();
+                const filterType = document.getElementById('filter-type').value;
+                const filterService = document.getElementById('filter-service').value;
+                const filterMunicipality = document.getElementById('filter-municipality').value;
+                const filterStatus = document.getElementById('filter-status').value;
+                const filterAdresse = document.getElementById('filter-adresse').value;
+                const filterLigneSupport = document.getElementById('filter-ligne_support').value;
 
+                window.displayedBoxes = window.allBoxes.filter(box => {
+                    // Filtre par type
+                    if (filterType && box.type) {
+                        if (box.type.toLowerCase() !== filterType.toLowerCase()) {
+                            return false;
+                        }
+                    }
 
-                displayedBoxes = allBoxes.filter(box => {
-                    const matchesType = filterType === '' || (box.type && box.type.toLowerCase().includes(filterType));
-                    const matchesService = filterService === '' || (box.service && box.service.toLowerCase().includes(filterService));
-                    const matchesMunicipality = filterMunicipality === '' || (box.commune && box.commune.toLowerCase().includes(filterMunicipality));
-                    const matchesStatus = filterStatus === '' || (box.statut && box.statut.toLowerCase().includes(filterStatus));
-                    const matchesAdresse = filterAdresse === '' || (box.adresse && box.adresse.toLowerCase().includes(filterAdresse));
-                    const matchesLigneSupport = filterLigneSupport === '' || (box.ligne_support && box.ligne_support.toLowerCase().includes(filterLigneSupport));
+                    // Filtre par service
+                    if (filterService && box.service) {
+                        if (!box.service.toLowerCase().includes(filterService.toLowerCase())) {
+                            return false;
+                        }
+                    }
 
-                    return matchesType && matchesMunicipality && matchesStatus && matchesService && matchesAdresse && matchesLigneSupport;
+                    // Filtre par commune
+                    if (filterMunicipality && box.commune) {
+                        if (box.commune.toLowerCase() !== filterMunicipality.toLowerCase()) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par statut
+                    if (filterStatus && box.statut) {
+                        if (box.statut.toLowerCase() !== filterStatus.toLowerCase()) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par adresse
+                    if (filterAdresse && box.adresse) {
+                        if (!box.adresse.toLowerCase().includes(filterAdresse.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    // Filtre par ligne support
+                    if (filterLigneSupport && box.ligne_support) {
+                        if (!box.ligne_support.toLowerCase().includes(filterLigneSupport.toLowerCase())) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 });
 
                 window.renderBoxesTable(window.displayedBoxes);
+
+                // Mettre à jour la pagination pour les données filtrées
+                window.totalItems = window.displayedBoxes.length;
+                window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
+                window.currentPage = 1;
+                window.renderBoxPagination();
 
                 // Close the modal after applying filters
                 $('#boxFiltersModal').modal('hide');
@@ -536,9 +576,9 @@
                 // Récupérer les filtres depuis le formulaire de filtres
                 const filterForm = document.getElementById('box-filter-form');
                 if (filterForm) {
-                    const commune = document.getElementById('filter-commune');
+                    const commune = document.getElementById('filter-municipality');
                     if (commune && commune.value) {
-                        filters.commune = commune.value;
+                        filters.municipality = commune.value;
                     }
 
                     const service = document.getElementById('filter-service');
@@ -551,9 +591,19 @@
                         filters.type = type.value;
                     }
 
-                    const statut = document.getElementById('filter-statut');
+                    const statut = document.getElementById('filter-status');
                     if (statut && statut.value) {
-                        filters.statut = statut.value;
+                        filters.status = statut.value;
+                    }
+
+                    const adresse = document.getElementById('filter-adresse');
+                    if (adresse && adresse.value) {
+                        filters.adresse = adresse.value;
+                    }
+
+                    const ligneSupport = document.getElementById('filter-ligne_support');
+                    if (ligneSupport && ligneSupport.value) {
+                        filters.ligne_support = ligneSupport.value;
                     }
                 }
 

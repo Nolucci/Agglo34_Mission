@@ -490,7 +490,6 @@ class BoxController extends AbstractController
                 'Adresse',
                 'Ligne Support',
                 'Type',
-                'Attribué à',
                 'Statut'
             ], ';');
 
@@ -503,7 +502,6 @@ class BoxController extends AbstractController
                     $box->getAdresse(),
                     $box->getLigneSupport() ?: 'Non défini',
                     $box->getType() ?: 'Non défini',
-                    //                    $box->getAttribueA() ?: 'Non défini',
                     $box->getStatut() ?: 'Non défini'
                 ], ';');
             }

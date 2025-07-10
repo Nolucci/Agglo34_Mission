@@ -459,36 +459,51 @@
                 });
             }
 
-            // Fonction pour récupérer les filtres actifs
+            // Fonction pour récupérer les filtres actifs pour les exports
             function getActiveFilters() {
                 const filters = {};
 
                 // Récupérer les filtres depuis le formulaire de filtres
-                const filterForm = document.getElementById('lines-filter-form');
+                const filterForm = document.getElementById('lignesFiltersForm');
                 if (filterForm) {
-                    const municipality = document.getElementById('filter-municipality');
+                    const municipality = document.getElementById('municipalityFilter');
                     if (municipality && municipality.value) {
                         filters.municipality = municipality.value;
                     }
 
-                    const service = document.getElementById('filter-service');
+                    const service = document.getElementById('serviceFilter');
                     if (service && service.value) {
                         filters.service = service.value;
                     }
 
-                    const operator = document.getElementById('filter-operator');
+                    const operator = document.getElementById('operatorFilter');
                     if (operator && operator.value) {
                         filters.operator = operator.value;
                     }
 
-                    const lineType = document.getElementById('filter-line-type');
+                    const lineType = document.getElementById('lineTypeFilter');
                     if (lineType && lineType.value) {
                         filters.lineType = lineType.value;
                     }
 
-                    const isWorking = document.getElementById('filter-is-working');
-                    if (isWorking && isWorking.value) {
-                        filters.isWorking = isWorking.value;
+                    const location = document.getElementById('locationFilter');
+                    if (location && location.value) {
+                        filters.location = location.value;
+                    }
+
+                    const assignedTo = document.getElementById('assignedToFilter');
+                    if (assignedTo && assignedTo.value) {
+                        filters.assignedTo = assignedTo.value;
+                    }
+
+                    const directLine = document.getElementById('directLineFilter');
+                    if (directLine && directLine.value) {
+                        filters.directLine = directLine.value;
+                    }
+
+                    const shortNumber = document.getElementById('shortNumberFilter');
+                    if (shortNumber && shortNumber.value) {
+                        filters.shortNumber = shortNumber.value;
                     }
                 }
 
@@ -507,46 +522,76 @@
 
     if (applyFiltersBtn) {
         applyFiltersBtn.addEventListener('click', function() {
-            const formData = new FormData(filtersForm);
-            const filters = {};
+            const filters = getActiveFilters();
 
-            for (let [key, value] of formData.entries()) {
-                if (value) {
-                    filters[key] = value;
-                }
-            }
-
-            displayedPhoneLines = allPhoneLines.filter(line => {
-                let passesFilter = true;
-                for (const key in filters) {
-                    const filterValue = filters[key];
-                    const lineValue = line[key];
-
-                    if (key === 'isWorking') {
-                        const filterBoolean = filterValue === '1';
-                        if (lineValue !== filterBoolean) {
-                            passesFilter = false;
-                            break;
-                        }
-                    } else if (key === 'municipality') {
-                        if (lineValue === null || lineValue.id.toString() !== filterValue) {
-                            passesFilter = false;
-                            break;
-                        }
-                    }
-                    else if (lineValue === null || lineValue === undefined) {
-                         passesFilter = false;
-                         break;
-                    }
-                    else if (lineValue.toString().toLowerCase() !== filterValue.toLowerCase()) {
-                        passesFilter = false;
-                        break;
+            window.displayedPhoneLines = window.allPhoneLines.filter(line => {
+                // Filtre par commune
+                if (filters.municipality && line.municipality && line.municipality.id) {
+                    if (line.municipality.id.toString() !== filters.municipality) {
+                        return false;
                     }
                 }
-                return passesFilter;
+
+                // Filtre par service
+                if (filters.service && line.service) {
+                    if (line.service.toLowerCase() !== filters.service.toLowerCase()) {
+                        return false;
+                    }
+                }
+
+                // Filtre par opérateur
+                if (filters.operator && line.operator) {
+                    if (line.operator.toLowerCase() !== filters.operator.toLowerCase()) {
+                        return false;
+                    }
+                }
+
+                // Filtre par type de ligne
+                if (filters.lineType && line.lineType) {
+                    if (line.lineType.toLowerCase() !== filters.lineType.toLowerCase()) {
+                        return false;
+                    }
+                }
+
+                // Filtre par localisation
+                if (filters.location && line.location) {
+                    if (!line.location.toLowerCase().includes(filters.location.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                // Filtre par attribué à
+                if (filters.assignedTo && line.assignedTo) {
+                    if (!line.assignedTo.toLowerCase().includes(filters.assignedTo.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                // Filtre par ligne directe
+                if (filters.directLine && line.directLine) {
+                    if (!line.directLine.toLowerCase().includes(filters.directLine.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                // Filtre par numéro court
+                if (filters.shortNumber && line.shortNumber) {
+                    if (!line.shortNumber.toLowerCase().includes(filters.shortNumber.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                return true;
             });
 
-            renderLinesTable(displayedPhoneLines);
+            window.renderLinesTable(window.displayedPhoneLines);
+
+            // Mettre à jour la pagination pour les données filtrées
+            window.totalItems = window.displayedPhoneLines.length;
+            window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
+            window.currentPage = 1;
+            window.renderPagination();
+
             $('#lignesFiltersModal').modal('hide');
         });
     }
@@ -554,8 +599,15 @@
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener('click', function() {
             filtersForm.reset();
-            displayedPhoneLines = [...allPhoneLines];
-            renderLinesTable(displayedPhoneLines);
+            window.displayedPhoneLines = [...window.allPhoneLines];
+            window.renderLinesTable(window.displayedPhoneLines);
+
+            // Restaurer la pagination originale
+            window.totalItems = window.allPhoneLines.length;
+            window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
+            window.currentPage = 1;
+            window.renderPagination();
+
             $('#lignesFiltersModal').modal('hide');
         });
     }

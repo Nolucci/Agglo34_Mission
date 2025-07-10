@@ -75,32 +75,38 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label for="filter-localisation">Lieu</label>
+                                <input type="text" class="form-control" id="filter-localisation" name="localisation" placeholder="Filtrer par lieu">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label for="filter-etiquetage">Étiquetage</label>
                                 <input type="text" class="form-control" id="filter-etiquetage" name="etiquetage" placeholder="Filtrer par étiquetage">
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="filter-numeroSerie">Numéro de série</label>
                                 <input type="text" class="form-control" id="filter-numeroSerie" name="numeroSerie" placeholder="Filtrer par numéro de série">
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="filter-utilisateur">Utilisateur</label>
                                 <input type="text" class="form-control" id="filter-utilisateur" name="utilisateur" placeholder="Filtrer par utilisateur">
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="filter-os">Système d'exploitation</label>
                                 <input type="text" class="form-control" id="filter-os" name="os" placeholder="Filtrer par OS">
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="filter-version">Version</label>
@@ -169,6 +175,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else if (key === 'service') {
                         const filterValue = filters[key];
                         if (filterValue !== '' && (!equipment.service || equipment.service.toLowerCase() !== filterValue)) {
+                            passesFilter = false;
+                            break;
+                        }
+                    } else if (key === 'localisation') {
+                        const filterValue = filters[key];
+                        if (filterValue !== '' && (!equipment.localisation || !equipment.localisation.toLowerCase().includes(filterValue))) {
                             passesFilter = false;
                             break;
                         }
