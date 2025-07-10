@@ -120,6 +120,17 @@ class BoxRepository extends ServiceEntityRepository
      */
     private function applyFilters(\Doctrine\ORM\QueryBuilder $qb, array $filters): void
     {
+        if (isset($filters['municipality']) && $filters['municipality'] !== '') {
+            // Si c'est un ID numérique, filtrer par ID
+            if (is_numeric($filters['municipality'])) {
+                $qb->andWhere('m.id = :municipalityId')
+                   ->setParameter('municipalityId', $filters['municipality']);
+            } else {
+                // Sinon, filtrer par nom (recherche partielle insensible à la casse)
+                $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
+                   ->setParameter('municipalityName', '%' . strtolower($filters['municipality']) . '%');
+            }
+        }
         if (isset($filters['municipalityName']) && $filters['municipalityName'] !== '') {
             $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
                ->setParameter('municipalityName', '%' . strtolower($filters['municipalityName']) . '%');

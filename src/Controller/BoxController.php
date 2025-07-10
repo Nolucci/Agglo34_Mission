@@ -563,8 +563,12 @@ class BoxController extends AbstractController
         $filters = [];
 
         // Récupérer les filtres depuis les paramètres de la requête
+        // Support pour 'commune' (ancien) et 'municipality' (nouveau)
         if ($request->query->has('commune')) {
-            $filters['commune'] = $request->query->get('commune');
+            $filters['municipality'] = $request->query->get('commune');
+        }
+        if ($request->query->has('municipality')) {
+            $filters['municipality'] = $request->query->get('municipality');
         }
 
         if ($request->query->has('service')) {
@@ -590,8 +594,8 @@ class BoxController extends AbstractController
         $criteria = [];
 
         // Construire les critères de recherche en fonction des filtres
-        if (isset($filters['commune']) && !empty($filters['commune'])) {
-            $commune = $this->municipalityRepository->find($filters['commune']);
+        if (isset($filters['municipality']) && !empty($filters['municipality'])) {
+            $commune = $this->municipalityRepository->find($filters['municipality']);
             if ($commune) {
                 $criteria['commune'] = $commune;
             }
