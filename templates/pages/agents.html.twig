@@ -172,9 +172,29 @@
                                 <form id="addToWhitelistForm">
                                     <div class="form-group">
                                         <label for="ldapUsername">Nom d'utilisateur LDAP :</label>
-                                        <input type="text" class="form-control" id="ldapUsername" name="ldapUsername" required>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="ldapUsername" name="ldapUsername" required>
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-outline-secondary" id="testLdapBtn">
+                                                    <i class="fa fa-search"></i> Tester
+                                                </button>
+                                            </div>
+                                        </div>
                                         <small class="form-text text-muted">Vérification automatique dans LDAP</small>
                                     </div>
+
+                                    <div class="form-group">
+                                        <label for="userName">Nom complet :</label>
+                                        <input type="text" class="form-control" id="userName" name="name">
+                                        <small class="form-text text-muted">Sera récupéré automatiquement depuis LDAP si disponible</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="userEmail">Email :</label>
+                                        <input type="email" class="form-control" id="userEmail" name="email">
+                                        <small class="form-text text-muted">Sera récupéré automatiquement depuis LDAP si disponible</small>
+                                    </div>
+
                                     <div class="form-group">
                                         <label for="initialRole">Rôle initial :</label>
                                         <select class="form-control" id="initialRole" name="initialRole">
@@ -186,6 +206,9 @@
                                             <option value="ROLE_ADMIN">Administrateur</option>
                                         </select>
                                     </div>
+
+                                    <div id="ldapTestResult" class="alert" style="display: none;"></div>
+
                                     <button type="submit" class="btn btn-success">
                                         <i class="fa fa-plus"></i> Ajouter
                                     </button>
@@ -197,7 +220,9 @@
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
-                                                <th>Utilisateur</th>
+                                                <th>Nom d'utilisateur LDAP</th>
+                                                <th>Nom</th>
+                                                <th>Email</th>
                                                 <th>Statut</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -317,28 +342,42 @@
                 const tbody = $('#whitelistTable');
                 tbody.empty();
 
+                if (!users || users.length === 0) {
+                    const emptyRow = `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                Aucun utilisateur dans la whitelist
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(emptyRow);
+                    return;
+                }
+
                 users.forEach(function(user) {
                     const statusBadge = !user.is_active ?
                         '<span class="badge badge-dark">Désactivé</span>' :
                         '<span class="badge badge-success">Actif</span>';
 
                     const actionButtons = !user.is_active ?
-                        `<button class="btn btn-xs btn-success reactivate-user mr-1" data-username="${user.ldapUsername}" title="Réactiver">
+                        `<button class="btn btn-xs btn-success reactivate-user mr-1" data-username="${user.ldap_username}" title="Réactiver">
                             <i class="fa fa-check"></i>
                         </button>
-                        <button class="btn btn-xs btn-danger remove-user" data-username="${user.ldapUsername}" title="Supprimer">
+                        <button class="btn btn-xs btn-danger remove-user" data-username="${user.ldap_username}" title="Supprimer">
                             <i class="fa fa-trash"></i>
                         </button>` :
-                        `<button class="btn btn-xs btn-warning disable-user mr-1" data-username="${user.ldapUsername}" title="Désactiver">
+                        `<button class="btn btn-xs btn-warning disable-user mr-1" data-username="${user.ldap_username}" title="Désactiver">
                             <i class="fa fa-ban"></i>
                         </button>
-                        <button class="btn btn-xs btn-danger remove-user" data-username="${user.ldapUsername}" title="Supprimer">
+                        <button class="btn btn-xs btn-danger remove-user" data-username="${user.ldap_username}" title="Supprimer">
                             <i class="fa fa-trash"></i>
                         </button>`;
 
                     const row = `
-                        <tr data-username="${user.ldapUsername}">
-                            <td>${user.ldapUsername}</td>
+                        <tr data-username="${user.ldap_username}" class="${!user.is_active ? 'table-secondary' : ''}">
+                            <td><strong>${user.ldap_username}</strong></td>
+                            <td>${user.name || '-'}</td>
+                            <td>${user.email || '-'}</td>
                             <td>${statusBadge}</td>
                             <td>
                                 ${actionButtons}
@@ -349,12 +388,66 @@
                 });
             }
 
+            // Test LDAP
+            $('#testLdapBtn').on('click', function() {
+                const username = $('#ldapUsername').val();
+                if (!username) {
+                    alert('Veuillez saisir un nom d\'utilisateur');
+                    return;
+                }
+
+                const btn = $(this);
+                const originalText = btn.html();
+                btn.html('<i class="fa fa-spinner fa-spin"></i> Test...');
+                btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '/admin/whitelist/test-ldap-user',
+                    method: 'POST',
+                    data: { ldapUsername: username },
+                    success: function(data) {
+                        const resultDiv = $('#ldapTestResult');
+                        resultDiv.show();
+
+                        if (data.success && data.user_exists) {
+                            resultDiv.removeClass('alert-warning alert-danger').addClass('alert-success');
+                            resultDiv.html('<i class="fa fa-check"></i> ' + data.message);
+
+                            // Remplir automatiquement les champs
+                            if (data.user_info) {
+                                if (data.user_info.name) {
+                                    $('#userName').val(data.user_info.name);
+                                }
+                                if (data.user_info.email) {
+                                    $('#userEmail').val(data.user_info.email);
+                                }
+                            }
+                        } else {
+                            resultDiv.removeClass('alert-success alert-danger').addClass('alert-warning');
+                            resultDiv.html('<i class="fa fa-exclamation-triangle"></i> ' + data.message);
+                        }
+                    },
+                    error: function() {
+                        const resultDiv = $('#ldapTestResult');
+                        resultDiv.show();
+                        resultDiv.removeClass('alert-success alert-warning').addClass('alert-danger');
+                        resultDiv.html('<i class="fa fa-times"></i> Erreur lors du test LDAP');
+                    },
+                    complete: function() {
+                        btn.html(originalText);
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+
             // Ajouter un utilisateur à la whitelist
             $('#addToWhitelistForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const formData = {
                     ldapUsername: $('#ldapUsername').val(),
+                    name: $('#userName').val(),
+                    email: $('#userEmail').val(),
                     role: $('#initialRole').val()
                 };
 
@@ -365,6 +458,7 @@
                     success: function(response) {
                         if (response.success) {
                             $('#addToWhitelistForm')[0].reset();
+                            $('#ldapTestResult').hide();
                             loadWhitelistUsers();
                             alert('Utilisateur ajouté avec succès');
                         } else {
