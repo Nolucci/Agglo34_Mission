@@ -333,53 +333,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Gestion des filtres
-document.addEventListener('DOMContentLoaded', function() {
-    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-    const lignesFiltersForm = document.getElementById('lignesFiltersForm');
-
-    if (applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', function() {
-            const filters = {};
-            // Récupérer les valeurs des champs de filtre
-            const operator = document.getElementById('operatorFilter').value;
-            const lineType = document.getElementById('lineTypeFilter').value;
-            const service = document.getElementById('serviceFilter').value;
-            const municipality = document.getElementById('municipalityFilter').value;
-            const location = document.getElementById('locationFilter').value;
-            const assignedTo = document.getElementById('assignedToFilter').value;
-            const directLine = document.getElementById('directLineFilter').value;
-            const shortNumber = document.getElementById('shortNumberFilter').value;
-
-            if (operator) filters.operator = operator;
-            if (lineType) filters.lineType = lineType;
-            if (service) filters.service = service;
-            if (municipality) filters.municipality = municipality;
-            if (location) filters.location = location;
-            if (assignedTo) filters.assignedTo = assignedTo;
-            if (directLine) filters.directLine = directLine;
-            if (shortNumber) filters.shortNumber = shortNumber;
-
-            // Stocker les filtres actifs
-            window.currentFilters = filters;
-            // Appeler la fonction de chargement des lignes avec les filtres
-            window.loadPhoneLines(1, window.currentSearchTerm || '', window.currentFilters); // Réinitialiser la page à 1, garder le terme de recherche
-            $('#lignesFiltersModal').modal('hide'); // Fermer la modale
-        });
-    }
-
-    if (resetFiltersBtn) {
-        resetFiltersBtn.addEventListener('click', function() {
-            // Réinitialiser le formulaire de filtres
-            if (lignesFiltersForm) {
-                lignesFiltersForm.reset();
-            }
-            // Réinitialiser les filtres actifs
-            window.currentFilters = {};
-            // Recharger les lignes sans filtres
-            window.loadPhoneLines(1);
-            $('#lignesFiltersModal').modal('hide'); // Fermer la modale
-        });
-    }
-});
+// La gestion des filtres a été déplacée dans lines.html.twig pour éviter les conflits
+// et utiliser une approche côté serveur plus efficace
