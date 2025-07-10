@@ -46,6 +46,10 @@ echo "🔐 Configuration des permissions..."
 chown -R www-data:www-data /var/www/html/var
 chmod -R 775 /var/www/html/var
 
+# Configurer les permissions pour .env.local
+chown www-data:www-data /var/www/html/.env.local
+chmod 664 /var/www/html/.env.local
+
 echo "🎉 Initialisation terminée avec succès !"
 
 # Exécuter la commande passée en paramètre (php-fpm par défaut)

@@ -36,29 +36,35 @@
                             </thead>
                             <tbody>
                                 {% for user in users %}
-                                    <tr data-username="{{ user.ldapUsername }}" class="{% if not user.isActive %}table-secondary{% endif %}">
+                                    <tr data-username="{{ user.ldap_username }}" class="{% if not user.is_active %}table-secondary{% endif %}">
                                         <td>
-                                            <strong>{{ user.ldapUsername }}</strong>
+                                            <strong>{{ user.ldap_username }}</strong>
                                         </td>
                                         <td>{{ user.name ?? '-' }}</td>
                                         <td>{{ user.email ?? '-' }}</td>
                                         <td>
-                                            {% if user.isActive %}
+                                            {% if user.is_active %}
                                                 <span class="badge bg-success">Actif</span>
                                             {% else %}
                                                 <span class="badge bg-danger">Désactivé</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ user.createdAt|date('d/m/Y H:i') }}</td>
+                                        <td>{{ user.createdAt ? user.createdAt|date('d/m/Y H:i') : '-' }}</td>
                                         <td>{{ user.createdBy ? user.createdBy.name : '-' }}</td>
                                         <td>
-                                            {% if user.isActive %}
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('{{ user.ldapUsername }}')">
+                                            {% if user.is_active %}
+                                                <button type="button" class="btn btn-sm btn-warning me-1" onclick="disableUser('{{ user.ldap_username }}')">
                                                     <i class="fas fa-ban"></i> Désactiver
                                                 </button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('{{ user.ldap_username }}')">
+                                                    <i class="fas fa-trash"></i> Supprimer
+                                                </button>
                                             {% else %}
-                                                <button type="button" class="btn btn-sm btn-success" onclick="activateUser('{{ user.ldapUsername }}')">
+                                                <button type="button" class="btn btn-sm btn-success me-1" onclick="reactivateUser('{{ user.ldap_username }}')">
                                                     <i class="fas fa-check"></i> Réactiver
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="removeUser('{{ user.ldap_username }}')">
+                                                    <i class="fas fa-trash"></i> Supprimer
                                                 </button>
                                             {% endif %}
                                         </td>
@@ -190,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formData = new FormData(this);
 
-        fetch('{{ path('admin_whitelist_add') }}', {
+        fetch('{{ path('admin_whitelist_api_add') }}', {
             method: 'POST',
             body: formData
         })
@@ -208,10 +214,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function removeUser(username) {
+function disableUser(username) {
     if (confirm('Êtes-vous sûr de vouloir désactiver cet utilisateur ?')) {
-        fetch(`{{ path('admin_whitelist_remove', {ldapUsername: '__USERNAME__'}) }}`.replace('__USERNAME__', encodeURIComponent(username)), {
-            method: 'POST'
+        const formData = new FormData();
+        formData.append('ldapUsername', username);
+
+        fetch('{{ path('admin_whitelist_api_disable') }}', {
+            method: 'POST',
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -227,10 +237,14 @@ function removeUser(username) {
     }
 }
 
-function activateUser(username) {
+function reactivateUser(username) {
     if (confirm('Êtes-vous sûr de vouloir réactiver cet utilisateur ?')) {
-        fetch(`{{ path('admin_whitelist_activate', {ldapUsername: '__USERNAME__'}) }}`.replace('__USERNAME__', encodeURIComponent(username)), {
-            method: 'POST'
+        const formData = new FormData();
+        formData.append('ldapUsername', username);
+
+        fetch('{{ path('admin_whitelist_api_reactivate') }}', {
+            method: 'POST',
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -242,6 +256,29 @@ function activateUser(username) {
         })
         .catch(error => {
             alert('Erreur lors de la réactivation de l\'utilisateur');
+        });
+    }
+}
+
+function removeUser(username) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur de la whitelist ?')) {
+        const formData = new FormData();
+        formData.append('ldapUsername', username);
+
+        fetch('{{ path('admin_whitelist_api_remove') }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur lors de la suppression de l\'utilisateur');
         });
     }
 }

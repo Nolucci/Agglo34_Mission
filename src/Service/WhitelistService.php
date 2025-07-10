@@ -111,7 +111,9 @@ class WhitelistService
                 'email' => $entry->getEmail() ?: ($user ? $user->getEmail() : null),
                 'is_disabled' => $user ? $user->isDisabled() : false,
                 'last_login_at' => $user ? $user->getLastLoginAt() : null,
-                'is_active' => $entry->isActive()
+                'is_active' => $entry->isActive(),
+                'createdAt' => $entry->getCreatedAt(),
+                'createdBy' => $entry->getCreatedBy()
             ];
         }
 

@@ -25,6 +25,9 @@ RUN composer install --no-scripts --no-autoloader --optimize-autoloader
 # Copie du reste des fichiers de l'application
 COPY . .
 
+# Créer .env.local et définir les permissions
+RUN touch .env.local && chown www-data:www-data .env.local && chmod 664 .env.local
+
 # Configuration Git pour éviter l'erreur de propriété douteuse
 RUN git config --global --add safe.directory /var/www/html
 

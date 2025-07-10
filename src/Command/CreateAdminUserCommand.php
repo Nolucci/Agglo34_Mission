@@ -56,7 +56,7 @@ class CreateAdminUserCommand extends Command
         }
 
         // Vérifier si l'utilisateur existe déjà
-        $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
+        $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['name' => $username]);
         if ($existingUser) {
             $io->warning(sprintf('L\'utilisateur "%s" existe déjà.', $username));
 
@@ -70,9 +70,10 @@ class CreateAdminUserCommand extends Command
         }
 
         // Configuration de l'utilisateur
-        $user->setUsername($username);
+        $user->setName($username);
         $user->setEmail($email);
         $user->setRoles(['ROLE_ADMIN']);
+        $user->setCreatedAt(new \DateTimeImmutable());
 
         // Hashage du mot de passe
         $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
