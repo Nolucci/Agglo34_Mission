@@ -207,15 +207,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newRow = `
                     <tr data-username="${data.user.ldap_username}" class="${data.user.is_active ? '' : 'table-secondary'}">
                         <td><strong>${data.user.ldap_username}</strong></td>
-                        <td>${data.user.name ?? '-'}</td>
-                        <td>${data.user.email ?? '-'}</td>
+                        <td>${data.user.name || '-'}</td>
+                        <td>${data.user.email || '-'}</td>
                         <td>
                             <span class="badge bg-${data.user.is_active ? 'success' : 'danger'}">
                                 ${data.user.is_active ? 'Actif' : 'Désactivé'}
                             </span>
                         </td>
-                        <td>${data.user.createdAt}</td>
-                        <td>${data.user.createdBy}</td>
+                        <td>${data.user.createdAt || '-'}</td>
+                        <td>${data.user.createdBy || '-'}</td>
                         <td>
                             ${data.user.is_active ? `
                                 <button type="button" class="btn btn-sm btn-warning me-1" onclick="disableUser('${data.user.ldap_username}')">

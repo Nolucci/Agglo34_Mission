@@ -107,8 +107,8 @@ class WhitelistService
 
             $users[] = [
                 'ldap_username' => $entry->getLdapUsername(),
-                'name' => $entry->getName() ?: ($user ? $user->getName() : null),
-                'email' => $entry->getEmail() ?: ($user ? $user->getEmail() : null),
+                'name' => $entry->getName() ?? ($user ? $user->getName() : null),
+                'email' => $entry->getEmail() ?? ($user ? $user->getEmail() : null),
                 'is_disabled' => $user ? $user->isDisabled() : false,
                 'last_login_at' => $user ? $user->getLastLoginAt() : null,
                 'is_active' => $entry->isActive(),
