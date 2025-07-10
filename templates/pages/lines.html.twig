@@ -459,57 +459,58 @@
                 });
             }
 
-            // Fonction pour récupérer les filtres actifs pour les exports
-            function getActiveFilters() {
-                const filters = {};
+        });
 
-                // Récupérer les filtres depuis le formulaire de filtres
-                const filterForm = document.getElementById('lignesFiltersForm');
-                if (filterForm) {
-                    const municipality = document.getElementById('municipalityFilter');
-                    if (municipality && municipality.value) {
-                        filters.municipality = municipality.value;
-                    }
+        // Fonction pour récupérer les filtres actifs pour les exports (accessible globalement)
+        function getActiveFilters() {
+            const filters = {};
 
-                    const service = document.getElementById('serviceFilter');
-                    if (service && service.value) {
-                        filters.service = service.value;
-                    }
-
-                    const operator = document.getElementById('operatorFilter');
-                    if (operator && operator.value) {
-                        filters.operator = operator.value;
-                    }
-
-                    const lineType = document.getElementById('lineTypeFilter');
-                    if (lineType && lineType.value) {
-                        filters.lineType = lineType.value;
-                    }
-
-                    const location = document.getElementById('locationFilter');
-                    if (location && location.value) {
-                        filters.location = location.value;
-                    }
-
-                    const assignedTo = document.getElementById('assignedToFilter');
-                    if (assignedTo && assignedTo.value) {
-                        filters.assignedTo = assignedTo.value;
-                    }
-
-                    const directLine = document.getElementById('directLineFilter');
-                    if (directLine && directLine.value) {
-                        filters.directLine = directLine.value;
-                    }
-
-                    const shortNumber = document.getElementById('shortNumberFilter');
-                    if (shortNumber && shortNumber.value) {
-                        filters.shortNumber = shortNumber.value;
-                    }
+            // Récupérer les filtres depuis le formulaire de filtres
+            const filterForm = document.getElementById('lignesFiltersForm');
+            if (filterForm) {
+                const municipality = document.getElementById('municipalityFilter');
+                if (municipality && municipality.value) {
+                    filters.municipality = municipality.value;
                 }
 
-                return filters;
+                const service = document.getElementById('serviceFilter');
+                if (service && service.value) {
+                    filters.service = service.value;
+                }
+
+                const operator = document.getElementById('operatorFilter');
+                if (operator && operator.value) {
+                    filters.operator = operator.value;
+                }
+
+                const lineType = document.getElementById('lineTypeFilter');
+                if (lineType && lineType.value) {
+                    filters.lineType = lineType.value;
+                }
+
+                const location = document.getElementById('locationFilter');
+                if (location && location.value) {
+                    filters.location = location.value;
+                }
+
+                const assignedTo = document.getElementById('assignedToFilter');
+                if (assignedTo && assignedTo.value) {
+                    filters.assignedTo = assignedTo.value;
+                }
+
+                const directLine = document.getElementById('directLineFilter');
+                if (directLine && directLine.value) {
+                    filters.directLine = directLine.value;
+                }
+
+                const shortNumber = document.getElementById('shortNumberFilter');
+                if (shortNumber && shortNumber.value) {
+                    filters.shortNumber = shortNumber.value;
+                }
             }
-        });
+
+            return filters;
+        }
         document.addEventListener('DOMContentLoaded', function() {
             renderLinesTable(displayedPhoneLines);
 

@@ -583,67 +583,68 @@
                 });
             }
 
-            // Fonction pour récupérer les filtres actifs pour les exports
-            function getActiveFilters() {
-                const filters = {};
+        });
 
-                // Récupérer les filtres depuis le formulaire de filtres
-                const filterForm = document.getElementById('park-filter-form');
-                if (filterForm) {
-                    const commune = document.getElementById('filter-commune');
-                    if (commune && commune.value) {
-                        filters.commune = commune.value;
-                    }
+        // Fonction pour récupérer les filtres actifs pour les exports (accessible globalement)
+        function getActiveFilters() {
+            const filters = {};
 
-                    const service = document.getElementById('filter-service');
-                    if (service && service.value) {
-                        filters.service = service.value;
-                    }
-
-                    const modele = document.getElementById('filter-modele');
-                    if (modele && modele.value) {
-                        filters.modele = modele.value;
-                    }
-
-                    const statut = document.getElementById('filter-statut');
-                    if (statut && statut.value) {
-                        filters.statut = statut.value;
-                    }
-
-                    const os = document.getElementById('filter-os');
-                    if (os && os.value) {
-                        filters.os = os.value;
-                    }
-
-                    const localisation = document.getElementById('filter-localisation');
-                    if (localisation && localisation.value) {
-                        filters.localisation = localisation.value;
-                    }
-
-                    const etiquetage = document.getElementById('filter-etiquetage');
-                    if (etiquetage && etiquetage.value) {
-                        filters.etiquetage = etiquetage.value;
-                    }
-
-                    const numeroSerie = document.getElementById('filter-numeroSerie');
-                    if (numeroSerie && numeroSerie.value) {
-                        filters.numeroSerie = numeroSerie.value;
-                    }
-
-                    const utilisateur = document.getElementById('filter-utilisateur');
-                    if (utilisateur && utilisateur.value) {
-                        filters.utilisateur = utilisateur.value;
-                    }
-
-                    const version = document.getElementById('filter-version');
-                    if (version && version.value) {
-                        filters.version = version.value;
-                    }
+            // Récupérer les filtres depuis le formulaire de filtres
+            const filterForm = document.getElementById('park-filter-form');
+            if (filterForm) {
+                const commune = document.getElementById('filter-commune');
+                if (commune && commune.value) {
+                    filters.commune = commune.value;
                 }
 
-                return filters;
+                const service = document.getElementById('filter-service');
+                if (service && service.value) {
+                    filters.service = service.value;
+                }
+
+                const modele = document.getElementById('filter-modele');
+                if (modele && modele.value) {
+                    filters.modele = modele.value;
+                }
+
+                const statut = document.getElementById('filter-statut');
+                if (statut && statut.value) {
+                    filters.statut = statut.value;
+                }
+
+                const os = document.getElementById('filter-os');
+                if (os && os.value) {
+                    filters.os = os.value;
+                }
+
+                const localisation = document.getElementById('filter-localisation');
+                if (localisation && localisation.value) {
+                    filters.localisation = localisation.value;
+                }
+
+                const etiquetage = document.getElementById('filter-etiquetage');
+                if (etiquetage && etiquetage.value) {
+                    filters.etiquetage = etiquetage.value;
+                }
+
+                const numeroSerie = document.getElementById('filter-numeroSerie');
+                if (numeroSerie && numeroSerie.value) {
+                    filters.numeroSerie = numeroSerie.value;
+                }
+
+                const utilisateur = document.getElementById('filter-utilisateur');
+                if (utilisateur && utilisateur.value) {
+                    filters.utilisateur = utilisateur.value;
+                }
+
+                const version = document.getElementById('filter-version');
+                if (version && version.value) {
+                    filters.version = version.value;
+                }
             }
-        });
+
+            return filters;
+        }
 
     // Le code de gestion de la confirmation de suppression a été déplacé dans delete-confirmation.js
     </script>

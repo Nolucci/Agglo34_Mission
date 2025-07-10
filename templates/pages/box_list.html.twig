@@ -569,47 +569,48 @@
                 });
             }
 
-            // Fonction pour récupérer les filtres actifs
-            function getActiveFilters() {
-                const filters = {};
+        });
 
-                // Récupérer les filtres depuis le formulaire de filtres
-                const filterForm = document.getElementById('box-filter-form');
-                if (filterForm) {
-                    const commune = document.getElementById('filter-municipality');
-                    if (commune && commune.value) {
-                        filters.municipality = commune.value;
-                    }
+        // Fonction pour récupérer les filtres actifs pour les exports (accessible globalement)
+        function getActiveFilters() {
+            const filters = {};
 
-                    const service = document.getElementById('filter-service');
-                    if (service && service.value) {
-                        filters.service = service.value;
-                    }
-
-                    const type = document.getElementById('filter-type');
-                    if (type && type.value) {
-                        filters.type = type.value;
-                    }
-
-                    const statut = document.getElementById('filter-status');
-                    if (statut && statut.value) {
-                        filters.status = statut.value;
-                    }
-
-                    const adresse = document.getElementById('filter-adresse');
-                    if (adresse && adresse.value) {
-                        filters.adresse = adresse.value;
-                    }
-
-                    const ligneSupport = document.getElementById('filter-ligne_support');
-                    if (ligneSupport && ligneSupport.value) {
-                        filters.ligne_support = ligneSupport.value;
-                    }
+            // Récupérer les filtres depuis le formulaire de filtres
+            const filterForm = document.getElementById('box-filter-form');
+            if (filterForm) {
+                const commune = document.getElementById('filter-municipality');
+                if (commune && commune.value) {
+                    filters.municipality = commune.value;
                 }
 
-                return filters;
+                const service = document.getElementById('filter-service');
+                if (service && service.value) {
+                    filters.service = service.value;
+                }
+
+                const type = document.getElementById('filter-type');
+                if (type && type.value) {
+                    filters.type = type.value;
+                }
+
+                const statut = document.getElementById('filter-status');
+                if (statut && statut.value) {
+                    filters.status = statut.value;
+                }
+
+                const adresse = document.getElementById('filter-adresse');
+                if (adresse && adresse.value) {
+                    filters.adresse = adresse.value;
+                }
+
+                const ligneSupport = document.getElementById('filter-ligne_support');
+                if (ligneSupport && ligneSupport.value) {
+                    filters.ligne_support = ligneSupport.value;
+                }
             }
-        });
+
+            return filters;
+        }
     // Le code de gestion de la confirmation de suppression a été déplacé dans delete-confirmation.js
     </script>
 {% endblock %}
