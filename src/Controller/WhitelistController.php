@@ -341,4 +341,24 @@ class WhitelistController extends AbstractController
         }
     }
 
+    #[Route('/api/remove-all', name: 'admin_whitelist_api_remove_all', methods: ['POST'])]
+    public function removeAllUsers(): JsonResponse
+    {
+        try {
+            $count = $this->whitelistService->removeAllUsers();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => sprintf('%d utilisateur(s) supprimé(s) de la whitelist avec succès', $count),
+                'count' => $count
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de tous les utilisateurs : ' . $e->getMessage()
+            ]);
+        }
+    }
+
 }

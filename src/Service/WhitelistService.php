@@ -240,4 +240,23 @@ class WhitelistService
 
         return true;
     }
+
+    /**
+     * Supprime tous les utilisateurs de la whitelist
+     */
+    public function removeAllUsers(): int
+    {
+        $whitelistEntries = $this->whitelistRepository->findAll();
+        $count = count($whitelistEntries);
+
+        foreach ($whitelistEntries as $entry) {
+            $this->entityManager->remove($entry);
+        }
+
+        $this->entityManager->flush();
+
+        $this->logger->info('Tous les utilisateurs ont été supprimés de la whitelist', ['count' => $count]);
+
+        return $count;
+    }
 }

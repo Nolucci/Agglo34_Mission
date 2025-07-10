@@ -9,9 +9,14 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h3 class="card-title">Gestion de la Whitelist LDAP</h3>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                        <i class="fas fa-plus"></i> Ajouter un utilisateur
-                    </button>
+                    <div>
+                        <button type="button" class="btn btn-danger me-2" onclick="removeAllUsers()" id="removeAllBtn">
+                            <i class="fas fa-trash-alt"></i> Supprimer tous
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="fas fa-plus"></i> Ajouter un utilisateur
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     {% if not is_ldap_enabled %}
@@ -356,6 +361,52 @@ function removeUser(username) {
         });
     }
 }
-</script>
+
+function removeAllUsers() {
+    const userCount = document.querySelectorAll('#whitelistTable tbody tr[data-username]').length;
+
+    if (userCount === 0) {
+        alert('Aucun utilisateur à supprimer');
+        return;
+    }
+
+    if (confirm(`Êtes-vous sûr de vouloir supprimer TOUS les ${userCount} utilisateur(s) de la whitelist ?\n\nCette action est irréversible !`)) {
+        const btn = document.getElementById('removeAllBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Suppression...';
+        btn.disabled = true;
+
+        fetch('{{ path('admin_whitelist_api_remove_all') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Vider le tableau
+                const tableBody = document.querySelector('#whitelistTable tbody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Aucun utilisateur dans la whitelist
+                        </td>
+                    </tr>
+                `;
+                alert(data.message);
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erreur lors de la suppression de tous les utilisateurs');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+}
 </script>
 {% endblock %}
