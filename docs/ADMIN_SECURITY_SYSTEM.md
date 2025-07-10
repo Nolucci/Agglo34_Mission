@@ -20,7 +20,7 @@ Le système de sécurité a été entièrement refondu pour éliminer les vulné
 ## Compte Administrateur par Défaut
 
 ### Identifiants
-- **Email**: `admin@agglo34.local`
+- **Email**: `admin@beziers-mediterranee.fr`
 - **Nom d'utilisateur LDAP**: `admin`
 - **Nom**: `Administrateur`
 - **Rôles**: `ROLE_ADMIN`
@@ -41,7 +41,7 @@ Le mode maintenance peut être activé depuis les paramètres de l'application. 
 
 ### Utilisation
 1. Activez le mode maintenance dans les paramètres
-2. Connectez-vous avec le compte admin (`admin@agglo34.local`)
+2. Connectez-vous avec le compte admin (`admin@beziers-mediterranee.fr`)
 3. Effectuez les opérations de maintenance nécessaires
 4. Désactivez le mode maintenance
 

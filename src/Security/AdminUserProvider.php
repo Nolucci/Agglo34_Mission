@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 class AdminUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
     private const ADMIN_USERNAME = 'admin';
-    private const ADMIN_EMAIL = 'admin@agglo34.local';
+    private const ADMIN_EMAIL = 'admin@beziers-mediterranee.fr';
     private const ADMIN_NAME = 'Administrateur';
 
     public function __construct(

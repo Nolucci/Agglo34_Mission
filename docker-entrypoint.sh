@@ -27,11 +27,11 @@ else
 fi
 
 # Vérifier si l'utilisateur admin existe déjà
-ADMIN_EXISTS=$(php bin/console doctrine:query:sql "SELECT COUNT(*) FROM user WHERE email = 'admin@agglo34.local'" 2>/dev/null | tail -n 1 || echo "0")
+ADMIN_EXISTS=$(php bin/console doctrine:query:sql "SELECT COUNT(*) FROM user WHERE email = 'admin@beziers-mediterranee.fr'" 2>/dev/null | tail -n 1 || echo "0")
 
 if [ "$ADMIN_EXISTS" = "0" ]; then
     echo "👤 Création de l'utilisateur administrateur par défaut..."
-    php bin/console app:create-admin-user admin admin@agglo34.local admin123 --no-interaction
+    php bin/console app:create-admin-user admin admin@beziers-mediterranee.fr admin123 --no-interaction
     echo "✅ Utilisateur administrateur créé !"
 else
     echo "ℹ️ Utilisateur administrateur déjà existant..."

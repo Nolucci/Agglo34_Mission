@@ -107,7 +107,7 @@ docker-compose exec app php bin/console cache:clear --env=prod
 docker-compose exec app php bin/console app:create-admin-user
 
 # OU avec des paramètres directs
-docker-compose exec app php bin/console app:create-admin-user admin admin@agglo34.local motdepasse
+docker-compose exec app php bin/console app:create-admin-user admin admin@beziers-mediterranee.fr motdepasse
 ```
 
 ### 8. Configurer les permissions
@@ -144,7 +144,7 @@ docker-compose exec database psql -U admin -d agglo34_db -c "SELECT version();"
 
 - **Application Web** : http://localhost:4080
 - **PgAdmin** : http://localhost:4081
-  - Email : admin@agglo34.local
+  - Email : admin@beziers-mediterranee.fr
   - Mot de passe : admin123
 - **Base de données PostgreSQL** : localhost:4032
   - Utilisateur : admin

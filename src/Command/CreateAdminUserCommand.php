@@ -48,7 +48,7 @@ class CreateAdminUserCommand extends Command
         }
 
         if (!$email) {
-            $email = $io->ask('Adresse email', 'admin@agglo34.local');
+            $email = $io->ask('Adresse email', 'admin@beziers-mediterranee.fr');
         }
 
         if (!$password) {

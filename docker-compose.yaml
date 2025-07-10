@@ -35,7 +35,7 @@ services:
     image: dpage/pgadmin4
     container_name: sru_pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@agglo34.local
+      PGADMIN_DEFAULT_EMAIL: admin@beziers-mediterranee.fr
       PGADMIN_DEFAULT_PASSWORD: admin123
     volumes:
       - pgadmin_data:/var/lib/pgadmin

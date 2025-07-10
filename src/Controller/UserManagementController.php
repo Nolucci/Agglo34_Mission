@@ -40,7 +40,7 @@ class UserManagementController extends AbstractController
         }
 
         // Vérifier que ce n'est pas l'utilisateur admin par défaut
-        if ($user->getEmail() === 'admin@agglo34.local') {
+        if ($user->getEmail() === 'admin@beziers-mediterranee.fr') {
             return new JsonResponse(['success' => false, 'message' => 'Impossible de modifier les rôles de l\'administrateur par défaut']);
         }
 
