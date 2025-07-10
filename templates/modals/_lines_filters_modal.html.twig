@@ -20,11 +20,11 @@
                                     <option value="">Tous les opérateurs</option>
                                     {% set operators = {} %}
                                     {% for line in phoneLines %}
-                                        {% if line.operator is not null and line.operator|lower not in operators|keys %}
-                                            {% set operators = operators|merge({(line.operator|lower): line.operator}) %}
+                                        {% if line.operator is not null and line.operator != '' and line.operator not in operators %}
+                                            {% set operators = operators|merge([line.operator]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for key, operator in operators|sort %}
+                                    {% for operator in operators|sort %}
                                         <option value="{{ operator }}">{{ operator }}</option>
                                     {% endfor %}
                                 </select>
@@ -37,11 +37,11 @@
                                     <option value="">Tous les types</option>
                                     {% set lineTypes = {} %}
                                     {% for line in phoneLines %}
-                                        {% if line.lineType is not null and line.lineType|lower not in lineTypes|keys %}
-                                            {% set lineTypes = lineTypes|merge({(line.lineType|lower): line.lineType}) %}
+                                        {% if line.lineType is not null and line.lineType != '' and line.lineType not in lineTypes %}
+                                            {% set lineTypes = lineTypes|merge([line.lineType]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for key, type in lineTypes|sort %}
+                                    {% for type in lineTypes|sort %}
                                         <option value="{{ type }}">{{ type }}</option>
                                     {% endfor %}
                                 </select>
@@ -56,11 +56,11 @@
                                     <option value="">Tous les services</option>
                                     {% set services = {} %}
                                     {% for line in phoneLines %}
-                                        {% if line.service is not null and line.service|lower not in services|keys %}
-                                            {% set services = services|merge({(line.service|lower): line.service}) %}
+                                        {% if line.service is not null and line.service != '' and line.service not in services %}
+                                            {% set services = services|merge([line.service]) %}
                                         {% endif %}
                                     {% endfor %}
-                                    {% for key, service in services|sort %}
+                                    {% for service in services|sort %}
                                         <option value="{{ service }}">{{ service }}</option>
                                     {% endfor %}
                                 </select>

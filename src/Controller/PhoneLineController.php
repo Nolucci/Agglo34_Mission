@@ -365,6 +365,10 @@ class PhoneLineController extends AbstractController
 
         $filters = $this->getFiltersFromRequest($request);
 
+        // Debug: Log des filtres reçus
+        error_log('Filtres reçus: ' . json_encode($filters));
+        error_log('Paramètres de requête: ' . json_encode($request->query->all()));
+
         // Si un filtre de municipalité est présent, récupérer le nom de la municipalité
         if (isset($filters['municipality']) && !empty($filters['municipality'])) {
             $municipalityId = $filters['municipality'];

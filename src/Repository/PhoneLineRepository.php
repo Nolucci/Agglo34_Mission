@@ -182,16 +182,16 @@ class PhoneLineRepository extends ServiceEntityRepository
     private function applyFilters(\Doctrine\ORM\QueryBuilder $qb, array $filters): void
     {
         if (isset($filters['operator']) && $filters['operator'] !== '') {
-            $qb->andWhere('LOWER(pl.operator) LIKE :operator')
-               ->setParameter('operator', '%' . strtolower($filters['operator']) . '%');
+            $qb->andWhere('pl.operator = :operator')
+               ->setParameter('operator', $filters['operator']);
         }
         if (isset($filters['lineType']) && $filters['lineType'] !== '') {
-            $qb->andWhere('LOWER(pl.lineType) LIKE :lineType')
-               ->setParameter('lineType', '%' . strtolower($filters['lineType']) . '%');
+            $qb->andWhere('pl.lineType = :lineType')
+               ->setParameter('lineType', $filters['lineType']);
         }
         if (isset($filters['service']) && $filters['service'] !== '') {
-            $qb->andWhere('LOWER(pl.service) LIKE :service')
-               ->setParameter('service', '%' . strtolower($filters['service']) . '%');
+            $qb->andWhere('pl.service = :service')
+               ->setParameter('service', $filters['service']);
         }
         if (isset($filters['municipality']) && $filters['municipality'] !== '') {
             // Si c'est un ID numérique, filtrer par ID
