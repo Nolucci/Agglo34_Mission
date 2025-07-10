@@ -203,3 +203,39 @@ window.deleteBox = function(boxId) {
         alert("Erreur lors de la suppression de la box.");
     });
 };
+
+// Gestion des filtres
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('apply-box-filters');
+    const resetFiltersBtn = document.getElementById('reset-box-filters');
+    const boxFilterForm = document.getElementById('box-filter-form');
+
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            const filters = {};
+            const formData = new FormData(boxFilterForm);
+
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    filters[key] = value;
+                }
+            }
+
+            // Appeler la fonction de chargement des boxs avec les filtres
+            window.loadBoxes(1, '', filters); // Réinitialiser la page à 1, vider le terme de recherche générique
+            $('#boxFiltersModal').modal('hide'); // Fermer la modale
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            // Réinitialiser le formulaire de filtres
+            if (boxFilterForm) {
+                boxFilterForm.reset();
+            }
+            // Recharger les boxs sans filtres
+            window.loadBoxes(1);
+            $('#boxFiltersModal').modal('hide'); // Fermer la modale
+        });
+    }
+});

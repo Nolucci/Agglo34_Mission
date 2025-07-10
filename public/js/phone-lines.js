@@ -332,3 +332,84 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Gestion des filtres
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const lignesFiltersForm = document.getElementById('lignesFiltersForm');
+
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            const filters = {};
+            // Récupérer les valeurs des champs de filtre
+            const operator = document.getElementById('operatorFilter').value;
+            const lineType = document.getElementById('lineTypeFilter').value;
+            const service = document.getElementById('serviceFilter').value;
+            const municipality = document.getElementById('municipalityFilter').value;
+            const location = document.getElementById('locationFilter').value;
+            const assignedTo = document.getElementById('assignedToFilter').value;
+            const directLine = document.getElementById('directLineFilter').value;
+            const shortNumber = document.getElementById('shortNumberFilter').value;
+
+            if (operator) filters.operator = operator;
+            if (lineType) filters.lineType = lineType;
+            if (service) filters.service = service;
+            if (municipality) filters.municipality = municipality;
+            if (location) filters.location = location;
+            if (assignedTo) filters.assignedTo = assignedTo;
+            if (directLine) filters.directLine = directLine;
+            if (shortNumber) filters.shortNumber = shortNumber;
+
+            // Appeler la fonction de chargement des lignes avec les filtres
+            window.loadPhoneLines(1, '', filters); // Réinitialiser la page à 1, vider le terme de recherche générique
+            $('#lignesFiltersModal').modal('hide'); // Fermer la modale
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            // Réinitialiser le formulaire de filtres
+            if (lignesFiltersForm) {
+                lignesFiltersForm.reset();
+            }
+            // Recharger les lignes sans filtres
+            window.loadPhoneLines(1);
+            $('#lignesFiltersModal').modal('hide'); // Fermer la modale
+        });
+    }
+});
+
+// Modifier la fonction loadPhoneLines pour accepter les filtres
+window.loadPhoneLines = function(page = 1, searchTerm = '', filters = {}) {
+    const url = new URL('/api/phone-line/list', window.location.origin);
+    url.searchParams.set('page', page);
+    url.searchParams.set('limit', window.itemsPerPage);
+    if (searchTerm) {
+        url.searchParams.set('search', searchTerm);
+    }
+
+    // Ajouter les filtres à l'URL
+    for (const key in filters) {
+        if (filters.hasOwnProperty(key) && filters[key]) {
+            url.searchParams.set(key, filters[key]);
+        }
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            window.allPhoneLines = data.data;
+            window.displayedPhoneLines = [...window.allPhoneLines];
+            window.totalItems = data.total;
+            window.totalPages = data.totalPages;
+            window.currentPage = data.page;
+            window.currentSearchTerm = searchTerm; // Conserver le terme de recherche générique
+
+            window.renderLinesTable(window.displayedPhoneLines);
+            window.renderPagination();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des lignes téléphoniques:', error);
+        });
+}

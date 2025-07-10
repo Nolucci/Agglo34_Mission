@@ -398,25 +398,18 @@ class EquipmentController extends AbstractController
         $search = $request->query->get('search', '');
         $offset = ($page - 1) * $limit;
 
+        $filters = $this->getFiltersFromRequest($request);
+
         // Si une recherche est effectuée, utiliser la nouvelle méthode de recherche
         if (!empty($search)) {
-            $result = $this->equipmentRepository->searchWithPagination($search, $page, $limit);
+            $result = $this->equipmentRepository->searchWithPagination($search, $page, $limit, $filters);
             $equipments = $result['data'];
             $totalEquipments = $result['total'];
         } else {
-            $totalEquipments = $this->equipmentRepository->count([]);
-
-            // Récupérer les paramètres de tri
-            $sort = $request->query->get('sort', 'commune.name');
-            $order = strtoupper($request->query->get('order', 'asc'));
-
-            // Utiliser la méthode appropriée selon les paramètres de tri
-            if ($sort === 'commune.name') {
-                $equipments = $this->equipmentRepository->findAllWithCommuneOrdered($limit, $offset);
-            } else {
-                // Pour d'autres critères de tri, utiliser la méthode standard
-                $equipments = $this->equipmentRepository->findAllWithCommune($limit, $offset);
-            }
+            // Utiliser la méthode de filtrage existante
+            $result = $this->equipmentRepository->findFilteredEquipments($filters, $page, $limit);
+            $equipments = $result['data'];
+            $totalEquipments = $result['total'];
         }
 
         $result = [];

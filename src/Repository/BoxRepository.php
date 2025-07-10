@@ -51,7 +51,7 @@ class BoxRepository extends ServiceEntityRepository
      * @param int $limit Nombre d'éléments par page
      * @return array
      */
-    public function searchWithPagination(string $searchTerm, int $page = 1, int $limit = 50): array
+    public function searchWithPagination(string $searchTerm, int $page = 1, int $limit = 50, array $filters = []): array
     {
         $offset = ($page - 1) * $limit;
 
@@ -59,42 +59,120 @@ class BoxRepository extends ServiceEntityRepository
             ->leftJoin('b.commune', 'm')
             ->addSelect('m');
 
-        // Recherche dans tous les champs pertinents
-        $qb->where(
-            $qb->expr()->orX(
-                $qb->expr()->like('LOWER(b.service)', ':searchTerm'),
-                $qb->expr()->like('LOWER(b.adresse)', ':searchTerm'),
-                $qb->expr()->like('LOWER(b.ligneSupport)', ':searchTerm'),
-                $qb->expr()->like('LOWER(b.type)', ':searchTerm'),
-                $qb->expr()->like('LOWER(b.statut)', ':searchTerm'),
-                $qb->expr()->like('LOWER(m.name)', ':searchTerm')
+        // Appliquer le terme de recherche générique
+        if (!empty($searchTerm)) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->like('LOWER(b.service)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(b.adresse)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(b.ligneSupport)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(b.type)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(b.statut)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(m.name)', ':searchTerm')
+                )
             )
-        )
-        ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%');
+            ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%');
+        }
+
+        // Appliquer les filtres spécifiques
+        $this->applyFilters($qb, $filters);
 
         // Compter le total des résultats
         $countQb = $this->createQueryBuilder('b_count')
-            ->leftJoin('b_count.commune', 'm_count')
-            ->where(
-                $this->createQueryBuilder('b_count')->expr()->orX(
-                    $this->createQueryBuilder('b_count')->expr()->like('LOWER(b_count.service)', ':searchTerm'),
-                    $this->createQueryBuilder('b_count')->expr()->like('LOWER(b_count.adresse)', ':searchTerm'),
-                    $this->createQueryBuilder('b_count')->expr()->like('LOWER(b_count.ligneSupport)', ':searchTerm'),
-                    $this->createQueryBuilder('b_count')->expr()->like('LOWER(b_count.type)', ':searchTerm'),
-                    $this->createQueryBuilder('b_count')->expr()->like('LOWER(b_count.statut)', ':searchTerm'),
-                    $this->createQueryBuilder('b_count')->expr()->like('LOWER(m_count.name)', ':searchTerm')
+            ->leftJoin('b_count.commune', 'm_count');
+
+        if (!empty($searchTerm)) {
+            $countQb->andWhere(
+                $countQb->expr()->orX(
+                    $countQb->expr()->like('LOWER(b_count.service)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(b_count.adresse)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(b_count.ligneSupport)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(b_count.type)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(b_count.statut)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(m_count.name)', ':searchTerm')
                 )
             )
-            ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%')
-            ->select('COUNT(b_count.id)');
+            ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%');
+        }
+        $this->applyFilters($countQb, $filters);
 
-        $totalResults = $countQb->getQuery()->getSingleScalarResult();
+        $totalResults = $countQb->select('COUNT(b_count.id)')->getQuery()->getSingleScalarResult();
 
         // Récupérer les résultats paginés
         $qb->orderBy('m.name', 'ASC')
             ->addOrderBy('b.service', 'ASC');
 
+        $results = $qb->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $results,
+            'total' => $totalResults
+        ];
+    }
+
+    /**
+     * Applique les filtres au QueryBuilder.
+     * @param \Doctrine\ORM\QueryBuilder $qb
+     * @param array $filters
+     */
+    private function applyFilters(\Doctrine\ORM\QueryBuilder $qb, array $filters): void
+    {
+        if (isset($filters['municipality']) && $filters['municipality'] !== '') {
+            $qb->andWhere('m.id = :municipalityId')
+               ->setParameter('municipalityId', $filters['municipality']);
+        }
+        if (isset($filters['service']) && $filters['service'] !== '') {
+            $qb->andWhere('LOWER(b.service) LIKE :service')
+               ->setParameter('service', '%' . strtolower($filters['service']) . '%');
+        }
+        if (isset($filters['type']) && $filters['type'] !== '') {
+            $qb->andWhere('LOWER(b.type) LIKE :type')
+               ->setParameter('type', '%' . strtolower($filters['type']) . '%');
+        }
+        if (isset($filters['adresse']) && $filters['adresse'] !== '') {
+            $qb->andWhere('LOWER(b.adresse) LIKE :adresse')
+               ->setParameter('adresse', '%' . strtolower($filters['adresse']) . '%');
+        }
+        if (isset($filters['ligne_support']) && $filters['ligne_support'] !== '') {
+            $qb->andWhere('LOWER(b.ligneSupport) LIKE :ligneSupport')
+               ->setParameter('ligneSupport', '%' . strtolower($filters['ligne_support']) . '%');
+        }
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $qb->andWhere('LOWER(b.statut) LIKE :status')
+               ->setParameter('status', '%' . strtolower($filters['status']) . '%');
+        }
+    }
+
+    /**
+     * Récupère les boxs filtrées avec pagination.
+     * @param array $filters Critères de filtrage
+     * @param int $page Page actuelle
+     * @param int $limit Nombre d'éléments par page
+     * @return array
+     */
+    public function findFilteredBoxes(array $filters, int $page = 1, int $limit = 50): array
+    {
+        $offset = ($page - 1) * $limit;
+
+        $qb = $this->createQueryBuilder('b')
+            ->leftJoin('b.commune', 'm')
+            ->addSelect('m');
+
+        $this->applyFilters($qb, $filters);
+
+        // Compter le total des résultats
+        $countQb = $this->createQueryBuilder('b_count')
+            ->leftJoin('b_count.commune', 'm_count');
+        $this->applyFilters($countQb, $filters);
+        $totalResults = $countQb->select('COUNT(b_count.id)')->getQuery()->getSingleScalarResult();
+
         // Récupérer les résultats paginés
+        $qb->orderBy('m.name', 'ASC')
+            ->addOrderBy('b.service', 'ASC');
+
         $results = $qb->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()

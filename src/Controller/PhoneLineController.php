@@ -364,25 +364,18 @@ class PhoneLineController extends AbstractController
         $search = $request->query->get('search', '');
         $offset = ($page - 1) * $limit;
 
+        $filters = $this->getFiltersFromRequest($request);
+
         // Si une recherche est effectuée, utiliser la nouvelle méthode de recherche
         if (!empty($search)) {
-            $result = $this->phoneLineRepository->searchWithPagination($search, $page, $limit);
+            $result = $this->phoneLineRepository->searchWithPagination($search, $page, $limit, $filters);
             $phoneLines = $result['data'];
             $totalPhoneLines = $result['total'];
         } else {
-            // Récupérer les paramètres de tri
-            $sort = $request->query->get('sort', 'municipality.name');
-            $order = strtoupper($request->query->get('order', 'asc'));
-
-            $totalPhoneLines = $this->phoneLineRepository->count([]);
-
-            // Utiliser la méthode appropriée selon les paramètres de tri
-            if ($sort === 'municipality.name') {
-                $phoneLines = $this->phoneLineRepository->findAllOrderedByMunicipality($limit, $offset);
-            } else {
-                // Pour d'autres critères de tri, utiliser la méthode standard
-                $phoneLines = $this->phoneLineRepository->findBy([], null, $limit, $offset);
-            }
+            // Utiliser la méthode de filtrage existante
+            $result = $this->phoneLineRepository->findFilteredPhoneLines($filters, $page, $limit);
+            $phoneLines = $result['data'];
+            $totalPhoneLines = $result['total'];
         }
 
         $data = [];

@@ -127,14 +127,18 @@ class BoxController extends AbstractController
         $sort = $request->query->get('sort');
         $order = $request->query->get('order');
 
+        $filters = $this->getFiltersFromRequest($request);
+
         // Si une recherche est effectuée, utiliser la nouvelle méthode de recherche
         if (!empty($search)) {
-            $result = $this->boxRepository->searchWithPagination($search, $page, $limit);
+            $result = $this->boxRepository->searchWithPagination($search, $page, $limit, $filters);
             $boxes = $result['data'];
             $totalBoxes = $result['total'];
         } else {
-            $boxes = $this->boxRepository->getPaginatedBoxes($page, $limit, $sort, $order);
-            $totalBoxes = $this->boxRepository->countAll();
+            // Utiliser la méthode de filtrage existante
+            $result = $this->boxRepository->findFilteredBoxes($filters, $page, $limit);
+            $boxes = $result['data'];
+            $totalBoxes = $result['total'];
         }
 
         $boxData = [];

@@ -270,3 +270,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Gestion des filtres
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('apply-park-filters');
+    const resetFiltersBtn = document.getElementById('reset-park-filters');
+    const parkFilterForm = document.getElementById('park-filter-form');
+
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            const filters = {};
+            const formData = new FormData(parkFilterForm);
+
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    filters[key] = value;
+                }
+            }
+
+            // Appeler la fonction de chargement des équipements avec les filtres
+            window.loadEquipments(1, '', filters); // Réinitialiser la page à 1, vider le terme de recherche générique
+            $('#parkFiltersModal').modal('hide'); // Fermer la modale
+        });
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            // Réinitialiser le formulaire de filtres
+            if (parkFilterForm) {
+                parkFilterForm.reset();
+            }
+            // Recharger les équipements sans filtres
+            window.loadEquipments(1);
+            $('#parkFiltersModal').modal('hide'); // Fermer la modale
+        });
+    }
+});

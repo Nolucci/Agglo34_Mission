@@ -104,7 +104,7 @@ class PhoneLineRepository extends ServiceEntityRepository
      * @param int $limit Nombre d'éléments par page
      * @return array
      */
-    public function searchWithPagination(string $searchTerm, int $page = 1, int $limit = 50): array
+    public function searchWithPagination(string $searchTerm, int $page = 1, int $limit = 50, array $filters = []): array
     {
         $offset = ($page - 1) * $limit;
 
@@ -112,50 +112,136 @@ class PhoneLineRepository extends ServiceEntityRepository
             ->leftJoin('pl.municipality', 'm')
             ->addSelect('m');
 
-        // Recherche dans tous les champs pertinents
-        $qb->where(
-            $qb->expr()->orX(
-                $qb->expr()->like('LOWER(pl.location)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.service)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.assignedTo)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.phoneBrand)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.model)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.operator)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.lineType)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.directLine)', ':searchTerm'),
-                $qb->expr()->like('LOWER(pl.shortNumber)', ':searchTerm'),
-                $qb->expr()->like('LOWER(m.name)', ':searchTerm')
+        // Appliquer le terme de recherche générique
+        if (!empty($searchTerm)) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->like('LOWER(pl.location)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.service)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.assignedTo)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.phoneBrand)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.model)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.operator)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.lineType)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.directLine)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(pl.shortNumber)', ':searchTerm'),
+                    $qb->expr()->like('LOWER(m.name)', ':searchTerm')
+                )
             )
-        )
-        ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%');
+            ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%');
+        }
+
+        // Appliquer les filtres spécifiques
+        $this->applyFilters($qb, $filters);
 
         // Compter le total des résultats
         $countQb = $this->createQueryBuilder('pl_count')
-            ->leftJoin('pl_count.municipality', 'm_count')
-            ->where(
-                $this->createQueryBuilder('pl_count')->expr()->orX(
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.location)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.service)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.assignedTo)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.phoneBrand)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.model)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.operator)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.lineType)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.directLine)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(pl_count.shortNumber)', ':searchTerm'),
-                    $this->createQueryBuilder('pl_count')->expr()->like('LOWER(m_count.name)', ':searchTerm')
+            ->leftJoin('pl_count.municipality', 'm_count');
+
+        if (!empty($searchTerm)) {
+            $countQb->andWhere(
+                $countQb->expr()->orX(
+                    $countQb->expr()->like('LOWER(pl_count.location)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.service)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.assignedTo)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.phoneBrand)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.model)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.operator)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.lineType)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.directLine)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(pl_count.shortNumber)', ':searchTerm'),
+                    $countQb->expr()->like('LOWER(m_count.name)', ':searchTerm')
                 )
             )
-            ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%')
-            ->select('COUNT(pl_count.id)');
+            ->setParameter('searchTerm', '%' . strtolower($searchTerm) . '%');
+        }
+        $this->applyFilters($countQb, $filters);
 
-        $totalResults = $countQb->getQuery()->getSingleScalarResult();
+        $totalResults = $countQb->select('COUNT(pl_count.id)')->getQuery()->getSingleScalarResult();
 
         // Récupérer les résultats paginés
         $qb->orderBy('m.name', 'ASC')
             ->addOrderBy('pl.service', 'ASC');
 
+        $results = $qb->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $results,
+            'total' => $totalResults
+        ];
+    }
+
+    /**
+     * Applique les filtres au QueryBuilder.
+     * @param \Doctrine\ORM\QueryBuilder $qb
+     * @param array $filters
+     */
+    private function applyFilters(\Doctrine\ORM\QueryBuilder $qb, array $filters): void
+    {
+        if (isset($filters['operator']) && $filters['operator'] !== '') {
+            $qb->andWhere('pl.operator = :operator')
+               ->setParameter('operator', $filters['operator']);
+        }
+        if (isset($filters['lineType']) && $filters['lineType'] !== '') {
+            $qb->andWhere('pl.lineType = :lineType')
+               ->setParameter('lineType', $filters['lineType']);
+        }
+        if (isset($filters['service']) && $filters['service'] !== '') {
+            $qb->andWhere('pl.service = :service')
+               ->setParameter('service', $filters['service']);
+        }
+        if (isset($filters['municipality']) && $filters['municipality'] !== '') {
+            $qb->andWhere('m.id = :municipalityId')
+               ->setParameter('municipalityId', $filters['municipality']);
+        }
+        if (isset($filters['location']) && $filters['location'] !== '') {
+            $qb->andWhere('LOWER(pl.location) LIKE :location')
+               ->setParameter('location', '%' . strtolower($filters['location']) . '%');
+        }
+        if (isset($filters['assignedTo']) && $filters['assignedTo'] !== '') {
+            $qb->andWhere('LOWER(pl.assignedTo) LIKE :assignedTo')
+               ->setParameter('assignedTo', '%' . strtolower($filters['assignedTo']) . '%');
+        }
+        if (isset($filters['directLine']) && $filters['directLine'] !== '') {
+            $qb->andWhere('LOWER(pl.directLine) LIKE :directLine')
+               ->setParameter('directLine', '%' . strtolower($filters['directLine']) . '%');
+        }
+        if (isset($filters['shortNumber']) && $filters['shortNumber'] !== '') {
+            $qb->andWhere('LOWER(pl.shortNumber) LIKE :shortNumber')
+               ->setParameter('shortNumber', '%' . strtolower($filters['shortNumber']) . '%');
+        }
+    }
+
+    /**
+     * Récupère les lignes téléphoniques filtrées avec pagination.
+     * @param array $filters Critères de filtrage
+     * @param int $page Page actuelle
+     * @param int $limit Nombre d'éléments par page
+     * @return array
+     */
+    public function findFilteredPhoneLines(array $filters, int $page = 1, int $limit = 50): array
+    {
+        $offset = ($page - 1) * $limit;
+
+        $qb = $this->createQueryBuilder('pl')
+            ->leftJoin('pl.municipality', 'm')
+            ->addSelect('m');
+
+        $this->applyFilters($qb, $filters);
+
+        // Compter le total des résultats
+        $countQb = $this->createQueryBuilder('pl_count')
+            ->leftJoin('pl_count.municipality', 'm_count');
+        $this->applyFilters($countQb, $filters);
+        $totalResults = $countQb->select('COUNT(pl_count.id)')->getQuery()->getSingleScalarResult();
+
         // Récupérer les résultats paginés
+        $qb->orderBy('m.name', 'ASC')
+            ->addOrderBy('pl.service', 'ASC');
+
         $results = $qb->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()

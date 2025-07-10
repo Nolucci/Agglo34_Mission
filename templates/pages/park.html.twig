@@ -212,7 +212,7 @@
         window.currentSearchTerm = '';
 
         // Charger les données des équipements avec pagination
-        window.loadEquipments = function(page = 1, searchTerm = '') {
+        window.loadEquipments = function(page = 1, searchTerm = '', filters = {}) {
             const url = new URL('/equipment/list', window.location.origin);
             url.searchParams.set('page', page);
             url.searchParams.set('limit', window.itemsPerPage);
@@ -220,6 +220,13 @@
             url.searchParams.set('order', 'asc');
             if (searchTerm) {
                 url.searchParams.set('search', searchTerm);
+            }
+
+            // Ajouter les filtres à l'URL
+            for (const key in filters) {
+                if (filters.hasOwnProperty(key) && filters[key]) {
+                    url.searchParams.set(key, filters[key]);
+                }
             }
 
             fetch(url)
