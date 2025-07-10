@@ -436,10 +436,10 @@ document.addEventListener('DOMContentLoaded', function() {
             modalTitle.textContent = title;
             modalBody.textContent = message;
 
-            // Cacher le bouton confirmer
+            // Supprimer le bouton confirmer
             const confirmButton = modal.querySelector('.btn-primary');
             if (confirmButton) {
-                confirmButton.style.display = 'none';
+                confirmButton.remove();
             }
 
             //Show Modal use jQuery if bootstrap version is < 5.0
@@ -448,10 +448,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Auto-fermer le modal après 3 secondes
             setTimeout(() => {
                 $(modal).modal('hide');
-                // Remettre le bouton confirmer visible pour les autres usages
-                if (confirmButton) {
-                    confirmButton.style.display = 'block';
-                }
             }, 3000);
         }
         else

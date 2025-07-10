@@ -563,26 +563,8 @@ class EquipmentController extends AbstractController
                 continue;
             }
 
-            // Déplacer le fichier dans le répertoire des uploads
-            $originalFilename = $file->getClientOriginalName();
-            $safeFilename = str_replace(' ', '-', $originalFilename);
-            $newFilename = $safeFilename . '-' . uniqid() . '.' . $file->guessExtension();
-
-            try {
-                $file->move(
-                    $this->uploadsDirectory,
-                    $newFilename
-                );
-                $uploadPath = $this->uploadsDirectory . '/' . $newFilename;
-                error_log("Fichier déplacé vers: {$uploadPath}");
-            } catch (\Exception $e) {
-                error_log("Erreur lors du déplacement du fichier: " . $e->getMessage());
-                $allErrors[] = "Erreur lors du déplacement du fichier: " . $e->getMessage();
-                continue;
-            }
-
-            $filePath = $uploadPath;
-            $fileName = $originalFilename;
+            $filePath = $file->getPathname();
+            $fileName = $file->getClientOriginalName();
 
             error_log("Traitement du fichier: {$fileName}, chemin: {$filePath}");
 
