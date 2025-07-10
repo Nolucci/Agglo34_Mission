@@ -126,14 +126,14 @@ class BoxRepository extends ServiceEntityRepository
                 $qb->andWhere('m.id = :municipalityId')
                    ->setParameter('municipalityId', $filters['municipality']);
             } else {
-                // Sinon, filtrer par nom (recherche partielle insensible à la casse)
-                $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
-                   ->setParameter('municipalityName', '%' . strtolower($filters['municipality']) . '%');
+                // Sinon, filtrer par nom (correspondance exacte insensible à la casse)
+                $qb->andWhere('LOWER(m.name) = :municipalityName')
+                   ->setParameter('municipalityName', strtolower($filters['municipality']));
             }
         }
         if (isset($filters['municipalityName']) && $filters['municipalityName'] !== '') {
-            $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
-               ->setParameter('municipalityName', '%' . strtolower($filters['municipalityName']) . '%');
+            $qb->andWhere('LOWER(m.name) = :municipalityName')
+               ->setParameter('municipalityName', strtolower($filters['municipalityName']));
         }
         if (isset($filters['service']) && $filters['service'] !== '') {
             $qb->andWhere('LOWER(b.service) LIKE :service')

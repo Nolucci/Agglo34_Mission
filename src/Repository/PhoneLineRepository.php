@@ -199,9 +199,9 @@ class PhoneLineRepository extends ServiceEntityRepository
                 $qb->andWhere('m.id = :municipalityId')
                    ->setParameter('municipalityId', $filters['municipality']);
             } else {
-                // Sinon, filtrer par nom (recherche partielle insensible à la casse)
-                $qb->andWhere('LOWER(m.name) LIKE :municipalityName')
-                   ->setParameter('municipalityName', '%' . strtolower($filters['municipality']) . '%');
+                // Sinon, filtrer par nom (correspondance exacte insensible à la casse)
+                $qb->andWhere('LOWER(m.name) = :municipalityName')
+                   ->setParameter('municipalityName', strtolower($filters['municipality']));
             }
         }
         if (isset($filters['location']) && $filters['location'] !== '') {

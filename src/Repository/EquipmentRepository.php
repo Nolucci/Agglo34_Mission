@@ -194,14 +194,14 @@ class EquipmentRepository extends ServiceEntityRepository
                 $qb->andWhere('m.id = :communeId')
                    ->setParameter('communeId', $filters['commune']);
             } else {
-                // Sinon, filtrer par nom (recherche partielle insensible à la casse)
-                $qb->andWhere('LOWER(m.name) LIKE :communeName')
-                   ->setParameter('communeName', '%' . strtolower($filters['commune']) . '%');
+                // Sinon, filtrer par nom (correspondance exacte insensible à la casse)
+                $qb->andWhere('LOWER(m.name) = :communeName')
+                   ->setParameter('communeName', strtolower($filters['commune']));
             }
         }
         if (isset($filters['communeName']) && $filters['communeName'] !== '') {
-            $qb->andWhere('LOWER(m.name) LIKE :communeName')
-               ->setParameter('communeName', '%' . strtolower($filters['communeName']) . '%');
+            $qb->andWhere('LOWER(m.name) = :communeName')
+               ->setParameter('communeName', strtolower($filters['communeName']));
         }
         if (isset($filters['statut']) && $filters['statut'] !== '') {
             $qb->andWhere('LOWER(e.statut) LIKE :statut')
