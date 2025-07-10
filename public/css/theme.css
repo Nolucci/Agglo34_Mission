@@ -14770,3 +14770,11 @@ canvas {
     pointer-events: none;
 }
 }
+
+/* Custom styles for larger modal */
+@media (min-width: 1200px) {
+    .modal-xl {
+        max-width: 1400px; /* Augmenter la largeur maximale */
+        width: 90%; /* Utiliser un pourcentage pour la largeur */
+    }
+}
